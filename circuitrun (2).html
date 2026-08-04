@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CircuitRun — components delivered to campus</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #12121A;
+    --bg-card: #1C1C27;
+    --bg-card-hover: #23232F;
+    --line: #2C2C39;
+    --lime: #C6FF3D;
+    --pink: #FF5FA8;
+    --cyan: #4DE8FF;
+    --text: #F4F3F7;
+    --muted: #9A98A8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+  .disp { font-family: 'Space Grotesk', sans-serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+  input { font-family: inherit; }
+
+  ::-webkit-scrollbar { height: 6px; width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 30; background: rgba(18,18,26,0.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .headbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; }
+  .logo-badge { width: 32px; height: 32px; border-radius: 9px; background: var(--lime); display: flex; align-items: center; justify-content: center; font-size: 16px; transform: rotate(-6deg); }
+  .search-box { position: relative; flex: 1; max-width: 380px; }
+  .search-box input { width: 100%; padding: 10px 14px 10px 36px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--line); color: var(--text); font-size: 14px; }
+  .search-box input:focus { outline: 2px solid var(--pink); }
+  .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 14px; }
+  .cart-btn { position: relative; display: flex; align-items: center; gap: 6px; background: var(--lime); color: #12121A; font-weight: 700; padding: 10px 16px; border-radius: 999px; font-size: 14px; }
+  .cart-count { position: absolute; top: -6px; right: -6px; background: var(--pink); color: #12121A; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
+  /* marquee — signature element */
+  .marquee { overflow: hidden; border-bottom: 1px solid var(--line); background: var(--bg-card); padding: 10px 0; white-space: nowrap; }
+  .marquee-track { display: inline-flex; gap: 14px; animation: scroll 28s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .chip-sticker { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); transform: rotate(-2deg); }
+  .chip-sticker:nth-child(even) { transform: rotate(2deg); }
+
+  /* hero */
+  .hero { padding: 56px 0 32px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }
+  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding: 36px 0 24px; } }
+  .eyebrow { display: inline-block; background: var(--pink); color: #12121A; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 999px; margin-bottom: 16px; transform: rotate(-2deg); }
+  h1 { font-size: 42px; line-height: 1.1; font-weight: 800; margin: 0 0 16px; }
+  @media (max-width: 860px) { h1 { font-size: 30px; } }
+  h1 .hl { color: var(--lime); }
+  .sub { color: var(--muted); font-size: 16px; margin-bottom: 24px; max-width: 480px; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn-primary { background: var(--lime); color: #12121A; font-weight: 700; padding: 13px 22px; border-radius: 999px; font-size: 14px; }
+  .btn-outline { background: transparent; color: var(--text); font-weight: 700; padding: 12px 22px; border-radius: 999px; font-size: 14px; border: 2px solid var(--pink); }
+
+  .hero-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+  .flow-row { display: flex; justify-content: space-between; margin-top: 14px; }
+  .flow-step { text-align: center; flex: 1; }
+  .flow-dot { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 2px solid var(--lime); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .flow-label { font-size: 11px; color: var(--muted); }
+  .trust-strip { display: flex; gap: 14px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .trust-strip span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+
+  /* catalog */
+  .section-title { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 16px; }
+  .section-title h2 { font-size: 24px; font-weight: 800; margin: 0; }
+  .count { color: var(--muted); font-size: 12px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px; }
+  .chip { white-space: nowrap; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--bg-card); color: var(--muted); }
+  .chip.active { background: var(--lime); color: #12121A; border-color: var(--lime); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color .15s, transform .15s; }
+  .card:hover { border-color: var(--lime); transform: translateY(-2px); }
+  .card-icon { width: 100%; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; }
+  .icon-lime { background: rgba(198,255,61,0.12); }
+  .icon-pink { background: rgba(255,95,168,0.12); }
+  .icon-cyan { background: rgba(77,232,255,0.12); }
+  .card-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .card-name { font-weight: 700; font-size: 14px; line-height: 1.3; }
+  .tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 700; white-space: nowrap; }
+  .tag.batch { background: rgba(255,95,168,0.15); color: var(--pink); }
+  .tag.local { background: rgba(198,255,61,0.15); color: var(--lime); }
+  .card-spec { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .card-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .price { font-weight: 700; font-size: 16px; }
+  .add-btn { background: var(--lime); color: #12121A; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; }
+  .qty-box { display: flex; align-items: center; gap: 8px; background: var(--bg); border-radius: 999px; padding: 4px; }
+  .qty-box button { width: 22px; height: 22px; border-radius: 50%; background: var(--line); color: var(--text); font-weight: 700; }
+  .qty-box span { font-size: 12px; font-weight: 700; width: 14px; text-align: center; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); background: var(--bg-card); border-radius: 14px; }
+
+  /* bulk request */
+  .bulk { margin: 48px 0; background: linear-gradient(135deg, #1a1a26, #17171f); border: 1px solid var(--line); border-radius: 20px; padding: 32px; }
+  .bulk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  @media (max-width: 860px) { .bulk-grid { grid-template-columns: 1fr; } .bulk { padding: 22px; } }
+  .bulk h2 { font-size: 24px; font-weight: 800; margin: 10px 0; }
+  .bulk p { color: var(--muted); font-size: 14px; }
+  .bulk ul { list-style: none; padding: 0; margin: 16px 0 0; }
+  .bulk li { font-size: 13px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 8px; }
+  .bulk li::before { content: "✓"; color: var(--lime); font-weight: 800; }
+  .form-card { background: var(--bg); border-radius: 14px; padding: 20px; }
+  .form-card label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); font-weight: 700; }
+  .form-card input { width: 100%; padding: 10px 12px; margin: 6px 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-card); color: var(--text); font-size: 14px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .submit-btn { width: 100%; background: var(--pink); color: #12121A; font-weight: 700; padding: 12px; border-radius: 10px; font-size: 14px; }
+  .success-box { text-align: center; padding: 30px 10px; }
+  .success-box .big { font-size: 32px; margin-bottom: 6px; }
+
+  /* trust cards */
+  .trust-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 40px 0; }
+  @media (max-width: 700px) { .trust-cards { grid-template-columns: 1fr; } }
+  .trust-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .trust-card .emoji { font-size: 20px; margin-bottom: 8px; }
+  .trust-card h3 { font-size: 14px; margin: 0 0 6px; }
+  .trust-card p { font-size: 12px; color: var(--muted); margin: 0; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  footer .logo { font-size: 15px; }
+  footer p { color: var(--muted); font-size: 12px; margin: 0; }
+
+  /* cart drawer */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; display: none; }
+  .overlay.show { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 380px; max-width: 92vw; background: #17171F; z-index: 41; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; }
+  .drawer.show { transform: translateX(0); }
+  .drawer-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .drawer-head button { background: var(--bg-card); width: 30px; height: 30px; border-radius: 50%; color: var(--text); }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .drawer-item { display: flex; justify-content: space-between; gap: 8px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .drawer-item .name { font-size: 13px; font-weight: 600; }
+  .drawer-item .meta { font-size: 12px; color: var(--muted); }
+  .drawer-foot { padding: 16px 20px; border-top: 1px solid var(--line); }
+  .row-sb { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .row-sb.total { font-weight: 800; font-size: 15px; }
+
+  /* modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #17171F; border-radius: 18px; max-width: 380px; width: 100%; padding: 26px; }
+  .modal h3 { font-size: 18px; margin: 0 0 4px; }
+  .modal p.desc { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .modal .box { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap headbar">
+    <div class="logo"><span class="logo-badge">⚡</span> CircuitRun</div>
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input id="searchInput" placeholder="Arduino, sensors, jumper wires...">
+    </div>
+    <button class="cart-btn" id="cartOpenBtn">🛒 Cart<span class="cart-count hidden" id="cartCount">0</span></button>
+  </div>
+</header>
+
+<div class="marquee">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">📍 Nerul · Vashi · Belapur runs</span>
+      <h1>Project components, <span class="hl">delivered to your campus.</span></h1>
+      <p class="sub">Tell us what your project needs. We source it and drop it straight to your campus — no bus, no train, no wasted afternoon running around the city.</p>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Browse parts →</button>
+        <button class="btn-outline" onclick="document.getElementById('bulkRequest').scrollIntoView({behavior:'smooth'})">Can't find it? Ask us</button>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="disp" style="font-weight:700; font-size:14px; color: var(--muted);">HOW IT WORKS</div>
+      <div class="flow-row">
+        <div class="flow-step"><div class="flow-dot">📝</div><div class="flow-label">You request</div></div>
+        <div class="flow-step"><div class="flow-dot">🏙️</div><div class="flow-label">We source</div></div>
+        <div class="flow-step"><div class="flow-dot">🚲</div><div class="flow-label">Batch run</div></div>
+        <div class="flow-step"><div class="flow-dot">🎓</div><div class="flow-label">On campus</div></div>
+      </div>
+      <div class="trust-strip">
+        <span>🗓️ Batch: Tue & Fri</span>
+        <span>💵 COD available</span>
+        <span>⚡ Local = quick</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="catalog">
+    <div class="section-title">
+      <h2>The catalog</h2>
+      <span class="count" id="itemCount"></span>
+    </div>
+    <div class="chips" id="chipsRow"></div>
+    <div class="grid" id="catalogGrid"></div>
+  </section>
+
+  <section id="bulkRequest" class="bulk">
+    <div class="bulk-grid">
+      <div>
+        <span class="eyebrow" style="background:var(--cyan);">🔧 Not on the list?</span>
+        <h2>Request literally any part</h2>
+        <p>Give us the name, spec, or even a blurry photo description — we'll quote you a price before you pay a rupee, and bundle it into our next delivery run.</p>
+        <ul>
+          <li>No payment until we confirm price & stock</li>
+          <li>Delivered on the next batch run</li>
+          <li>Pay 20% online, rest cash on delivery</li>
+        </ul>
+      </div>
+      <div>
+        <form class="form-card" id="requestForm">
+          <label>Component name / spec</label>
+          <input id="reqName" required placeholder="e.g. MPU9250 9-axis IMU">
+          <div class="form-row">
+            <div>
+              <label>Quantity</label>
+              <input id="reqQty" placeholder="1">
+            </div>
+            <div>
+              <label>Budget (optional)</label>
+              <input id="reqBudget" placeholder="₹500">
+            </div>
+          </div>
+          <label>WhatsApp number</label>
+          <input id="reqContact" required placeholder="98XXXXXXXX">
+          <button type="submit" class="submit-btn">Send request 🚀</button>
+        </form>
+        <div class="form-card success-box hidden" id="requestSuccess">
+          <div class="big">✅</div>
+          <p style="font-weight:700; margin:0 0 4px;">Got it!</p>
+          <p style="font-size:13px; color:var(--muted); margin:0 0 14px;">We'll DM you a quote before the next run.</p>
+          <button class="btn-outline" onclick="resetRequestForm()">Send another</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trust-cards">
+    <div class="trust-card"><div class="emoji">💵</div><h3>Cash on delivery</h3><p>Pay a small amount online to lock the order, rest in cash when it lands in your hand.</p></div>
+    <div class="trust-card"><div class="emoji">🗓️</div><h3>Fixed batch runs</h3><p>Lamington Road runs happen every Tue & Fri — order before cutoff to make the trip.</p></div>
+    <div class="trust-card"><div class="emoji">📍</div><h3>Delivered on campus</h3><p>Hostel, department, canteen — wherever. No city trips for one IC ever again.</p></div>
+  </section>
+
+  <footer>
+    <div class="logo disp">⚡ CircuitRun</div>
+    <p>Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</p>
+  </footer>
+</div>
+
+<!-- cart drawer -->
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="cartDrawer">
+  <div class="drawer-head">
+    <span class="disp" style="font-weight:800; font-size:16px;">Your cart</span>
+    <button id="cartCloseBtn">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot hidden" id="drawerFoot">
+    <div class="row-sb"><span>Subtotal</span><span class="mono" id="sumSubtotal"></span></div>
+    <div class="row-sb"><span>Pay online now (20%)</span><span class="mono" id="sumAdvance"></span></div>
+    <div class="row-sb total"><span>Cash on delivery</span><span class="mono" id="sumCod"></span></div>
+    <button class="btn-primary" style="width:100%; margin-top:10px;" id="checkoutBtn">Proceed to checkout →</button>
+  </div>
+</div>
+
+<!-- checkout modal -->
+<div class="modal-overlay" id="checkoutModalOverlay">
+  <div class="modal">
+    <h3>Confirm your order</h3>
+    <p class="desc" id="checkoutSub"></p>
+    <div class="box">
+      <div class="row-sb"><span>Subtotal</span><span class="mono" id="coSubtotal"></span></div>
+      <div class="row-sb" style="font-weight:700;"><span>Pay online now</span><span class="mono" id="coAdvance"></span></div>
+      <div class="row-sb"><span>Due on delivery</span><span class="mono" id="coCod"></span></div>
+    </div>
+    <button class="btn-primary" style="width:100%; margin-bottom:8px;" id="confirmPayBtn">Confirm order</button>
+    <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="cancelCheckoutBtn">Cancel</button>
+  </div>
+</div>
+
+<!-- success modal -->
+<div class="modal-overlay" id="successModalOverlay">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:36px; margin-bottom:8px;">🎉</div>
+    <h3>Order confirmed!</h3>
+    <p class="desc" id="successMsg"></p>
+    <button class="btn-primary" style="width:100%;" id="backToCatalogBtn">Back to catalog</button>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = ["All","Microcontrollers & ICs","Sensors","Motors & Actuators","Passive Components","Display & Output","Power & Battery","Prototyping & Wires","Mechanical & Structural","Tools"];
+
+const CATALOG = [
+  {id:"c01",name:"Arduino Uno R3",spec:"ATmega328P board, USB-B",price:650,cat:"Microcontrollers & ICs",src:"batch"},
+  {id:"c02",name:"ESP32 DevKit V1",spec:"WiFi + BT, 30-pin",price:420,cat:"Microcontrollers & ICs",src:"batch"},
+  {id:"c03",name:"NodeMCU ESP8266",spec:"WiFi module, CP2102",price:280,cat:"Microcontrollers & ICs",src:"batch"},
+  {id:"c04",name:"Raspberry Pi Pico",spec:"RP2040, dual-core",price:380,cat:"Microcontrollers & ICs",src:"batch"},
+  {id:"c05",name:"555 Timer IC",spec:"NE555P, DIP-8",price:12,cat:"Microcontrollers & ICs",src:"local"},
+  {id:"c06",name:"L293D Motor Driver IC",spec:"Dual H-bridge, DIP-16",price:45,cat:"Microcontrollers & ICs",src:"local"},
+  {id:"c07",name:"ATmega328P (Standalone)",spec:"With Arduino bootloader",price:180,cat:"Microcontrollers & ICs",src:"batch"},
+  {id:"c08",name:"5V Relay Module",spec:"Opto-isolated, 1-channel",price:55,cat:"Microcontrollers & ICs",src:"local"},
+  {id:"c09",name:"L298N Motor Driver Module",spec:"Dual H-bridge, screw terminal",price:130,cat:"Microcontrollers & ICs",src:"local"},
+  {id:"s01",name:"Ultrasonic Sensor HC-SR04",spec:"2cm–400cm range",price:65,cat:"Sensors",src:"local"},
+  {id:"s02",name:"IR Obstacle Sensor",spec:"Digital out, adjustable",price:35,cat:"Sensors",src:"local"},
+  {id:"s03",name:"PIR Motion Sensor HC-SR501",spec:"Pyroelectric, adjustable delay",price:75,cat:"Sensors",src:"local"},
+  {id:"s04",name:"DHT11 Temp & Humidity",spec:"Digital, 3-pin module",price:90,cat:"Sensors",src:"local"},
+  {id:"s05",name:"MQ-2 Gas Sensor",spec:"LPG/smoke/methane",price:95,cat:"Sensors",src:"batch"},
+  {id:"s06",name:"LDR Module",spec:"With onboard comparator",price:30,cat:"Sensors",src:"local"},
+  {id:"s07",name:"Soil Moisture Sensor",spec:"Analog + digital out",price:55,cat:"Sensors",src:"local"},
+  {id:"s08",name:"Load Cell 5kg + HX711",spec:"Weighing sensor + amp",price:320,cat:"Sensors",src:"batch"},
+  {id:"s09",name:"MPU6050 Gyro/Accel",spec:"6-axis, I2C",price:140,cat:"Sensors",src:"batch"},
+  {id:"s10",name:"RFID Reader RC522",spec:"13.56MHz + tag + card",price:165,cat:"Sensors",src:"batch"},
+  {id:"m01",name:"SG90 Micro Servo",spec:"180°, 9g plastic gear",price:130,cat:"Motors & Actuators",src:"local"},
+  {id:"m02",name:"BO Motor + Wheel Set",spec:"200 RPM, yellow gearbox",price:80,cat:"Motors & Actuators",src:"local"},
+  {id:"m03",name:"28BYJ-48 Stepper Motor",spec:"+ULN2003 driver",price:150,cat:"Motors & Actuators",src:"batch"},
+  {id:"m04",name:"12V DC Geared Motor",spec:"100 RPM, metal gearbox",price:210,cat:"Motors & Actuators",src:"batch"},
+  {id:"m05",name:"5V Solenoid (Push)",spec:"12mm stroke",price:175,cat:"Motors & Actuators",src:"batch"},
+  {id:"m06",name:"MG995 Servo Motor",spec:"Metal gear, high torque",price:380,cat:"Motors & Actuators",src:"batch"},
+  {id:"p01",name:"Resistor Assortment Kit",spec:"600 pcs, 30 values",price:180,cat:"Passive Components",src:"local"},
+  {id:"p02",name:"Ceramic Capacitor Kit",spec:"300 pcs, 24 values",price:150,cat:"Passive Components",src:"local"},
+  {id:"p03",name:"Electrolytic Capacitor Kit",spec:"120 pcs, 12 values",price:190,cat:"Passive Components",src:"local"},
+  {id:"p04",name:"Potentiometer 10K",spec:"Single turn, linear",price:20,cat:"Passive Components",src:"local"},
+  {id:"p05",name:"Inductor Assortment",spec:"24 values, color coded",price:140,cat:"Passive Components",src:"batch"},
+  {id:"p06",name:"Diode Kit",spec:"1N4007/1N4148, 100pcs",price:60,cat:"Passive Components",src:"local"},
+  {id:"d01",name:"16x2 LCD Display",spec:"Blue backlight, HD44780",price:130,cat:"Display & Output",src:"local"},
+  {id:"d02",name:"0.96\" OLED Display",spec:"I2C, 128x64, white",price:210,cat:"Display & Output",src:"batch"},
+  {id:"d03",name:"7-Segment Display",spec:"Common cathode, 0.56\"",price:15,cat:"Display & Output",src:"local"},
+  {id:"d04",name:"LED Assortment Pack",spec:"5mm, 100 pcs, 5 colors",price:90,cat:"Display & Output",src:"local"},
+  {id:"d05",name:"Active Buzzer 5V",spec:"12mm, PCB mount",price:15,cat:"Display & Output",src:"local"},
+  {id:"d06",name:"8x8 LED Matrix + MAX7219",spec:"Cascadable driver",price:145,cat:"Display & Output",src:"batch"},
+  {id:"b01",name:"9V Battery + Clip",spec:"Alkaline, snap connector",price:45,cat:"Power & Battery",src:"local"},
+  {id:"b02",name:"18650 Li-ion Cell",spec:"3.7V, 2600mAh",price:150,cat:"Power & Battery",src:"batch"},
+  {id:"b03",name:"18650 Battery Holder",spec:"2-cell, with leads",price:35,cat:"Power & Battery",src:"local"},
+  {id:"b04",name:"LM7805 Regulator",spec:"5V, TO-220",price:15,cat:"Power & Battery",src:"local"},
+  {id:"b05",name:"DC Power Jack",spec:"5.5x2.1mm + adapter",price:20,cat:"Power & Battery",src:"local"},
+  {id:"b06",name:"TP4056 Charger Module",spec:"Micro-USB, Li-ion",price:30,cat:"Power & Battery",src:"local"},
+  {id:"w01",name:"Breadboard 830-point",spec:"Full size, self-adhesive",price:110,cat:"Prototyping & Wires",src:"local"},
+  {id:"w02",name:"Jumper Wires (M-M)",spec:"40 pcs, 20cm",price:60,cat:"Prototyping & Wires",src:"local"},
+  {id:"w03",name:"Jumper Wires (M-F)",spec:"40 pcs, 20cm",price:60,cat:"Prototyping & Wires",src:"local"},
+  {id:"w04",name:"Jumper Wires (F-F)",spec:"40 pcs, 20cm",price:60,cat:"Prototyping & Wires",src:"local"},
+  {id:"w05",name:"General Purpose PCB",spec:"5x7cm, single sided",price:20,cat:"Prototyping & Wires",src:"local"},
+  {id:"w06",name:"Berg Strip (M+F)",spec:"40-pin pair, breakable",price:25,cat:"Prototyping & Wires",src:"local"},
+  {id:"w07",name:"Solder Wire Roll",spec:"60/40, 25g, 1mm",price:90,cat:"Prototyping & Wires",src:"local"},
+  {id:"w08",name:"Hot Glue Gun + Sticks",spec:"40W, 5 glue sticks",price:160,cat:"Prototyping & Wires",src:"local"},
+  {id:"x01",name:"Acrylic Sheet (3mm)",spec:"30x30cm, cut to size",price:120,cat:"Mechanical & Structural",src:"batch"},
+  {id:"x02",name:"MDF Wood Sheet (5mm)",spec:"30x30cm",price:70,cat:"Mechanical & Structural",src:"batch"},
+  {id:"x03",name:"Nut-Bolt Assortment",spec:"M3/M4, 200 pcs",price:130,cat:"Mechanical & Structural",src:"local"},
+  {id:"x04",name:"Ball Bearing 608ZZ",spec:"8x22x7mm, pack of 4",price:90,cat:"Mechanical & Structural",src:"batch"},
+  {id:"x05",name:"Spur Gear Set",spec:"Assorted sizes, 10 pcs",price:160,cat:"Mechanical & Structural",src:"batch"},
+  {id:"x06",name:"Flexible Shaft Coupler",spec:"5mm to 5mm",price:55,cat:"Mechanical & Structural",src:"local"},
+  {id:"t01",name:"Soldering Iron 25W",spec:"+ stand, non-temp control",price:190,cat:"Tools",src:"local"},
+  {id:"t02",name:"Digital Multimeter",spec:"Basic DT830, with probes",price:220,cat:"Tools",src:"local"},
+  {id:"t03",name:"Precision Screwdriver Kit",spec:"32-in-1, magnetic tips",price:210,cat:"Tools",src:"local"},
+  {id:"t04",name:"Wire Stripper / Cutter",spec:"6-inch, spring loaded",price:110,cat:"Tools",src:"local"}
+];
+
+const CAT_ICON = {
+  "Microcontrollers & ICs": {icon:"🧠", cls:"icon-lime"},
+  "Sensors": {icon:"📡", cls:"icon-cyan"},
+  "Motors & Actuators": {icon:"⚙️", cls:"icon-pink"},
+  "Passive Components": {icon:"🎛️", cls:"icon-lime"},
+  "Display & Output": {icon:"📺", cls:"icon-cyan"},
+  "Power & Battery": {icon:"🔋", cls:"icon-pink"},
+  "Prototyping & Wires": {icon:"🔌", cls:"icon-lime"},
+  "Mechanical & Structural": {icon:"🔩", cls:"icon-cyan"},
+  "Tools": {icon:"🛠️", cls:"icon-pink"}
+};
+
+const ADVANCE_PCT = 0.2;
+let state = { category: "All", query: "", cart: {} };
+
+function money(n){ return "₹" + n; }
+
+function renderMarquee(){
+  const words = ["🔥 Arduino in stock","⚡ Batch run Tuesday","🚲 Delivered to your hostel","💵 COD available","🎓 Built by students, for students","🔧 Request anything"];
+  const track = document.getElementById('marqueeTrack');
+  const all = [...words, ...words];
+  track.innerHTML = all.map(w => `<span class="chip-sticker">${w}</span>`).join('');
+}
+
+function renderChips(){
+  const row = document.getElementById('chipsRow');
+  row.innerHTML = CATEGORIES.map(c =>
+    `<button class="chip ${c===state.category?'active':''}" data-cat="${c}">${c}</button>`
+  ).join('');
+  row.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => { state.category = btn.dataset.cat; renderCatalog(); renderChips(); });
+  });
+}
+
+function filteredCatalog(){
+  return CATALOG.filter(item => {
+    const catMatch = state.category === "All" || item.cat === state.category;
+    const q = state.query.trim().toLowerCase();
+    const qMatch = q === "" || item.name.toLowerCase().includes(q) || item.spec.toLowerCase().includes(q);
+    return catMatch && qMatch;
+  });
+}
+
+function renderCatalog(){
+  const items = filteredCatalog();
+  document.getElementById('itemCount').textContent = `${items.length} of ${CATALOG.length} parts`;
+  const grid = document.getElementById('catalogGrid');
+  if(items.length === 0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;">😕 No parts match that search.<br>Try something else, or send us a custom request below.</div>`;
+    return;
+  }
+  grid.innerHTML = items.map(item => {
+    const qty = state.cart[item.id] || 0;
+    const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
+    return `<div class="card">
+      <div>
+        <div class="card-icon ${ic.cls}">${ic.icon}</div>
+        <div class="card-top">
+          <div class="card-name">${item.name}</div>
+          <span class="tag ${item.src}">${item.src === 'batch' ? 'Batch trip' : 'Quick local'}</span>
+        </div>
+        <div class="card-spec">${item.spec}</div>
+      </div>
+      <div class="card-bottom">
+        <span class="price mono">${money(item.price)}</span>
+        ${qty === 0
+          ? `<button class="add-btn" data-add="${item.id}">+ Add</button>`
+          : `<div class="qty-box"><button data-dec="${item.id}">–</button><span>${qty}</span><button data-inc="${item.id}">+</button></div>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.add, 1); }));
+  grid.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.inc, 1); }));
+  grid.querySelectorAll('[data-dec]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.dec, -1); }));
+}
+
+function changeQty(id, delta){
+  const cur = state.cart[id] || 0;
+  const next = Math.max(0, cur + delta);
+  if(next === 0) delete state.cart[id]; else state.cart[id] = next;
+  renderCatalog();
+  renderCartDrawer();
+  updateCartCount();
+}
+
+function cartItems(){
+  return Object.entries(state.cart).map(([id, qty]) => ({...CATALOG.find(c => c.id === id), qty}));
+}
+
+function updateCartCount(){
+  const count = cartItems().reduce((s,i) => s + i.qty, 0);
+  const el = document.getElementById('cartCount');
+  el.textContent = count;
+  el.classList.toggle('hidden', count === 0);
+}
+
+function totals(){
+  const items = cartItems();
+  const subtotal = items.reduce((s,i) => s + i.price*i.qty, 0);
+  const advance = Math.round(subtotal * ADVANCE_PCT);
+  return {subtotal, advance, cod: subtotal - advance, count: items.reduce((s,i)=>s+i.qty,0)};
+}
+
+function renderCartDrawer(){
+  const items = cartItems();
+  const body = document.getElementById('drawerBody');
+  const foot = document.getElementById('drawerFoot');
+  if(items.length === 0){
+    body.innerHTML = `<div class="empty">🛒 Cart's empty. Go add some parts!</div>`;
+    foot.classList.add('hidden');
+    return;
+  }
+  body.innerHTML = items.map(i => `
+    <div class="drawer-item">
+      <div>
+        <div class="name">${i.name}</div>
+        <div class="meta mono">${money(i.price)} × ${i.qty}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="qty-box"><button data-dec="${i.id}">–</button><span>${i.qty}</span><button data-inc="${i.id}">+</button></div>
+        <button data-remove="${i.id}" style="background:none; color:var(--pink); font-size:16px;">✕</button>
+      </div>
+    </div>`).join('');
+  body.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => changeQty(b.dataset.inc, 1)));
+  body.querySelectorAll('[data-dec]').forEach(b => b.addEventListener('click', () => changeQty(b.dataset.dec, -1)));
+  body.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => { delete state.cart[b.dataset.remove]; renderCatalog(); renderCartDrawer(); updateCartCount(); }));
+
+  const t = totals();
+  document.getElementById('sumSubtotal').textContent = money(t.subtotal);
+  document.getElementById('sumAdvance').textContent = money(t.advance);
+  document.getElementById('sumCod').textContent = money(t.cod);
+  foot.classList.remove('hidden');
+}
+
+// drawer open/close
+const overlay = document.getElementById('overlay');
+const drawer = document.getElementById('cartDrawer');
+document.getElementById('cartOpenBtn').addEventListener('click', () => { overlay.classList.add('show'); drawer.classList.add('show'); });
+function closeDrawer(){ overlay.classList.remove('show'); drawer.classList.remove('show'); }
+document.getElementById('cartCloseBtn').addEventListener('click', closeDrawer);
+overlay.addEventListener('click', closeDrawer);
+
+// checkout modal
+const checkoutOverlay = document.getElementById('checkoutModalOverlay');
+document.getElementById('checkoutBtn').addEventListener('click', () => {
+  closeDrawer();
+  const t = totals();
+  document.getElementById('checkoutSub').textContent = `${t.count} item(s) · delivered on the next batch run`;
+  document.getElementById('coSubtotal').textContent = money(t.subtotal);
+  document.getElementById('coAdvance').textContent = money(t.advance);
+  document.getElementById('coCod').textContent = money(t.cod);
+  checkoutOverlay.classList.add('show');
+});
+document.getElementById('cancelCheckoutBtn').addEventListener('click', () => checkoutOverlay.classList.remove('show'));
+
+const successOverlay = document.getElementById('successModalOverlay');
+document.getElementById('confirmPayBtn').addEventListener('click', () => {
+  const t = totals();
+  checkoutOverlay.classList.remove('show');
+  document.getElementById('successMsg').textContent = `We'll deliver on the next batch run. Pay ${money(t.cod)} in cash at delivery.`;
+  successOverlay.classList.add('show');
+});
+document.getElementById('backToCatalogBtn').addEventListener('click', () => {
+  successOverlay.classList.remove('show');
+  state.cart = {};
+  renderCatalog(); renderCartDrawer(); updateCartCount();
+});
+
+// search
+document.getElementById('searchInput').addEventListener('input', (e) => { state.query = e.target.value; renderCatalog(); });
+
+// request form
+document.getElementById('requestForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  document.getElementById('requestForm').classList.add('hidden');
+  document.getElementById('requestSuccess').classList.remove('hidden');
+});
+function resetRequestForm(){
+  document.getElementById('requestForm').reset();
+  document.getElementById('requestForm').classList.remove('hidden');
+  document.getElementById('requestSuccess').classList.add('hidden');
+}
+
+renderMarquee();
+renderChips();
+renderCatalog();
+renderCartDrawer();
+updateCartCount();
+</script>
+</body>
+</html>
