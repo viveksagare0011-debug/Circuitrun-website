@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CircuitRun — Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --bg: #12121A; --bg-card: #1C1C27; --line: #2C2C39;
+    --lime: #C6FF3D; --pink: #FF5FA8; --cyan: #4DE8FF;
+    --text: #F4F3F7; --muted: #9A98A8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+  .disp { font-family: 'Space Grotesk', sans-serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 24px; font-weight: 800; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+
+  .gate { max-width: 360px; margin: 100px auto; background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; text-align: center; }
+  .gate input { width: 100%; padding: 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 14px; margin: 14px 0; }
+  .gate button, .refresh-btn { background: var(--lime); color: #12121A; font-weight: 700; padding: 11px 18px; border-radius: 10px; border: none; font-size: 14px; cursor: pointer; width: 100%; }
+  .err { color: var(--pink); font-size: 12px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+  @media (max-width: 700px) { .stats { grid-template-columns: repeat(2,1fr); } }
+  .stat { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .stat .num { font-size: 22px; font-weight: 800; }
+  .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .refresh-btn { width: auto; padding: 9px 16px; font-size: 13px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: top; }
+  tr:hover { background: var(--bg-card); }
+  .items-cell { max-width: 260px; color: var(--muted); font-size: 12px; }
+  .badge { background: rgba(198,255,61,0.15); color: var(--lime); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+  .empty { text-align: center; padding: 40px; color: var(--muted); }
+  a.wa { color: var(--cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div style="font-size:28px;">🔐</div>
+  <h1 style="margin-top:8px;">Admin access</h1>
+  <p class="sub">Owner-only order dashboard</p>
+  <input type="password" id="passInput" placeholder="Enter passcode">
+  <p class="err hidden" id="passErr">Wrong passcode.</p>
+  <button id="passBtn">Unlock</button>
+</div>
+
+<div class="wrap hidden" id="dashboard">
+  <div class="topbar">
+    <div>
+      <h1>📦 CircuitRun Orders</h1>
+      <p class="sub">All orders placed on the site, newest first.</p>
+    </div>
+    <button class="refresh-btn" id="refreshBtn">↻ Refresh</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Order</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="ordersBody"></tbody>
+  </table>
+  <div id="emptyState" class="empty hidden">No orders yet.</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YW1lZmVudmd3cmRmcWFhb3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDc5MDgsImV4cCI6MjEwMTUyMzkwOH0.MIDr43LTHfICc68_hP__U0x6rglsIR7KLYEDBuq-LJw";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Change this to your own passcode. This is a light deterrent only —
+// not real security, since it lives in the page's source code.
+const ADMIN_PASSCODE = "circuitrun2026";
+
+document.getElementById('passBtn').addEventListener('click', () => {
+  const val = document.getElementById('passInput').value;
+  if(val === ADMIN_PASSCODE){
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    loadOrders();
+  } else {
+    document.getElementById('passErr').classList.remove('hidden');
+  }
+});
+document.getElementById('passInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('passBtn').click();
+});
+
+document.getElementById('refreshBtn').addEventListener('click', loadOrders);
+
+function money(n){ return "₹" + n; }
+
+async function loadOrders(){
+  const body = document.getElementById('ordersBody');
+  const empty = document.getElementById('emptyState');
+  body.innerHTML = `<tr><td colspan="5" style="color:var(--muted);">Loading...</td></tr>`;
+
+  const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
+  if(error){
+    body.innerHTML = `<tr><td colspan="5" style="color:var(--pink);">Failed to load: ${error.message}</td></tr>`;
+    return;
+  }
+
+  const totalRevenue = data.reduce((s,o) => s + o.subtotal, 0);
+  const pendingCod = data.reduce((s,o) => s + o.cod, 0);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="num">${data.length}</div><div class="label">Total orders</div></div>
+    <div class="stat"><div class="num">${money(totalRevenue)}</div><div class="label">Total value</div></div>
+    <div class="stat"><div class="num">${money(pendingCod)}</div><div class="label">COD pending</div></div>
+    <div class="stat"><div class="num">${new Set(data.map(o=>o.customer_phone)).size}</div><div class="label">Unique customers</div></div>
+  `;
+
+  if(data.length === 0){
+    body.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  body.innerHTML = data.map(o => `
+    <tr>
+      <td class="mono">${o.order_code}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span></td>
+      <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''}</span></td>
+      <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
+      <td class="mono">${money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
+      <td><span class="badge">${o.status}</span></td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>
