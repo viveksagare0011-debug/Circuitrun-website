@@ -40,6 +40,12 @@
   .search-box input { width: 100%; padding: 10px 14px 10px 36px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--line); color: var(--text); font-size: 14px; }
   .search-box input:focus { outline: 2px solid var(--pink); }
   .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 14px; }
+  .search-suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; z-index: 40; box-shadow: 0 12px 28px rgba(0,0,0,0.4); }
+  .suggest-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; }
+  .suggest-item:hover { background: var(--bg); }
+  .suggest-item .sname { font-weight: 600; }
+  .suggest-item .sprice { color: var(--muted); font-size: 12px; }
+  .suggest-empty { padding: 14px; font-size: 12px; color: var(--muted); text-align: center; }
   .cart-btn { position: relative; display: flex; align-items: center; gap: 6px; background: var(--lime); color: #12121A; font-weight: 700; padding: 10px 16px; border-radius: 999px; font-size: 14px; }
   .cart-count { position: absolute; top: -6px; right: -6px; background: var(--pink); color: #12121A; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
 
@@ -137,6 +143,9 @@
   .bulk li { font-size: 13px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 8px; }
   .bulk li::before { content: "✓"; color: var(--lime); font-weight: 800; }
   .form-card { background: var(--bg); border-radius: 14px; padding: 20px; }
+  .request-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .req-tab { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); font-weight: 700; font-size: 13px; }
+  .req-tab.active { background: var(--lime); color: #12121A; border-color: var(--lime); }
   .form-card label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); font-weight: 700; }
   .form-card input { width: 100%; padding: 10px 12px; margin: 6px 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-card); color: var(--text); font-size: 14px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -195,6 +204,28 @@
 
   .hidden { display: none !important; }
 
+  /* click / tap feedback animations */
+  button, .proj-card, .blog-card, .card, .chip, .req-tab, .side-link {
+    transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  }
+  button:active, .req-tab:active, .side-link:active, .chip:active { transform: scale(0.94); }
+  .proj-card:active, .blog-card:active, .card:active { transform: scale(0.97); }
+  .btn-primary:active, .btn-outline:active, .add-btn:active, .cart-btn:active, .submit-btn:active { filter: brightness(0.92); }
+
+  @keyframes cr-bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+  .cr-bump { animation: cr-bump .35s ease; }
+
+  @keyframes cr-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .modal { animation: cr-fade-in .2s ease; }
+  .drawer.show { transition: transform .28s cubic-bezier(0.16, 1, 0.3, 1); }
+
   .hamburger-btn { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); width: 38px; height: 38px; border-radius: 10px; font-size: 16px; flex-shrink: 0; }
   .hamburger-btn:hover { border-color: var(--lime); }
 
@@ -205,6 +236,12 @@
   .side-link { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 600; background: none; border: none; text-align: left; width: 100%; cursor: pointer; }
   .side-link:hover { background: var(--bg-card); }
   .side-divider { height: 1px; background: var(--line); margin: 10px 4px; }
+  .sidebar-profile-box { padding: 10px 14px; }
+  .sidebar-profile-name { font-weight: 700; font-size: 13px; }
+  .sidebar-profile-meta { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .profile-row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .profile-row span { color: var(--muted); }
+  .profile-row b { font-weight: 600; text-align: right; }
 </style>
 </head>
 <body>
@@ -215,7 +252,8 @@
     <div class="logo"><span class="logo-badge">⚡</span> CircuitRun</div>
     <div class="search-box">
       <span class="icon">🔍</span>
-      <input id="searchInput" placeholder="Arduino, sensors, jumper wires...">
+      <input id="searchInput" placeholder="Arduino, sensors, jumper wires..." autocomplete="off">
+      <div class="search-suggest hidden" id="searchSuggest"></div>
     </div>
     <button class="cart-btn" id="ordersOpenBtn" style="background:var(--bg-card); color:var(--text); border:1px solid var(--line);">📦 My Orders<span class="cart-count hidden" id="ordersCount">0</span></button>
     <button class="cart-btn" id="cartOpenBtn">🛒 Cart<span class="cart-count hidden" id="cartCount">0</span></button>
@@ -236,8 +274,14 @@
     <a href="#blog" class="side-link" data-close-sidebar>📰 Blog</a>
     <a href="#bulkRequest" class="side-link" data-close-sidebar>🔧 Request a part</a>
     <div class="side-divider"></div>
+    <button class="side-link side-btn" id="sideProfileBtn">👤 My profile</button>
     <button class="side-link side-btn" id="sideOrdersBtn">📦 My orders</button>
     <button class="side-link side-btn" id="sideCartBtn">🛒 My cart</button>
+    <div class="side-divider"></div>
+    <div id="sidebarProfileBox" class="sidebar-profile-box hidden">
+      <div class="sidebar-profile-name" id="sidebarProfileName"></div>
+      <div class="sidebar-profile-meta" id="sidebarProfileMeta"></div>
+    </div>
   </div>
 </div>
 
@@ -272,6 +316,14 @@
           <option>3rd Year</option>
           <option>4th Year</option>
         </select>
+      </div>
+      <div class="field-group">
+        <label>College name</label>
+        <input id="loginCollege" required placeholder="e.g. Terna Engineering College">
+      </div>
+      <div class="field-group">
+        <label>Department</label>
+        <input id="loginDept" required placeholder="e.g. ECE / Computer / Mechanical">
       </div>
       <p id="loginError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please fill in all fields.</p>
       <button type="button" id="loginSubmitBtn" class="btn-primary" style="width:100%;">Login & start ordering 🚀</button>
@@ -340,8 +392,8 @@
     <div class="bulk-grid">
       <div>
         <span class="eyebrow" style="background:var(--cyan);">🔧 Not on the list?</span>
-        <h2>Request literally any part</h2>
-        <p>Give us the name, spec, or even a blurry photo description — we'll quote you a price before you pay a rupee, and bundle it into our next delivery run.</p>
+        <h2 id="bulkHeading">Request literally any part</h2>
+        <p id="bulkDesc">Give us the name, spec, or even a blurry photo description — we'll quote you a price before you pay a rupee, and bundle it into our next delivery run.</p>
         <ul>
           <li>No payment until we confirm price & stock</li>
           <li>Delivered on the next batch run</li>
@@ -349,7 +401,12 @@
         </ul>
       </div>
       <div>
-        <div class="form-card" id="requestForm">
+        <div class="request-tabs">
+          <button class="req-tab active" data-req-tab="component">🔧 A Component</button>
+          <button class="req-tab" data-req-tab="project">🚀 A Project Kit</button>
+        </div>
+
+        <div class="form-card" id="requestFormComponent">
           <label>Component name / spec</label>
           <input id="reqName" required placeholder="e.g. MPU9250 9-axis IMU">
           <div class="form-row">
@@ -367,6 +424,20 @@
           <p id="reqError" class="hidden" style="color:var(--pink); font-size:12px; margin:0 0 10px;">Please fill in the required fields.</p>
           <button type="button" id="requestSubmitBtn" class="submit-btn">Send request 🚀</button>
         </div>
+
+        <div class="form-card hidden" id="requestFormProject">
+          <label>What's the project idea?</label>
+          <input id="projReqName" required placeholder="e.g. Smart Attendance System">
+          <label>Briefly, what should it do?</label>
+          <input id="projReqDesc" placeholder="e.g. RFID-based attendance marking with a display">
+          <label>Budget (optional)</label>
+          <input id="projReqBudget" placeholder="₹1500">
+          <label>WhatsApp number</label>
+          <input id="projReqContact" required placeholder="98XXXXXXXX">
+          <p id="projReqError" class="hidden" style="color:var(--pink); font-size:12px; margin:0 0 10px;">Please fill in the required fields.</p>
+          <button type="button" id="projRequestSubmitBtn" class="submit-btn">Send project request 🚀</button>
+        </div>
+
         <div class="form-card success-box hidden" id="requestSuccess">
           <div class="big">✅</div>
           <p style="font-weight:700; margin:0 0 4px;">Got it!</p>
@@ -426,6 +497,12 @@
       <div class="row-sb"><span>Due on delivery</span><span class="mono" id="coCod"></span></div>
     </div>
 
+    <div class="field-group">
+      <label>Delivery location on campus</label>
+      <input id="coDeliveryLocation" required placeholder="e.g. Hostel Block A, Room 204 / ECE Dept staffroom">
+    </div>
+    <p id="deliveryError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please tell us where to deliver this.</p>
+
     <div class="box" style="text-align:center;">
       <p style="font-size:12px; color:var(--muted); margin:0 0 10px;">Scan with any UPI app to pay the advance</p>
       <div id="qrcodeBox" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
@@ -435,6 +512,43 @@
 
     <button class="btn-primary" style="width:100%; margin-bottom:8px;" id="confirmPayBtn">I've paid — confirm order</button>
     <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="cancelCheckoutBtn">Cancel</button>
+  </div>
+</div>
+
+<!-- profile modal -->
+<div class="modal-overlay" id="profileModalOverlay">
+  <div class="modal login-modal" style="max-width:400px;">
+    <div class="login-hero">
+      <div class="login-badge">👤</div>
+      <h3>My Profile</h3>
+      <p class="desc">Your details, saved for faster checkout.</p>
+    </div>
+    <div class="login-form-body">
+      <div id="profileView">
+        <div class="profile-row"><span>Name</span><b id="pvName"></b></div>
+        <div class="profile-row"><span>WhatsApp</span><b id="pvPhone"></b></div>
+        <div class="profile-row"><span>Year</span><b id="pvYear"></b></div>
+        <div class="profile-row"><span>College</span><b id="pvCollege"></b></div>
+        <div class="profile-row"><span>Department</span><b id="pvDept"></b></div>
+        <div class="profile-row"><span>Last delivery point</span><b id="pvDelivery"></b></div>
+        <button class="btn-primary" style="width:100%; margin-top:14px;" id="profileEditBtn">✏️ Edit profile</button>
+        <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted); margin-top:8px;" id="profileCloseBtn">Close</button>
+      </div>
+      <div id="profileEdit" class="hidden">
+        <div class="field-group"><label>Name</label><input id="peName"></div>
+        <div class="field-group"><label>WhatsApp number</label><input id="pePhone"></div>
+        <div class="field-group">
+          <label>Year of study</label>
+          <select id="peYear">
+            <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+          </select>
+        </div>
+        <div class="field-group"><label>College name</label><input id="peCollege"></div>
+        <div class="field-group"><label>Department</label><input id="peDept"></div>
+        <button class="btn-primary" style="width:100%;" id="profileSaveBtn">Save changes</button>
+        <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted); margin-top:8px;" id="profileCancelBtn">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -772,10 +886,21 @@ function renderChips(){
 function filteredCatalog(){
   return CATALOG.filter(item => {
     const catMatch = state.category === "All" || item.cat === state.category;
-    const q = state.query.trim().toLowerCase();
-    const qMatch = q === "" || item.name.toLowerCase().includes(q) || item.spec.toLowerCase().includes(q);
+    const qMatch = smartMatch(item, state.query);
     return catMatch && qMatch;
   });
+}
+
+// Smart search: splits the query into words and matches if the item's
+// name/spec/category contains every word (in any order, partial words ok).
+// This means "arduino uno" or "uno arduino" or just "ard" all find it,
+// instead of needing the exact full name typed out.
+function smartMatch(item, query){
+  const q = query.trim().toLowerCase();
+  if(q === "") return true;
+  const haystack = `${item.name} ${item.spec} ${item.cat}`.toLowerCase();
+  const words = q.split(/\s+/).filter(Boolean);
+  return words.every(w => haystack.includes(w));
 }
 
 function renderCatalog(){
@@ -834,6 +959,11 @@ function updateCartCount(){
   const el = document.getElementById('cartCount');
   el.textContent = count;
   el.classList.toggle('hidden', count === 0);
+  if(count > 0){
+    el.classList.remove('cr-bump');
+    void el.offsetWidth; // restart animation
+    el.classList.add('cr-bump');
+  }
 }
 
 function totals(){
@@ -894,6 +1024,64 @@ document.querySelectorAll('[data-close-sidebar]').forEach(a => a.addEventListene
 document.getElementById('sideOrdersBtn').addEventListener('click', () => { closeSidebar(); document.getElementById('ordersOpenBtn').click(); });
 document.getElementById('sideCartBtn').addEventListener('click', () => { closeSidebar(); document.getElementById('cartOpenBtn').click(); });
 
+function updateSidebarProfile(){
+  const box = document.getElementById('sidebarProfileBox');
+  if(!state.user){ box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  document.getElementById('sidebarProfileName').textContent = `👋 ${state.user.name}`;
+  document.getElementById('sidebarProfileMeta').textContent = `${state.user.year} · ${state.user.college}`;
+}
+
+// profile modal
+const profileModalOverlay = document.getElementById('profileModalOverlay');
+document.getElementById('sideProfileBtn').addEventListener('click', () => {
+  closeSidebar();
+  if(!state.user){ document.getElementById('loginOverlay').classList.add('show'); return; }
+  showProfileView();
+  profileModalOverlay.classList.add('show');
+});
+document.getElementById('profileCloseBtn').addEventListener('click', () => profileModalOverlay.classList.remove('show'));
+
+function showProfileView(){
+  document.getElementById('pvName').textContent = state.user.name;
+  document.getElementById('pvPhone').textContent = state.user.phone;
+  document.getElementById('pvYear').textContent = state.user.year;
+  document.getElementById('pvCollege').textContent = state.user.college;
+  document.getElementById('pvDept').textContent = state.user.department;
+  document.getElementById('pvDelivery').textContent = state.lastDeliveryLocation || 'Not set yet';
+  document.getElementById('profileView').classList.remove('hidden');
+  document.getElementById('profileEdit').classList.add('hidden');
+}
+
+document.getElementById('profileEditBtn').addEventListener('click', () => {
+  document.getElementById('peName').value = state.user.name;
+  document.getElementById('pePhone').value = state.user.phone;
+  document.getElementById('peYear').value = state.user.year;
+  document.getElementById('peCollege').value = state.user.college;
+  document.getElementById('peDept').value = state.user.department;
+  document.getElementById('profileView').classList.add('hidden');
+  document.getElementById('profileEdit').classList.remove('hidden');
+});
+document.getElementById('profileCancelBtn').addEventListener('click', showProfileView);
+
+document.getElementById('profileSaveBtn').addEventListener('click', async () => {
+  const name = document.getElementById('peName').value.trim();
+  const phone = document.getElementById('pePhone').value.trim();
+  const year = document.getElementById('peYear').value;
+  const college = document.getElementById('peCollege').value.trim();
+  const department = document.getElementById('peDept').value.trim();
+  if(!name || !phone || !college || !department) return;
+  state.user = { name, phone, year, college, department };
+  updateSidebarProfile();
+  showProfileView();
+
+  if(db){
+    db.from('customers').upsert({ name, phone, year, college, department }, { onConflict: 'phone' }).then(({error}) => {
+      if(error) console.error('profile update error:', error.message || JSON.stringify(error));
+    });
+  }
+});
+
 // checkout modal
 const UPI_ID = "viveksagare0011-1@oksbi";
 const checkoutOverlay = document.getElementById('checkoutModalOverlay');
@@ -905,6 +1093,8 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
   document.getElementById('coSubtotal').textContent = money(t.subtotal);
   document.getElementById('coAdvance').textContent = money(t.advance);
   document.getElementById('coCod').textContent = money(t.cod);
+  document.getElementById('coDeliveryLocation').value = state.lastDeliveryLocation || '';
+  document.getElementById('deliveryError').classList.add('hidden');
 
   const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent("CircuitRun")}&am=${t.advance}&cu=INR&tn=${encodeURIComponent("CircuitRun advance payment")}`;
   document.getElementById('upiAppLink').href = upiUrl;
@@ -922,13 +1112,21 @@ document.getElementById('cancelCheckoutBtn').addEventListener('click', () => che
 
 const successOverlay = document.getElementById('successModalOverlay');
 document.getElementById('confirmPayBtn').addEventListener('click', async () => {
+  const deliveryLocation = document.getElementById('coDeliveryLocation').value.trim();
+  if(!deliveryLocation){
+    document.getElementById('deliveryError').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('deliveryError').classList.add('hidden');
+  state.lastDeliveryLocation = deliveryLocation;
+
   const t = totals();
   const items = cartItems();
   const orderCode = "CR" + Date.now().toString().slice(-6);
   const order = {
     id: orderCode,
     items, subtotal: t.subtotal, advance: t.advance, cod: t.cod,
-    status: "Confirmed ✅", time: new Date().toLocaleString()
+    status: "Confirmed ✅", time: new Date().toLocaleString(), deliveryLocation
   };
   state.orders.push(order);
   updateOrdersCount();
@@ -941,6 +1139,9 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
       customer_name: state.user.name,
       customer_phone: state.user.phone,
       customer_year: state.user.year,
+      customer_college: state.user.college,
+      customer_department: state.user.department,
+      delivery_location: deliveryLocation,
       items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
       subtotal: t.subtotal,
       advance: t.advance,
@@ -971,19 +1172,23 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   const name = document.getElementById('loginName').value.trim();
   const phone = document.getElementById('loginPhone').value.trim();
   const year = document.getElementById('loginYear').value;
-  if(!name || !phone || !year){
+  const college = document.getElementById('loginCollege').value.trim();
+  const department = document.getElementById('loginDept').value.trim();
+  if(!name || !phone || !year || !college || !department){
     document.getElementById('loginError').classList.remove('hidden');
     return;
   }
   document.getElementById('loginError').classList.add('hidden');
-  state.user = { name, phone, year };
+  state.user = { name, phone, year, college, department };
   document.getElementById('loginOverlay').classList.remove('show');
+  updateSidebarProfile();
   if(pendingAddId){ changeQty(pendingAddId, 1); pendingAddId = null; }
   if(pendingProjectId){ addProjectToCart(pendingProjectId); pendingProjectId = null; }
 
-  // save customer profile (fire and forget)
+  // save/update customer profile (fire and forget) — upsert on phone
+  // so logging in again updates the same profile instead of duplicating it
   if(db){
-    db.from('customers').insert({ name, phone, year }).then(({error}) => {
+    db.from('customers').upsert({ name, phone, year, college, department }, { onConflict: 'phone' }).then(({error}) => {
       if(error) console.error('customer save error:', error.message || JSON.stringify(error));
     });
   }
@@ -1001,6 +1206,9 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
         advance: o.advance, cod: o.cod, status: o.status
       }));
       updateOrdersCount();
+      if(data.length > 0 && data[0].delivery_location){
+        state.lastDeliveryLocation = data[0].delivery_location;
+      }
     }
   } catch(err) {
     console.error('could not load past orders:', err.message || err);
@@ -1049,6 +1257,9 @@ function buildWhatsAppMessage(order){
     `🔔 NEW ORDER — ${order.id}`,
     `Customer: ${state.user.name} (${state.user.year})`,
     `Phone: ${state.user.phone}`,
+    `College: ${state.user.college}`,
+    `Department: ${state.user.department}`,
+    `Deliver to: ${order.deliveryLocation}`,
     ``,
     `Items:`,
     ...order.items.map(i => `• ${i.name} x${i.qty} — ${money(i.price*i.qty)}`),
@@ -1062,10 +1273,69 @@ function buildWhatsAppMessage(order){
 
 
 
-// search
-document.getElementById('searchInput').addEventListener('input', (e) => { state.query = e.target.value; renderCatalog(); });
+// search + live suggestions
+const searchInput = document.getElementById('searchInput');
+const searchSuggest = document.getElementById('searchSuggest');
+
+searchInput.addEventListener('input', (e) => {
+  state.query = e.target.value;
+  renderCatalog();
+  renderSearchSuggestions(e.target.value);
+});
+searchInput.addEventListener('focus', () => renderSearchSuggestions(searchInput.value));
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.search-box')) searchSuggest.classList.add('hidden');
+});
+
+function renderSearchSuggestions(query){
+  const q = query.trim();
+  if(q === ""){ searchSuggest.classList.add('hidden'); return; }
+  const matches = CATALOG.filter(item => smartMatch(item, q)).slice(0, 6);
+  if(matches.length === 0){
+    searchSuggest.innerHTML = `<div class="suggest-empty">No matches — try a different word, or request it below.</div>`;
+  } else {
+    searchSuggest.innerHTML = matches.map(item => `
+      <div class="suggest-item" data-suggest="${item.id}">
+        <span class="sname">${item.name}</span>
+        <span class="sprice mono">${money(item.price)}</span>
+      </div>
+    `).join('');
+    searchSuggest.querySelectorAll('[data-suggest]').forEach(el => {
+      el.addEventListener('click', () => {
+        const item = CATALOG.find(c => c.id === el.dataset.suggest);
+        searchInput.value = item.name;
+        state.query = item.name;
+        state.category = "All";
+        renderChips();
+        renderCatalog();
+        searchSuggest.classList.add('hidden');
+        document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  }
+  searchSuggest.classList.remove('hidden');
+}
 
 // request form
+// request type tabs
+let activeReqTab = 'component';
+document.querySelectorAll('[data-req-tab]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    activeReqTab = tab.dataset.reqTab;
+    document.querySelectorAll('[data-req-tab]').forEach(t => t.classList.toggle('active', t === tab));
+    document.getElementById('requestFormComponent').classList.toggle('hidden', activeReqTab !== 'component');
+    document.getElementById('requestFormProject').classList.toggle('hidden', activeReqTab !== 'project');
+    document.getElementById('requestSuccess').classList.add('hidden');
+    if(activeReqTab === 'component'){
+      document.getElementById('bulkHeading').textContent = 'Request literally any part';
+      document.getElementById('bulkDesc').textContent = "Give us the name, spec, or even a blurry photo description — we'll quote you a price before you pay a rupee, and bundle it into our next delivery run.";
+    } else {
+      document.getElementById('bulkHeading').textContent = "Have a project idea? We'll kit it out";
+      document.getElementById('bulkDesc').textContent = "Tell us what you're trying to build. We'll put together a full component list and a price quote — no need to figure out the parts yourself.";
+    }
+  });
+});
+
 document.getElementById('requestSubmitBtn').addEventListener('click', () => {
   const name = document.getElementById('reqName').value.trim();
   const qty = document.getElementById('reqQty').value.trim();
@@ -1086,16 +1356,49 @@ document.getElementById('requestSubmitBtn').addEventListener('click', () => {
   ];
   window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
 
-  document.getElementById('requestForm').classList.add('hidden');
+  document.getElementById('requestFormComponent').classList.add('hidden');
   document.getElementById('requestSuccess').classList.remove('hidden');
 });
+
+document.getElementById('projRequestSubmitBtn').addEventListener('click', () => {
+  const name = document.getElementById('projReqName').value.trim();
+  const desc = document.getElementById('projReqDesc').value.trim();
+  const budget = document.getElementById('projReqBudget').value.trim();
+  const contact = document.getElementById('projReqContact').value.trim();
+  if(!name || !contact){
+    document.getElementById('projReqError').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('projReqError').classList.add('hidden');
+
+  const lines = [
+    `🚀 CUSTOM PROJECT KIT REQUEST`,
+    `Project idea: ${name}`,
+    `Details: ${desc || 'not specified'}`,
+    `Budget: ${budget || 'not specified'}`,
+    `Customer WhatsApp: ${contact}`
+  ];
+  window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+
+  document.getElementById('requestFormProject').classList.add('hidden');
+  document.getElementById('requestSuccess').classList.remove('hidden');
+});
+
 function resetRequestForm(){
   document.getElementById('reqName').value = '';
   document.getElementById('reqQty').value = '';
   document.getElementById('reqBudget').value = '';
   document.getElementById('reqContact').value = '';
-  document.getElementById('requestForm').classList.remove('hidden');
+  document.getElementById('projReqName').value = '';
+  document.getElementById('projReqDesc').value = '';
+  document.getElementById('projReqBudget').value = '';
+  document.getElementById('projReqContact').value = '';
   document.getElementById('requestSuccess').classList.add('hidden');
+  if(activeReqTab === 'component'){
+    document.getElementById('requestFormComponent').classList.remove('hidden');
+  } else {
+    document.getElementById('requestFormProject').classList.remove('hidden');
+  }
 }
 
 renderMarquee();
