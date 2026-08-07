@@ -85,17 +85,26 @@
 
   .proj-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 8px; }
   @media (max-width: 700px) { .proj-grid { grid-template-columns: 1fr; } }
-  .proj-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; transition: border-color .15s, transform .15s; }
+  .proj-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; transition: border-color .15s, transform .15s; cursor: pointer; }
   .proj-card:hover { border-color: var(--cyan); transform: translateY(-2px); }
   .proj-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .proj-emoji { width: 42px; height: 42px; border-radius: 12px; background: rgba(77,232,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .proj-name { font-weight: 700; font-size: 16px; }
-  .proj-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-  .proj-parts { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
-  .proj-parts b { color: var(--text); font-weight: 600; }
+  .proj-desc { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
   .proj-bottom { display: flex; align-items: center; justify-content: space-between; }
   .proj-price { font-weight: 800; font-size: 18px; }
-  .proj-add-btn { background: var(--cyan); color: #12121A; font-weight: 700; font-size: 12px; padding: 9px 14px; border-radius: 999px; }
+  .proj-view { font-size: 12px; font-weight: 700; color: var(--cyan); }
+
+  .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 860px) { .blog-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .blog-grid { grid-template-columns: 1fr; } }
+  .blog-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; cursor: pointer; transition: border-color .15s, transform .15s; }
+  .blog-card:hover { border-color: var(--pink); transform: translateY(-2px); }
+  .blog-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(255,95,168,0.15); color: var(--pink); margin-bottom: 10px; }
+  .blog-emoji { font-size: 26px; margin-bottom: 8px; }
+  .blog-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; line-height: 1.35; }
+  .blog-excerpt { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+  .blog-meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 
   .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color .15s, transform .15s; }
   .card:hover { border-color: var(--lime); transform: translateY(-2px); }
@@ -170,13 +179,39 @@
   .modal p.desc { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
   .modal .box { background: var(--bg); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
 
+  .login-modal { max-width: 400px; padding: 0; overflow: hidden; }
+  .login-hero { background: linear-gradient(135deg, #1e1e2c, #17171f); padding: 28px 26px 20px; text-align: center; border-bottom: 1px solid var(--line); }
+  .login-badge { width: 52px; height: 52px; border-radius: 16px; background: var(--lime); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px; transform: rotate(-6deg); box-shadow: 0 8px 24px rgba(198,255,61,0.25); }
+  .login-hero h3 { font-size: 19px; margin: 0 0 6px; }
+  .login-hero .desc { margin: 0 0 14px; }
+  .login-perks { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .login-perks span { font-size: 11px; background: var(--bg-card); border: 1px solid var(--line); padding: 5px 10px; border-radius: 999px; color: var(--muted); }
+  .login-form-body { padding: 22px 26px 26px; }
+  .field-group { margin-bottom: 14px; }
+  .field-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+  .field-group input, .field-group select { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 14px; transition: border-color .15s; }
+  .field-group input:focus, .field-group select:focus { outline: none; border-color: var(--lime); }
+  .login-note { text-align: center; font-size: 11px; color: var(--muted); margin: 12px 0 0; }
+
   .hidden { display: none !important; }
+
+  .hamburger-btn { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); width: 38px; height: 38px; border-radius: 10px; font-size: 16px; flex-shrink: 0; }
+  .hamburger-btn:hover { border-color: var(--lime); }
+
+  .drawer-left { left: 0; right: auto; transform: translateX(-100%); }
+  .drawer-left.show { transform: translateX(0); }
+
+  .sidebar-body { padding: 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .side-link { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 600; background: none; border: none; text-align: left; width: 100%; cursor: pointer; }
+  .side-link:hover { background: var(--bg-card); }
+  .side-divider { height: 1px; background: var(--line); margin: 10px 4px; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap headbar">
+    <button id="sidebarOpenBtn" class="hamburger-btn" aria-label="Menu">☰</button>
     <div class="logo"><span class="logo-badge">⚡</span> CircuitRun</div>
     <div class="search-box">
       <span class="icon">🔍</span>
@@ -187,27 +222,60 @@
   </div>
 </header>
 
+<!-- sidebar nav -->
+<div class="overlay" id="sidebarOverlay"></div>
+<div class="drawer drawer-left" id="sidebarDrawer">
+  <div class="drawer-head">
+    <div class="logo" style="font-size:15px;"><span class="logo-badge" style="width:26px; height:26px; font-size:13px;">⚡</span> CircuitRun</div>
+    <button id="sidebarCloseBtn">✕</button>
+  </div>
+  <div class="sidebar-body">
+    <a href="#home" class="side-link" data-close-sidebar>🏠 Home</a>
+    <a href="#projects" class="side-link" data-close-sidebar>🚀 Project kits</a>
+    <a href="#catalog" class="side-link" data-close-sidebar>📦 Catalog</a>
+    <a href="#blog" class="side-link" data-close-sidebar>📰 Blog</a>
+    <a href="#bulkRequest" class="side-link" data-close-sidebar>🔧 Request a part</a>
+    <div class="side-divider"></div>
+    <button class="side-link side-btn" id="sideOrdersBtn">📦 My orders</button>
+    <button class="side-link side-btn" id="sideCartBtn">🛒 My cart</button>
+  </div>
+</div>
+
 <!-- login gate -->
 <div class="modal-overlay" id="loginOverlay">
-  <div class="modal">
-    <div style="font-size:30px; margin-bottom:6px;">⚡</div>
-    <h3>Welcome to CircuitRun</h3>
-    <p class="desc">Login to order components and track your orders.</p>
-    <div id="loginForm">
-      <label style="font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700;">Your name</label>
-      <input id="loginName" required placeholder="e.g. Rohan Sharma" style="width:100%; padding:10px 12px; margin:6px 0 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--text); font-size:14px;">
-      <label style="font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700;">WhatsApp number</label>
-      <input id="loginPhone" required placeholder="98XXXXXXXX" style="width:100%; padding:10px 12px; margin:6px 0 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--text); font-size:14px;">
-      <label style="font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700;">Year of study</label>
-      <select id="loginYear" required style="width:100%; padding:10px 12px; margin:6px 0 16px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--text); font-size:14px;">
-        <option value="">Select year</option>
-        <option>1st Year</option>
-        <option>2nd Year</option>
-        <option>3rd Year</option>
-        <option>4th Year</option>
-      </select>
-      <p id="loginError" class="hidden" style="color:var(--pink); font-size:12px; margin:-8px 0 12px;">Please fill in all fields.</p>
+  <div class="modal login-modal">
+    <div class="login-hero">
+      <div class="login-badge">⚡</div>
+      <h3>Welcome to CircuitRun</h3>
+      <p class="desc">Login to order parts, request custom components, and track everything in one place.</p>
+      <div class="login-perks">
+        <span>🚀 Instant checkout</span>
+        <span>📦 Order tracking</span>
+        <span>💵 COD friendly</span>
+      </div>
+    </div>
+    <div id="loginForm" class="login-form-body">
+      <div class="field-group">
+        <label>Your name</label>
+        <input id="loginName" required placeholder="e.g. Rohan Sharma">
+      </div>
+      <div class="field-group">
+        <label>WhatsApp number</label>
+        <input id="loginPhone" required placeholder="98XXXXXXXX">
+      </div>
+      <div class="field-group">
+        <label>Year of study</label>
+        <select id="loginYear" required>
+          <option value="">Select year</option>
+          <option>1st Year</option>
+          <option>2nd Year</option>
+          <option>3rd Year</option>
+          <option>4th Year</option>
+        </select>
+      </div>
+      <p id="loginError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please fill in all fields.</p>
       <button type="button" id="loginSubmitBtn" class="btn-primary" style="width:100%;">Login & start ordering 🚀</button>
+      <p class="login-note">No password needed — just your details to get started.</p>
     </div>
   </div>
 </div>
@@ -217,7 +285,7 @@
 </div>
 
 <div class="wrap">
-  <section class="hero">
+  <section class="hero" id="home">
     <div>
       <span class="eyebrow">📍 Nerul · Vashi · Belapur runs</span>
       <h1>Project components, <span class="hl">delivered to your campus.</span></h1>
@@ -258,6 +326,14 @@
     </div>
     <div class="chips" id="chipsRow"></div>
     <div class="grid" id="catalogGrid"></div>
+  </section>
+
+  <section id="blog">
+    <div class="section-title">
+      <h2>📰 The blog</h2>
+      <span class="count">Tips & guides for your college projects</span>
+    </div>
+    <div class="blog-grid" id="blogGrid"></div>
   </section>
 
   <section id="bulkRequest" class="bulk">
@@ -362,6 +438,33 @@
   </div>
 </div>
 
+<!-- blog article modal -->
+<div class="modal-overlay" id="blogModalOverlay">
+  <div class="modal" style="max-width:480px; max-height:82vh; overflow-y:auto;">
+    <span class="blog-tag" id="blogModalTag"></span>
+    <h3 id="blogModalTitle" style="margin:6px 0 4px;"></h3>
+    <p style="font-size:11px; color:var(--muted); margin:0 0 14px;" id="blogModalMeta"></p>
+    <div id="blogModalBody" style="font-size:14px; line-height:1.7; color:var(--text);"></div>
+    <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted); margin-top:16px;" id="blogModalCloseBtn">Close</button>
+  </div>
+</div>
+
+<!-- project detail modal -->
+<div class="modal-overlay" id="projectModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+      <div class="proj-emoji" id="projModalEmoji" style="font-size:24px;"></div>
+      <h3 id="projModalName" style="margin:0;"></h3>
+    </div>
+    <p class="desc" id="projModalDesc"></p>
+    <p class="desc" id="projModalInfo" style="opacity:0.85;"></p>
+    <div class="box" id="projModalParts"></div>
+    <div class="row-sb total" style="margin-bottom:14px;"><span>Total</span><span class="mono" id="projModalTotal"></span></div>
+    <button class="btn-primary" style="width:100%; margin-bottom:8px;" id="projModalAddBtn">+ Add full kit to cart</button>
+    <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="projModalCloseBtn">Close</button>
+  </div>
+</div>
+
 <!-- success modal -->
 <div class="modal-overlay" id="successModalOverlay">
   <div class="modal" style="text-align:center; max-width:420px;">
@@ -451,6 +554,60 @@ const CATALOG = [
   {id:"t04",name:"Wire Stripper / Cutter",spec:"6-inch, spring loaded",price:110,cat:"Tools",src:"local"}
 ];
 
+const BLOG_POSTS = [
+  {
+    id: "b01", tag: "Beginner Guide", emoji: "🔌", readTime: "4 min read",
+    title: "Arduino vs ESP32: Which one should your project actually use?",
+    excerpt: "Both run your code, but they're built for different jobs. Here's how to pick without wasting money.",
+    body: `Most first-year students default to Arduino Uno because it's the "classic" choice — and for simple projects (LED blinking, sensor reading, basic motor control) it's genuinely the easier board to learn on. It has more tutorials, simpler wiring, and forgives beginner mistakes better.
+
+But if your project needs WiFi, Bluetooth, or you're building something IoT-flavoured (like a phone-controlled robot, or a sensor that logs data online), ESP32 is the better pick — it has WiFi and Bluetooth built in, and it's actually cheaper than an Arduino Uno in most cases.
+
+Quick rule of thumb: if your project description has the word "smart," "remote," or "app-controlled" in it, go ESP32. If it's a straightforward sensor + actuator project for a viva demo, Arduino Uno is simpler and less likely to give you setup headaches the night before submission.`
+  },
+  {
+    id: "b02", tag: "Project Tips", emoji: "🧯", readTime: "3 min read",
+    title: "5 mistakes that fry components right before your viva",
+    excerpt: "Most 'my Arduino just died' stories come down to one of these five things.",
+    body: `1. Reversing polarity on the breadboard — always double check + and - before powering on, especially with motors and battery packs.
+
+2. Driving a motor directly from a microcontroller pin — motors pull more current than a GPIO pin can handle. Always use a driver module (like L298N) between the motor and the board.
+
+3. Mixing 5V and 3.3V logic — ESP32 sensors are usually 3.3V. Feeding them 5V signals can permanently damage them. Check your sensor's datasheet before wiring.
+
+4. No flyback diode on relay/solenoid circuits — when a coil switches off, it sends a voltage spike backward that can damage your driver IC. A simple diode across the coil fixes this.
+
+5. Leaving jumper wires loose on a moving robot — vibration works wires loose over a demo, and a disconnected sensor mid-viva looks bad. Hot glue or zip-tie your connections down once the circuit is confirmed working.`
+  },
+  {
+    id: "b03", tag: "Buying Guide", emoji: "💰", readTime: "3 min read",
+    title: "How to budget your mini-project without overspending",
+    excerpt: "A simple way to plan your component list so you don't end up buying things twice.",
+    body: `The most common budget mistake: buying components one at a time as you "discover" you need them mid-build. This usually means multiple trips, rushed decisions, and buying the wrong variant.
+
+Better approach — before buying anything:
+1. Sketch your full circuit on paper first (even roughly)
+2. List every component you'll touch — including "boring" ones like resistors, jumper wires, and a breadboard, which people always forget to budget for
+3. Add 15-20% buffer for one thing going wrong (a burnt-out sensor, a bent pin, a wrong value resistor)
+4. Order everything in one batch instead of multiple small orders — saves you both money and time
+
+Also: buy 2-3 of anything cheap and easy to damage (LEDs, jumper wires, basic resistors). They cost next to nothing but losing one mid-project when shops are far away is a bigger cost than buying a spare upfront.`
+  },
+  {
+    id: "b04", tag: "Career", emoji: "🎯", readTime: "4 min read",
+    title: "Why your mini-project matters more than your marks",
+    excerpt: "Recruiters skim resumes in seconds. A project that actually works is what makes them stop.",
+    body: `A resume that says "Smart Irrigation System using ESP32 and soil moisture sensor, deployed and tested" stands out more than a CGPA line — because it shows you can actually build something end-to-end, not just pass an exam on the theory.
+
+A few things that make a mini-project resume-worthy:
+- Document it — even 5-6 photos and a short write-up of how it works goes a long way in an interview
+- Push your code to GitHub, even if it's messy — recruiters care that it exists and runs
+- Be ready to explain *why* you chose each component, not just that you used it — this is what separates someone who understood the project from someone who followed a YouTube tutorial
+
+Your mini-project is often the very first "real" thing you'll ever talk about in an interview. Worth building something you'd actually want to explain.`
+  }
+];
+
 const PROJECTS = [
   {
     id: "pr01", emoji: "🏫", name: "Smart Energy Saver Classroom",
@@ -515,31 +672,52 @@ function projectPrice(proj){
 function renderProjects(){
   const grid = document.getElementById('projectsGrid');
   grid.innerHTML = PROJECTS.map(proj => {
-    const partsList = proj.parts.map(p => {
-      const item = CATALOG.find(c => c.id === p.id);
-      return item ? `<b>${item.name}</b> ×${p.qty}` : '';
-    }).join(', ');
-    return `<div class="proj-card">
+    return `<div class="proj-card" data-proj-open="${proj.id}">
       <div class="proj-top">
         <div class="proj-emoji">${proj.emoji}</div>
         <div class="proj-name">${proj.name}</div>
       </div>
-      <div class="proj-desc">${proj.desc}<br><span style="opacity:0.8;">${proj.info}</span></div>
-      <div class="proj-parts">Includes: ${partsList}</div>
+      <div class="proj-desc">${proj.desc}</div>
       <div class="proj-bottom">
         <span class="proj-price mono">${money(projectPrice(proj))}</span>
-        <button class="proj-add-btn" data-proj="${proj.id}">+ Add full kit</button>
+        <span class="proj-view">View kit →</span>
       </div>
     </div>`;
   }).join('');
 
-  grid.querySelectorAll('[data-proj]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if(!state.user){ pendingProjectId = btn.dataset.proj; document.getElementById('loginOverlay').classList.add('show'); return; }
-      addProjectToCart(btn.dataset.proj);
-    });
+  grid.querySelectorAll('[data-proj-open]').forEach(card => {
+    card.addEventListener('click', () => openProjectModal(card.dataset.projOpen));
   });
 }
+
+function openProjectModal(projId){
+  const proj = PROJECTS.find(p => p.id === projId);
+  if(!proj) return;
+  const partsRows = proj.parts.map(p => {
+    const item = CATALOG.find(c => c.id === p.id);
+    if(!item) return '';
+    return `<div class="row-sb"><span>${item.name} × ${p.qty}</span><span class="mono">${money(item.price * p.qty)}</span></div>`;
+  }).join('');
+
+  document.getElementById('projModalEmoji').textContent = proj.emoji;
+  document.getElementById('projModalName').textContent = proj.name;
+  document.getElementById('projModalDesc').textContent = proj.desc;
+  document.getElementById('projModalInfo').textContent = proj.info;
+  document.getElementById('projModalParts').innerHTML = partsRows;
+  document.getElementById('projModalTotal').textContent = money(projectPrice(proj));
+  document.getElementById('projModalAddBtn').dataset.proj = proj.id;
+  document.getElementById('projectModalOverlay').classList.add('show');
+}
+
+document.getElementById('projModalAddBtn').addEventListener('click', () => {
+  const projId = document.getElementById('projModalAddBtn').dataset.proj;
+  document.getElementById('projectModalOverlay').classList.remove('show');
+  if(!state.user){ pendingProjectId = projId; document.getElementById('loginOverlay').classList.add('show'); return; }
+  addProjectToCart(projId);
+});
+document.getElementById('projModalCloseBtn').addEventListener('click', () => {
+  document.getElementById('projectModalOverlay').classList.remove('show');
+});
 
 function addProjectToCart(projId){
   const proj = PROJECTS.find(p => p.id === projId);
@@ -551,6 +729,35 @@ function addProjectToCart(projId){
   document.getElementById('overlay').classList.add('show');
   document.getElementById('cartDrawer').classList.add('show');
 }
+
+function renderBlog(){
+  const grid = document.getElementById('blogGrid');
+  grid.innerHTML = BLOG_POSTS.map(post => `
+    <div class="blog-card" data-blog="${post.id}">
+      <div class="blog-emoji">${post.emoji}</div>
+      <span class="blog-tag">${post.tag}</span>
+      <div class="blog-title">${post.title}</div>
+      <div class="blog-excerpt">${post.excerpt}</div>
+      <div class="blog-meta"><span>🤖 AI-written</span><span>${post.readTime}</span></div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('[data-blog]').forEach(card => {
+    card.addEventListener('click', () => openBlogModal(card.dataset.blog));
+  });
+}
+
+function openBlogModal(postId){
+  const post = BLOG_POSTS.find(p => p.id === postId);
+  if(!post) return;
+  document.getElementById('blogModalTag').textContent = post.tag;
+  document.getElementById('blogModalTitle').textContent = post.title;
+  document.getElementById('blogModalMeta').textContent = `🤖 AI-written · ${post.readTime}`;
+  document.getElementById('blogModalBody').innerHTML = post.body.split('\n\n').map(p => `<p style="margin:0 0 14px;">${p}</p>`).join('');
+  document.getElementById('blogModalOverlay').classList.add('show');
+}
+document.getElementById('blogModalCloseBtn').addEventListener('click', () => {
+  document.getElementById('blogModalOverlay').classList.remove('show');
+});
 
 function renderChips(){
   const row = document.getElementById('chipsRow');
@@ -674,6 +881,18 @@ document.getElementById('cartOpenBtn').addEventListener('click', () => { overlay
 function closeDrawer(){ overlay.classList.remove('show'); drawer.classList.remove('show'); }
 document.getElementById('cartCloseBtn').addEventListener('click', closeDrawer);
 overlay.addEventListener('click', closeDrawer);
+
+// sidebar drawer
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const sidebarDrawer = document.getElementById('sidebarDrawer');
+function openSidebar(){ sidebarOverlay.classList.add('show'); sidebarDrawer.classList.add('show'); }
+function closeSidebar(){ sidebarOverlay.classList.remove('show'); sidebarDrawer.classList.remove('show'); }
+document.getElementById('sidebarOpenBtn').addEventListener('click', openSidebar);
+document.getElementById('sidebarCloseBtn').addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+document.querySelectorAll('[data-close-sidebar]').forEach(a => a.addEventListener('click', closeSidebar));
+document.getElementById('sideOrdersBtn').addEventListener('click', () => { closeSidebar(); document.getElementById('ordersOpenBtn').click(); });
+document.getElementById('sideCartBtn').addEventListener('click', () => { closeSidebar(); document.getElementById('cartOpenBtn').click(); });
 
 // checkout modal
 const UPI_ID = "viveksagare0011-1@oksbi";
@@ -849,12 +1068,24 @@ document.getElementById('searchInput').addEventListener('input', (e) => { state.
 // request form
 document.getElementById('requestSubmitBtn').addEventListener('click', () => {
   const name = document.getElementById('reqName').value.trim();
+  const qty = document.getElementById('reqQty').value.trim();
+  const budget = document.getElementById('reqBudget').value.trim();
   const contact = document.getElementById('reqContact').value.trim();
   if(!name || !contact){
     document.getElementById('reqError').classList.remove('hidden');
     return;
   }
   document.getElementById('reqError').classList.add('hidden');
+
+  const lines = [
+    `🔧 CUSTOM COMPONENT REQUEST`,
+    `Component: ${name}`,
+    `Quantity: ${qty || 'not specified'}`,
+    `Budget: ${budget || 'not specified'}`,
+    `Customer WhatsApp: ${contact}`
+  ];
+  window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+
   document.getElementById('requestForm').classList.add('hidden');
   document.getElementById('requestSuccess').classList.remove('hidden');
 });
@@ -870,6 +1101,7 @@ function resetRequestForm(){
 renderMarquee();
 renderChips();
 renderProjects();
+renderBlog();
 renderCatalog();
 renderCartDrawer();
 updateCartCount();
