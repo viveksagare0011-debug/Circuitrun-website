@@ -764,6 +764,32 @@ const CAT_ICON = {
 const ADVANCE_PCT = 0.2;
 const OWNER_WHATSAPP = "917318760011"; // +91 7318760011
 let state = { category: "All", query: "", cart: {}, user: null, orders: [] };
+  const savedUser = localStorage.getItem('circuitrun_user');
+if(savedUser){
+  try { state.user = JSON.parse(savedUser); } catch(e) {}
+}
+
+async function loadUserOrders(phone){
+  try {
+    if(!db) return;
+    const { data, error } = await db.from('orders')
+      .select('*')
+      .eq('customer_phone', phone)
+      .order('created_at', { ascending: false });
+    if(!error && data){
+      state.orders = data.map(o => ({
+        id: o.order_code, items: o.items, subtotal: o.subtotal,
+        advance: o.advance, cod: o.cod, status: o.status
+      }));
+      updateOrdersCount();
+      if(data.length > 0 && data[0].delivery_location){
+        state.lastDeliveryLocation = data[0].delivery_location;
+      }
+    }
+  } catch(err) {
+    console.error('could not load past orders:', err.message || err);
+  }
+}
 let pendingAddId = null;
 let pendingProjectId = null;
 
