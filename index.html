@@ -996,7 +996,7 @@ function updateCartCount(){
 function totals(){
   const items = cartItems();
   const subtotal = items.reduce((s,i) => s + i.price*i.qty, 0);
-  const advance = Math.round(subtotal * ADVANCE_PCT);
+  const advance = Math.max(1, Math.round(subtotal * ADVANCE_PCT));
   return {subtotal, advance, cod: subtotal - advance, count: items.reduce((s,i)=>s+i.qty,0)};
 }
 
@@ -1124,7 +1124,7 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
   document.getElementById('coDeliveryLocation').value = state.lastDeliveryLocation || '';
   document.getElementById('deliveryError').classList.add('hidden');
 
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent("CircuitRun")}&am=${t.advance}&cu=INR&tn=${encodeURIComponent("CircuitRun advance payment")}`;
+  const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent("CircuitRun")}&am=${t.advance.toFixed(2)}&cu=INR&tn=${encodeURIComponent("CircuitRun advance payment")}`;
   document.getElementById('upiAppLink').href = upiUrl;
   const qrBox = document.getElementById('qrcodeBox');
   qrBox.innerHTML = '';
