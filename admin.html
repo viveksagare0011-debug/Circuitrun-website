@@ -137,9 +137,25 @@ async function loadOrders(){
       <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">📍 ${o.delivery_location || 'not specified'}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
       <td class="mono">${money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
-      <td><span class="badge">${o.status}</span></td>
+      <td>
+        <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;">
+          <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
+          <option value="Packed" ${o.status==='Packed'?'selected':''}>Packed</option>
+          <option value="Out for Delivery" ${o.status==='Out for Delivery'?'selected':''}>Out for Delivery</option>
+          <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+        </select>
+      </td>
     </tr>
   `).join('');
+}
+
+async function updateOrderStatus(orderCode, newStatus){
+  const { error } = await db.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
+  if(error){
+    alert('Status update failed: ' + error.message);
+    return;
+  }
+  loadOrders();
 }
 </script>
 </body>
