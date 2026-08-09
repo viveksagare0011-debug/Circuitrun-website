@@ -1149,7 +1149,11 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
   document.getElementById('coDeliveryLocation').value = state.lastDeliveryLocation || '';
   document.getElementById('deliveryError').classList.add('hidden');
 
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent("CircuitRun")}&am=${t.advance.toFixed(2)}&cu=INR&tn=${encodeURIComponent("CircuitRun advance payment")}`;
+  // Note: the VPA (pa) is intentionally left unencoded — some UPI apps
+  // fail to resolve the payee when the "@" is percent-encoded (%40) even
+  // though it opens the app, which was causing bank selection to hang.
+  const orderRef = "CR" + Date.now().toString().slice(-6);
+  const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent("CircuitRun")}&am=${t.advance.toFixed(2)}&cu=INR&tn=${encodeURIComponent("CircuitRun advance payment")}&tr=${orderRef}`;
   document.getElementById('upiAppLink').href = upiUrl;
   const qrBox = document.getElementById('qrcodeBox');
   const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&ecc=H&margin=10&data=${encodeURIComponent(upiUrl)}`;
