@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CircuitRun — components delivered to campus</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23C6FF3D%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>⚡</text></svg>">
+<meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
+<meta property="og:title" content="CircuitRun — components delivered to campus">
+<meta property="og:description" content="Order electronics & project components online, delivered to your campus. Built for engineering students in Navi Mumbai.">
+<meta property="og:type" content="website">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -376,7 +381,15 @@
       <h2>The catalog</h2>
       <span class="count" id="itemCount"></span>
     </div>
-    <div class="chips" id="chipsRow"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div class="chips" id="chipsRow" style="flex:1;"></div>
+      <select id="sortSelect" style="background:var(--bg-card); border:1px solid var(--line); color:var(--text); border-radius:999px; padding:8px 14px; font-size:13px; margin-bottom:12px;">
+        <option value="default">Sort: Default</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="name">Name: A to Z</option>
+      </select>
+    </div>
     <div class="grid" id="catalogGrid"></div>
   </section>
 
@@ -481,7 +494,10 @@
 <div class="drawer" id="ordersDrawer">
   <div class="drawer-head">
     <span class="disp" style="font-weight:800; font-size:16px;">My orders</span>
-    <button id="ordersCloseBtn">✕</button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button id="ordersRefreshBtn" style="background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:12px; color:var(--text);">↻ Refresh</button>
+      <button id="ordersCloseBtn">✕</button>
+    </div>
   </div>
   <div class="drawer-body" id="ordersBody"></div>
 </div>
@@ -763,7 +779,12 @@ const CAT_ICON = {
 
 const ADVANCE_PCT = 0.2;
 const OWNER_WHATSAPP = "917318760011"; // +91 7318760011
-let state = { category: "All", query: "", cart: {}, user: null, orders: [] };
+let state = { category: "All", query: "", cart: {}, user: null, orders: [], sort: "default" };
+
+// simple Indian mobile number check: 10 digits, starting 6-9
+function isValidIndianPhone(phone){
+  return /^[6-9]\d{9}$/.test(phone.replace(/[\s-]/g, ''));
+}
 let pendingAddId = null;
 let pendingProjectId = null;
 
@@ -911,11 +932,16 @@ function renderChips(){
 }
 
 function filteredCatalog(){
-  return CATALOG.filter(item => {
+  let items = CATALOG.filter(item => {
     const catMatch = state.category === "All" || item.cat === state.category;
     const qMatch = smartMatch(item, state.query);
     return catMatch && qMatch;
   });
+  const sort = state.sort || "default";
+  if(sort === "price-low") items = [...items].sort((a,b) => a.price - b.price);
+  if(sort === "price-high") items = [...items].sort((a,b) => b.price - a.price);
+  if(sort === "name") items = [...items].sort((a,b) => a.name.localeCompare(b.name));
+  return items;
 }
 
 // Smart search: splits the query into words and matches if the item's
@@ -1140,6 +1166,8 @@ document.getElementById('cancelCheckoutBtn').addEventListener('click', () => che
 
 const successOverlay = document.getElementById('successModalOverlay');
 document.getElementById('confirmPayBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('confirmPayBtn');
+  if(btn.disabled) return; // prevents a double-click from creating two orders
   const deliveryLocation = document.getElementById('coDeliveryLocation').value.trim();
   if(!deliveryLocation){
     document.getElementById('deliveryError').classList.remove('hidden');
@@ -1147,6 +1175,9 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   }
   document.getElementById('deliveryError').classList.add('hidden');
   state.lastDeliveryLocation = deliveryLocation;
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.textContent = 'Placing order...';
 
   const t = totals();
   const items = cartItems();
@@ -1188,6 +1219,9 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   document.getElementById('successMsg').textContent = `Order #${order.id} is confirmed. Pay ${money(t.cod)} in cash at delivery.`;
   document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + `<div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.subtotal)}</span></div>`;
   successOverlay.classList.add('show');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.textContent = "I've paid — confirm order";
 });
 document.getElementById('backToCatalogBtn').addEventListener('click', () => {
   successOverlay.classList.remove('show');
@@ -1202,11 +1236,18 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   const year = document.getElementById('loginYear').value;
   const college = document.getElementById('loginCollege').value.trim();
   const department = document.getElementById('loginDept').value.trim();
+  const loginErrorEl = document.getElementById('loginError');
   if(!name || !phone || !year || !college || !department){
-    document.getElementById('loginError').classList.remove('hidden');
+    loginErrorEl.textContent = 'Please fill in all fields.';
+    loginErrorEl.classList.remove('hidden');
     return;
   }
-  document.getElementById('loginError').classList.add('hidden');
+  if(!isValidIndianPhone(phone)){
+    loginErrorEl.textContent = 'Enter a valid 10-digit mobile number.';
+    loginErrorEl.classList.remove('hidden');
+    return;
+  }
+  loginErrorEl.classList.add('hidden');
   state.user = { name, phone, year, college, department };
   localStorage.setItem('circuitrun_user', JSON.stringify(state.user));
   document.getElementById('loginOverlay').classList.remove('show');
@@ -1247,10 +1288,22 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
 // my orders drawer
 const ordersOverlay = document.getElementById('ordersOverlay');
 const ordersDrawer = document.getElementById('ordersDrawer');
-document.getElementById('ordersOpenBtn').addEventListener('click', () => {
+document.getElementById('ordersOpenBtn').addEventListener('click', async () => {
   renderOrdersDrawer();
   ordersOverlay.classList.add('show');
   ordersDrawer.classList.add('show');
+  if(state.user){
+    await loadUserOrders(state.user.phone);
+    renderOrdersDrawer();
+  }
+});
+document.getElementById('ordersRefreshBtn').addEventListener('click', async () => {
+  if(!state.user) return;
+  const btn = document.getElementById('ordersRefreshBtn');
+  btn.textContent = '↻ Refreshing...';
+  await loadUserOrders(state.user.phone);
+  renderOrdersDrawer();
+  btn.textContent = '↻ Refresh';
 });
 function closeOrdersDrawer(){ ordersOverlay.classList.remove('show'); ordersDrawer.classList.remove('show'); }
 document.getElementById('ordersCloseBtn').addEventListener('click', closeOrdersDrawer);
@@ -1305,6 +1358,11 @@ function buildWhatsAppMessage(order){
 // search + live suggestions
 const searchInput = document.getElementById('searchInput');
 const searchSuggest = document.getElementById('searchSuggest');
+
+document.getElementById('sortSelect').addEventListener('change', (e) => {
+  state.sort = e.target.value;
+  renderCatalog();
+});
 
 searchInput.addEventListener('input', (e) => {
   state.query = e.target.value;
@@ -1370,11 +1428,18 @@ document.getElementById('requestSubmitBtn').addEventListener('click', () => {
   const qty = document.getElementById('reqQty').value.trim();
   const budget = document.getElementById('reqBudget').value.trim();
   const contact = document.getElementById('reqContact').value.trim();
+  const errEl = document.getElementById('reqError');
   if(!name || !contact){
-    document.getElementById('reqError').classList.remove('hidden');
+    errEl.textContent = 'Please fill in the required fields.';
+    errEl.classList.remove('hidden');
     return;
   }
-  document.getElementById('reqError').classList.add('hidden');
+  if(!isValidIndianPhone(contact)){
+    errEl.textContent = 'Enter a valid 10-digit mobile number.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
 
   const lines = [
     `🔧 CUSTOM COMPONENT REQUEST`,
@@ -1394,11 +1459,18 @@ document.getElementById('projRequestSubmitBtn').addEventListener('click', () => 
   const desc = document.getElementById('projReqDesc').value.trim();
   const budget = document.getElementById('projReqBudget').value.trim();
   const contact = document.getElementById('projReqContact').value.trim();
+  const errEl = document.getElementById('projReqError');
   if(!name || !contact){
-    document.getElementById('projReqError').classList.remove('hidden');
+    errEl.textContent = 'Please fill in the required fields.';
+    errEl.classList.remove('hidden');
     return;
   }
-  document.getElementById('projReqError').classList.add('hidden');
+  if(!isValidIndianPhone(contact)){
+    errEl.textContent = 'Enter a valid 10-digit mobile number.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
 
   const lines = [
     `🚀 CUSTOM PROJECT KIT REQUEST`,
