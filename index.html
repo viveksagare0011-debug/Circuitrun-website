@@ -606,7 +606,6 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
@@ -1153,12 +1152,17 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
   const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent("CircuitRun")}&am=${t.advance.toFixed(2)}&cu=INR&tn=${encodeURIComponent("CircuitRun advance payment")}`;
   document.getElementById('upiAppLink').href = upiUrl;
   const qrBox = document.getElementById('qrcodeBox');
-  qrBox.innerHTML = '';
-  if(typeof QRCode !== 'undefined'){
-    new QRCode(qrBox, { text: upiUrl, width: 160, height: 160, colorDark: "#12121A", colorLight: "#ffffff" });
-  } else {
-    qrBox.innerHTML = `<p style="font-size:12px; color:var(--muted);">QR unavailable — use the button below to pay.</p>`;
-  }
+  const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&ecc=H&margin=10&data=${encodeURIComponent(upiUrl)}`;
+  qrBox.innerHTML = `
+    <div style="background:#ffffff; padding:14px; border-radius:14px; display:inline-block;">
+      <img src="${qrImgUrl}" width="220" height="220" alt="UPI payment QR code" id="qrImg" style="display:block;">
+    </div>
+    <p id="qrFallbackMsg" class="hidden" style="font-size:12px; color:var(--muted); margin-top:8px;">QR failed to load — use the button below to pay instead.</p>
+  `;
+  document.getElementById('qrImg').addEventListener('error', () => {
+    document.getElementById('qrImg').closest('div').classList.add('hidden');
+    document.getElementById('qrFallbackMsg').classList.remove('hidden');
+  });
 
   checkoutOverlay.classList.add('show');
 });
