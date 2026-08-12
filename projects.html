@@ -47,6 +47,9 @@
   .search-box input:focus { outline: 2px solid var(--pink); }
   .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 14px; }
   .search-suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; z-index: 40; box-shadow: 0 12px 28px rgba(0,0,0,0.4); }
+  @media (max-width: 640px) {
+    .search-suggest { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; max-height: 70vh; overflow-y: auto; }
+  }
   .suggest-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; }
   .suggest-item:hover { background: var(--bg); }
   .suggest-item .sname { font-weight: 600; }
@@ -91,6 +94,13 @@
   .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px; }
   .chip { white-space: nowrap; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--bg-card); color: var(--muted); }
   .chip.active { background: var(--lime); color: #12121A; border-color: var(--lime); }
+
+  .catalog-toolbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .sort-select { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 8px 14px; font-size: 13px; flex-shrink: 0; }
+  @media (max-width: 640px) {
+    .catalog-toolbar { flex-direction: column; align-items: stretch; }
+    .sort-select { width: 100%; }
+  }
 
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }

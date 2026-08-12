@@ -47,6 +47,9 @@
   .search-box input:focus { outline: 2px solid var(--pink); }
   .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 14px; }
   .search-suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; z-index: 40; box-shadow: 0 12px 28px rgba(0,0,0,0.4); }
+  @media (max-width: 640px) {
+    .search-suggest { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; max-height: 70vh; overflow-y: auto; }
+  }
   .suggest-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; }
   .suggest-item:hover { background: var(--bg); }
   .suggest-item .sname { font-weight: 600; }
@@ -65,7 +68,9 @@
   .chip-sticker:nth-child(even) { transform: rotate(2deg); }
 
   /* hero */
-  .hero { padding: 56px 0 32px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }
+  .hero { position: relative; padding: 56px 0 32px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; isolation: isolate; }
+  #circuitCanvas { position: absolute; inset: -60px -8vw; width: calc(100% + 16vw); height: calc(100% + 120px); z-index: 0; pointer-events: none; }
+  .hero > div, .hero-card { position: relative; z-index: 1; }
   @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding: 36px 0 24px; } }
   .eyebrow { display: inline-block; background: var(--pink); color: #12121A; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 999px; margin-bottom: 16px; transform: rotate(-2deg); }
   h1 { font-size: 42px; line-height: 1.1; font-weight: 800; margin: 0 0 16px; }
@@ -76,7 +81,7 @@
   .btn-primary { background: var(--lime); color: #12121A; font-weight: 700; padding: 13px 22px; border-radius: 999px; font-size: 14px; }
   .btn-outline { background: transparent; color: var(--text); font-weight: 700; padding: 12px 22px; border-radius: 999px; font-size: 14px; border: 2px solid var(--pink); }
 
-  .hero-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+  .hero-card { background: rgba(28,28,39,0.82); backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 20px; padding: 20px; transform-style: preserve-3d; transition: transform .15s ease-out; will-change: transform; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
   .flow-row { display: flex; justify-content: space-between; margin-top: 14px; }
   .flow-step { text-align: center; flex: 1; }
   .flow-dot { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 2px solid var(--lime); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
@@ -91,6 +96,13 @@
   .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px; }
   .chip { white-space: nowrap; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--bg-card); color: var(--muted); }
   .chip.active { background: var(--lime); color: #12121A; border-color: var(--lime); }
+
+  .catalog-toolbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .sort-select { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 8px 14px; font-size: 13px; flex-shrink: 0; }
+  @media (max-width: 640px) {
+    .catalog-toolbar { flex-direction: column; align-items: stretch; }
+    .sort-select { width: 100%; }
+  }
 
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
@@ -107,6 +119,19 @@
   .proj-bottom { display: flex; align-items: center; justify-content: space-between; }
   .proj-price { font-weight: 800; font-size: 18px; }
   .proj-view { font-size: 12px; font-weight: 700; color: var(--cyan); }
+
+  .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 8px 0 36px; }
+  @media (max-width: 700px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
+  .stat-tile { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; }
+  .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--lime); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; }
+
+  .trending-track { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 8px; scroll-snap-type: x proximity; }
+  .trend-card { scroll-snap-align: start; flex: 0 0 150px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-decoration: none; color: var(--text); transition: border-color .15s, transform .15s; }
+  .trend-card:hover { border-color: var(--lime); transform: translateY(-2px); }
+  .trend-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+  .trend-name { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; min-height: 34px; }
+  .trend-price { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--lime); font-weight: 700; }
 
   .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   @media (max-width: 860px) { .blog-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -361,6 +386,7 @@
 
 <div class="wrap">
   <section class="hero" id="home">
+    <canvas id="circuitCanvas"></canvas>
     <div>
       <span class="eyebrow">📍 Nerul · Vashi · Belapur runs</span>
       <h1>Project components, <span class="hl">delivered to your campus.</span></h1>
@@ -370,7 +396,7 @@
         <a href="projects.html" class="btn-outline" style="text-decoration:none; display:inline-block;">Explore project kits 🚀</a>
       </div>
     </div>
-    <div class="hero-card">
+    <div class="hero-card" id="heroCard">
       <div class="disp" style="font-weight:700; font-size:14px; color: var(--muted);">HOW IT WORKS</div>
       <div class="flow-row">
         <div class="flow-step"><div class="flow-dot">📝</div><div class="flow-label">You request</div></div>
@@ -384,6 +410,18 @@
         <span>⚡ Local = quick</span>
       </div>
     </div>
+  </section>
+
+  <section id="stats-strip" class="cr-reveal">
+    <div class="stats-bar" id="statsBar"></div>
+  </section>
+
+  <section id="trending">
+    <div class="section-title cr-reveal">
+      <h2>🔥 Trending this week</h2>
+      <span class="count"><a href="catalog.html" style="color:var(--cyan); text-decoration:none;">View full catalog →</a></span>
+    </div>
+    <div class="trending-track" id="trendingTrack"></div>
   </section>
 
   <section id="blog">
@@ -947,6 +985,47 @@ function addProjectToCart(projId){
   showToast(`✅ ${proj.name} kit added to cart`);
   document.getElementById('overlay').classList.add('show');
   document.getElementById('cartDrawer').classList.add('show');
+}
+
+// curated picks shown on the homepage teaser strip — not the full catalog,
+// just enough to make the front page feel alive and pull people into it
+const TRENDING_IDS = ["c01","c02","s01","w01","m01","d02","c09","b02","t01","s09"];
+
+function renderTrending(){
+  const track = document.getElementById('trendingTrack');
+  if(!track) return;
+  const items = TRENDING_IDS.map(id => CATALOG.find(c => c.id === id)).filter(Boolean);
+  track.innerHTML = items.map(item => {
+    const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
+    return `<a href="catalog.html?q=${encodeURIComponent(item.name)}" class="trend-card">
+      <div class="trend-icon ${ic.cls}">${ic.icon}</div>
+      <div class="trend-name">${item.name}</div>
+      <div class="trend-price">${money(item.price)}</div>
+    </a>`;
+  }).join('');
+}
+
+async function renderStats(){
+  const bar = document.getElementById('statsBar');
+  if(!bar) return;
+  let orderCount = null, customerCount = null;
+  if(db){
+    try {
+      const { count: oc } = await db.from('orders').select('*', { count: 'exact', head: true });
+      orderCount = oc;
+      const { data: custData } = await db.from('orders').select('customer_phone');
+      if(custData) customerCount = new Set(custData.map(o => o.customer_phone)).size;
+    } catch(err) {
+      console.error('stats fetch failed:', err.message || err);
+    }
+  }
+  const tiles = [
+    { num: CATALOG.length + '+', label: 'Components listed' },
+    { num: CATEGORIES.length - 1, label: 'Categories' },
+    { num: orderCount !== null ? orderCount : '🚀', label: orderCount !== null ? 'Orders placed' : 'Just launched' },
+    { num: customerCount !== null && customerCount > 0 ? customerCount : 'You?', label: 'Students served' }
+  ];
+  bar.innerHTML = tiles.map(t => `<div class="stat-tile"><div class="stat-num">${t.num}</div><div class="stat-label">${t.label}</div></div>`).join('');
 }
 
 function renderBlog(){
@@ -1616,6 +1695,182 @@ if(qParam && document.getElementById('searchInput')){
   document.getElementById('searchInput').value = qParam;
   state.query = qParam;
 }
+
+// ---- Living Circuit Board hero animation ----
+// A procedurally generated PCB-trace network with light pulses that
+// continuously travel along the traces, brightening as they pass through
+// solder-pad junctions. Purely canvas 2D (no dependencies), respects
+// prefers-reduced-motion, and pauses when the tab isn't visible.
+function initCircuitCanvas(){
+  const canvas = document.getElementById('circuitCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const heroEl = document.querySelector('.hero');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let traces = [];
+  let mouseX = -9999, mouseY = -9999;
+
+  const PALETTE = ['#C6FF3D', '#FF5FA8', '#4DE8FF'];
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    generateTraces();
+  }
+
+  // Builds an orthogonal (right-angle) path from a random start edge to a
+  // random end point, like a real PCB trace routed on a grid.
+  function buildPath(){
+    const gridSize = 42;
+    const cols = Math.max(4, Math.floor(W / gridSize));
+    const rows = Math.max(4, Math.floor(H / gridSize));
+    const startCol = Math.random() < 0.5 ? 0 : cols;
+    const startRow = Math.floor(Math.random() * rows);
+    let x = startCol * gridSize, y = startRow * gridSize;
+    const points = [{x, y}];
+    const turns = 2 + Math.floor(Math.random() * 3);
+    let horizontal = Math.random() < 0.5;
+    for(let i = 0; i < turns; i++){
+      if(horizontal){
+        x += (Math.random() < 0.5 ? -1 : 1) * gridSize * (1 + Math.floor(Math.random()*3));
+        x = Math.max(0, Math.min(W, x));
+      } else {
+        y += (Math.random() < 0.5 ? -1 : 1) * gridSize * (1 + Math.floor(Math.random()*3));
+        y = Math.max(0, Math.min(H, y));
+      }
+      points.push({x, y});
+      horizontal = !horizontal;
+    }
+    return points;
+  }
+
+  function pathLength(points){
+    let len = 0;
+    for(let i = 1; i < points.length; i++){
+      len += Math.hypot(points[i].x - points[i-1].x, points[i].y - points[i-1].y);
+    }
+    return len;
+  }
+
+  function pointAt(points, t){
+    // t is 0..1 fraction of total path length
+    const total = pathLength(points);
+    let target = total * t;
+    for(let i = 1; i < points.length; i++){
+      const segLen = Math.hypot(points[i].x - points[i-1].x, points[i].y - points[i-1].y);
+      if(target <= segLen){
+        const frac = segLen === 0 ? 0 : target / segLen;
+        return {
+          x: points[i-1].x + (points[i].x - points[i-1].x) * frac,
+          y: points[i-1].y + (points[i].y - points[i-1].y) * frac
+        };
+      }
+      target -= segLen;
+    }
+    return points[points.length - 1];
+  }
+
+  function generateTraces(){
+    const count = W < 640 ? 8 : 16;
+    traces = [];
+    for(let i = 0; i < count; i++){
+      const points = buildPath();
+      traces.push({
+        points,
+        color: PALETTE[i % PALETTE.length],
+        speed: 0.00018 + Math.random() * 0.00025,
+        offset: Math.random()
+      });
+    }
+  }
+
+  function draw(time){
+    ctx.clearRect(0, 0, W, H);
+
+    traces.forEach(trace => {
+      // faint static trace line
+      ctx.beginPath();
+      trace.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // junction pads
+      trace.points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fill();
+      });
+
+      // traveling light pulse
+      const t = (time * trace.speed + trace.offset) % 1;
+      const pos = pointAt(trace.points, t);
+      const dist = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+      const boost = dist < 120 ? (1 - dist / 120) : 0;
+
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 2.5 + boost * 2, 0, Math.PI * 2);
+      ctx.fillStyle = trace.color;
+      ctx.shadowColor = trace.color;
+      ctx.shadowBlur = 8 + boost * 14;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    if(!prefersReduced && !document.hidden){
+      requestAnimationFrame(draw);
+    }
+  }
+
+  window.addEventListener('resize', resize);
+  if(heroEl){
+    heroEl.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+    });
+    heroEl.addEventListener('mouseleave', () => { mouseX = -9999; mouseY = -9999; });
+  }
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && !prefersReduced) requestAnimationFrame(draw);
+  });
+
+  resize();
+  requestAnimationFrame(draw);
+}
+
+// ---- 3D tilt on the hero "how it works" card ----
+function initHeroTilt(){
+  const card = document.getElementById('heroCard');
+  const heroEl = document.querySelector('.hero');
+  if(!card || !heroEl) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(window.matchMedia('(hover: none)').matches) return; // skip on touch devices
+
+  heroEl.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotateX = Math.max(-8, Math.min(8, (-y / rect.height) * 14));
+    const rotateY = Math.max(-8, Math.min(8, (x / rect.width) * 14));
+    card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(6px)`;
+  });
+  heroEl.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+  });
+}
+
+initCircuitCanvas();
+initHeroTilt();
+
+renderTrending();
+renderStats();
 
 renderMarquee();
 renderChips();
