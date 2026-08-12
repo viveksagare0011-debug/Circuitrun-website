@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CircuitRun — components delivered to campus</title>
+<title>Project Kits — CircuitRun</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23C6FF3D%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>⚡</text></svg>">
 <meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
 <meta property="og:title" content="CircuitRun — components delivered to campus">
@@ -360,98 +360,18 @@
 </div>
 
 <div class="wrap">
-  <section class="hero" id="home">
-    <div>
-      <span class="eyebrow">📍 Nerul · Vashi · Belapur runs</span>
-      <h1>Project components, <span class="hl">delivered to your campus.</span></h1>
-      <p class="sub">Tell us what your project needs. We source it and drop it straight to your campus — no bus, no train, no wasted afternoon running around the city.</p>
-      <div class="btn-row">
-        <a href="catalog.html" class="btn-primary" style="text-decoration:none; display:inline-block;">Browse parts →</a>
-        <a href="projects.html" class="btn-outline" style="text-decoration:none; display:inline-block;">Explore project kits 🚀</a>
-      </div>
-    </div>
-    <div class="hero-card">
-      <div class="disp" style="font-weight:700; font-size:14px; color: var(--muted);">HOW IT WORKS</div>
-      <div class="flow-row">
-        <div class="flow-step"><div class="flow-dot">📝</div><div class="flow-label">You request</div></div>
-        <div class="flow-step"><div class="flow-dot">🏙️</div><div class="flow-label">We source</div></div>
-        <div class="flow-step"><div class="flow-dot">🚲</div><div class="flow-label">Batch run</div></div>
-        <div class="flow-step"><div class="flow-dot">🎓</div><div class="flow-label">On campus</div></div>
-      </div>
-      <div class="trust-strip">
-        <span>🗓️ Batch: Tue & Fri</span>
-        <span>💵 COD available</span>
-        <span>⚡ Local = quick</span>
-      </div>
-    </div>
+  <section style="padding: 40px 0 8px;">
+    <span class="eyebrow" style="background:var(--cyan);">🚀 Ready-made kits</span>
+    <h1 style="font-size: 30px; margin: 10px 0;">Skip the guesswork — grab a full project kit</h1>
+    <p class="sub" style="max-width:560px;">Every component your project needs, bundled and priced. Or browse the <a href="catalog.html" style="color: var(--cyan);">full catalog</a> to build your own.</p>
   </section>
 
-  <section id="blog">
+  <section id="projects">
     <div class="section-title cr-reveal">
-      <h2>📰 The blog</h2>
-      <span class="count">Tips & guides for your college projects</span>
+      <h2>🚀 Project kits</h2>
+      <span class="count">Full component sets for popular mini-projects</span>
     </div>
-    <div class="blog-grid" id="blogGrid"></div>
-  </section>
-
-  <section id="bulkRequest" class="bulk">
-    <div class="bulk-grid">
-      <div>
-        <span class="eyebrow" style="background:var(--cyan);">🔧 Not on the list?</span>
-        <h2 id="bulkHeading">Request literally any part</h2>
-        <p id="bulkDesc">Give us the name, spec, or even a blurry photo description — we'll quote you a price before you pay a rupee, and bundle it into our next delivery run.</p>
-        <ul>
-          <li>No payment until we confirm price & stock</li>
-          <li>Delivered on the next batch run</li>
-          <li>Pay 20% online, rest cash on delivery</li>
-        </ul>
-      </div>
-      <div>
-        <div class="request-tabs">
-          <button class="req-tab active" data-req-tab="component">🔧 A Component</button>
-          <button class="req-tab" data-req-tab="project">🚀 A Project Kit</button>
-        </div>
-
-        <div class="form-card" id="requestFormComponent">
-          <label>Component name / spec</label>
-          <input id="reqName" required placeholder="e.g. MPU9250 9-axis IMU">
-          <div class="form-row">
-            <div>
-              <label>Quantity</label>
-              <input id="reqQty" placeholder="1">
-            </div>
-            <div>
-              <label>Budget (optional)</label>
-              <input id="reqBudget" placeholder="₹500">
-            </div>
-          </div>
-          <label>WhatsApp number</label>
-          <input id="reqContact" required placeholder="98XXXXXXXX">
-          <p id="reqError" class="hidden" style="color:var(--pink); font-size:12px; margin:0 0 10px;">Please fill in the required fields.</p>
-          <button type="button" id="requestSubmitBtn" class="submit-btn">Send request 🚀</button>
-        </div>
-
-        <div class="form-card hidden" id="requestFormProject">
-          <label>What's the project idea?</label>
-          <input id="projReqName" required placeholder="e.g. Smart Attendance System">
-          <label>Briefly, what should it do?</label>
-          <input id="projReqDesc" placeholder="e.g. RFID-based attendance marking with a display">
-          <label>Budget (optional)</label>
-          <input id="projReqBudget" placeholder="₹1500">
-          <label>WhatsApp number</label>
-          <input id="projReqContact" required placeholder="98XXXXXXXX">
-          <p id="projReqError" class="hidden" style="color:var(--pink); font-size:12px; margin:0 0 10px;">Please fill in the required fields.</p>
-          <button type="button" id="projRequestSubmitBtn" class="submit-btn">Send project request 🚀</button>
-        </div>
-
-        <div class="form-card success-box hidden" id="requestSuccess">
-          <div class="big">✅</div>
-          <p style="font-weight:700; margin:0 0 4px;">Got it!</p>
-          <p style="font-size:13px; color:var(--muted); margin:0 0 14px;">We'll DM you a quote before the next run.</p>
-          <button class="btn-outline" onclick="resetRequestForm()">Send another</button>
-        </div>
-      </div>
-    </div>
+    <div class="proj-grid" id="projectsGrid"></div>
   </section>
 
   <section class="trust-cards">

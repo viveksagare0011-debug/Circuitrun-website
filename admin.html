@@ -68,7 +68,7 @@
   <table>
     <thead>
       <tr>
-        <th>Order</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th>
+        <th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th>
       </tr>
     </thead>
     <tbody id="ordersBody"></tbody>
@@ -134,6 +134,7 @@ async function loadOrders(){
   body.innerHTML = data.map(o => `
     <tr>
       <td class="mono">${o.order_code}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span></td>
+      <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
       <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">📍 ${o.delivery_location || 'not specified'}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
       <td class="mono">${money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
