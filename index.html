@@ -259,6 +259,33 @@
   .drawer.show { transition: transform .28s cubic-bezier(0.16, 1, 0.3, 1); }
 
   /* toast notifications */
+  #bootOverlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 300;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: opacity .5s ease, visibility .5s;
+  }
+  #bootOverlay.boot-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  #bootSvg { width: min(80vw, 400px); height: auto; margin-bottom: 18px; }
+  .boot-line { fill: none; stroke: var(--lime); stroke-width: 2; stroke-linecap: round;
+    stroke-dasharray: 480; stroke-dashoffset: 480; animation: boot-draw 1s ease forwards; }
+  .boot-node { fill: var(--cyan); opacity: 0; animation: boot-node-pop .3s ease forwards; animation-delay: 1s; }
+  @keyframes boot-draw { to { stroke-dashoffset: 0; } }
+  @keyframes boot-node-pop { to { opacity: 1; } }
+  #bootLogo {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 26px; color: var(--text);
+    opacity: 0; letter-spacing: 0.02em;
+    animation: boot-flicker .6s steps(1) forwards; animation-delay: 1s;
+  }
+  .boot-bolt { color: var(--lime); }
+  @keyframes boot-flicker {
+    0% { opacity: 0; } 15% { opacity: 1; } 25% { opacity: 0.2; } 35% { opacity: 1; }
+    45% { opacity: 0.3; } 100% { opacity: 1; }
+  }
+  #bootSkip {
+    position: absolute; bottom: 26px; font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.05em; opacity: 0; animation: boot-node-pop .4s ease forwards; animation-delay: 1.5s;
+  }
+
   .toast-stack { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; }
   .toast { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); padding: 12px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.4); animation: cr-toast-in .3s ease, cr-toast-out .3s ease 2.2s forwards; white-space: nowrap; }
   @keyframes cr-toast-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -291,6 +318,17 @@
 </style>
 </head>
 <body>
+
+<!-- power-on boot sequence — plays once per browser session -->
+<div id="bootOverlay">
+  <svg id="bootSvg" viewBox="0 0 400 200">
+    <path class="boot-line" d="M20 100 L140 100 L160 60 L200 140 L240 60 L260 100 L380 100" />
+    <circle class="boot-node" cx="20" cy="100" r="4" />
+    <circle class="boot-node" cx="380" cy="100" r="4" />
+  </svg>
+  <div id="bootLogo"><span class="boot-bolt">⚡</span> CircuitRun</div>
+  <div id="bootSkip">tap to skip</div>
+</div>
 
 <div class="toast-stack" id="toastStack"></div>
 
@@ -1841,27 +1879,44 @@ function initCircuitCanvas(){
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // junction pads
+      const t = (time * trace.speed + trace.offset) % 1;
+      const headPos = pointAt(trace.points, t);
+
+      // junction pads — the one closest to the traveling pulse sparks brighter
       trace.points.forEach(p => {
+        const jd = Math.hypot(p.x - headPos.x, p.y - headPos.y);
+        const jBoost = jd < 14 ? (1 - jd / 14) : 0;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.arc(p.x, p.y, 2 + jBoost * 4, 0, Math.PI * 2);
+        ctx.fillStyle = jBoost > 0 ? trace.color : 'rgba(255,255,255,0.12)';
+        if(jBoost > 0){
+          ctx.shadowColor = trace.color;
+          ctx.shadowBlur = 16 * jBoost;
+        }
         ctx.fill();
+        ctx.shadowBlur = 0;
       });
 
-      // traveling light pulse
-      const t = (time * trace.speed + trace.offset) % 1;
-      const pos = pointAt(trace.points, t);
-      const dist = Math.hypot(pos.x - mouseX, pos.y - mouseY);
-      const boost = dist < 120 ? (1 - dist / 120) : 0;
+      // comet trail — a short fading tail behind the traveling pulse
+      const trailSteps = 6;
+      for(let i = trailSteps; i >= 0; i--){
+        const trailT = ((t - i * 0.0055) % 1 + 1) % 1;
+        const tp = pointAt(trace.points, trailT);
+        const isHead = i === 0;
+        const fade = 1 - i / trailSteps;
+        const dist = Math.hypot(tp.x - mouseX, tp.y - mouseY);
+        const boost = dist < 120 ? (1 - dist / 120) : 0;
 
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 2.5 + boost * 2, 0, Math.PI * 2);
-      ctx.fillStyle = trace.color;
-      ctx.shadowColor = trace.color;
-      ctx.shadowBlur = 8 + boost * 14;
-      ctx.fill();
-      ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(tp.x, tp.y, isHead ? (2.5 + boost * 2) : (1.6 * fade + 0.4), 0, Math.PI * 2);
+        ctx.fillStyle = trace.color;
+        ctx.globalAlpha = isHead ? 1 : fade * 0.55;
+        ctx.shadowColor = trace.color;
+        ctx.shadowBlur = isHead ? (8 + boost * 14) : 5 * fade;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+      }
     });
 
     if(!prefersReduced && !document.hidden){
@@ -1906,6 +1961,28 @@ function initHeroTilt(){
     card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0)';
   });
 }
+
+// ---- Power-on boot sequence (once per browser session) ----
+function initBootSequence(){
+  const overlay = document.getElementById('bootOverlay');
+  if(!overlay) return;
+  const alreadyBooted = sessionStorage.getItem('circuitrun_booted');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if(alreadyBooted || prefersReduced){
+    overlay.remove();
+    return;
+  }
+  sessionStorage.setItem('circuitrun_booted', '1');
+
+  function hideBoot(){
+    overlay.classList.add('boot-hide');
+    setTimeout(() => overlay.remove(), 550);
+  }
+  overlay.addEventListener('click', hideBoot);
+  setTimeout(hideBoot, 2200);
+}
+initBootSequence();
 
 initCircuitCanvas();
 initHeroTilt();
