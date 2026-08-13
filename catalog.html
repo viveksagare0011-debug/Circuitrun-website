@@ -131,7 +131,8 @@
 
   .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color .15s, transform .15s; }
   .card:hover { border-color: var(--lime); transform: translateY(-2px); }
-  .card-icon { width: 100%; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; }
+  .card-icon { width: 100%; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; overflow: hidden; }
+  .card-icon img { width: 100%; height: 100%; object-fit: cover; }
   .icon-lime { background: rgba(198,255,61,0.12); }
   .icon-pink { background: rgba(255,95,168,0.12); }
   .icon-cyan { background: rgba(77,232,255,0.12); }
@@ -552,7 +553,7 @@ try {
 
 const CATEGORIES = ["All","Microcontrollers & ICs","Sensors","Motors & Actuators","Passive Components","Display & Output","Power & Battery","Prototyping & Wires","Mechanical & Structural","Tools"];
 
-const CATALOG = [
+let CATALOG = [
   {id:"c01",name:"Arduino Uno R3",spec:"ATmega328P board, USB-B",price:650,cat:"Microcontrollers & ICs",src:"batch"},
   {id:"c02",name:"ESP32 DevKit V1",spec:"WiFi + BT, 30-pin",price:420,cat:"Microcontrollers & ICs",src:"batch"},
   {id:"c03",name:"NodeMCU ESP8266",spec:"WiFi module, CP2102",price:280,cat:"Microcontrollers & ICs",src:"batch"},
@@ -712,6 +713,25 @@ const CAT_ICON = {
 const ADVANCE_PCT = 0.2;
 const OWNER_WHATSAPP = "917318760011"; // +91 7318760011
 let state = { category: "All", query: "", cart: {}, user: null, orders: [], sort: "default" };
+
+// Pulls the live catalog from the database (managed via the admin panel).
+// If the fetch fails or returns nothing (e.g. DB not set up yet), the
+// hardcoded CATALOG array above stays as a working fallback so the site
+// never shows a blank page.
+async function loadCatalogFromDB(){
+  if(!db) return;
+  try {
+    const { data, error } = await db.from('components').select('*').eq('active', true);
+    if(!error && data && data.length > 0){
+      CATALOG = data.map(c => ({
+        id: c.id, name: c.name, spec: c.spec || '', price: c.price,
+        cat: c.category, src: c.source, image: c.image_url || null
+      }));
+    }
+  } catch(err) {
+    console.error('catalog fetch failed:', err.message || err);
+  }
+}
 
 // simple Indian mobile number check: 10 digits, starting 6-9
 function isValidIndianPhone(phone){
@@ -969,7 +989,7 @@ function renderCatalog(){
     const delay = Math.min(idx, 10) * 30;
     return `<div class="card cr-stagger" style="animation-delay:${delay}ms">
       <div>
-        <div class="card-icon ${ic.cls}">${ic.icon}</div>
+        <div class="card-icon ${ic.cls}">${item.image ? `<img src="${item.image}" alt="${item.name}">` : ic.icon}</div>
         <div class="card-top">
           <div class="card-name">${item.name}</div>
           <span class="tag ${item.src}">${item.src === 'batch' ? 'Batch trip' : 'Quick local'}</span>
@@ -1558,18 +1578,21 @@ if(qParam && document.getElementById('searchInput')){
 
 renderMarquee();
 renderChips();
-renderProjects();
-renderBlog();
-renderCatalog();
-renderCartDrawer();
-updateCartCount();
-updateOrdersCount();
-setupScrollReveal();
+(async () => {
+  await loadCatalogFromDB();
+  renderProjects();
+  renderBlog();
+  renderCatalog();
+  renderCartDrawer();
+  updateCartCount();
+  updateOrdersCount();
+  setupScrollReveal();
 
-if(state.user){
-  updateSidebarProfile();
-  loadUserOrders(state.user.phone);
-}
+  if(state.user){
+    updateSidebarProfile();
+    loadUserOrders(state.user.phone);
+  }
+})();
 </script>
 </body>
 </html>

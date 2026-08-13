@@ -15,14 +15,27 @@
   body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
   .disp { font-family: 'Space Grotesk', sans-serif; }
   .mono { font-family: 'IBM Plex Mono', monospace; }
-  .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px 60px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
   h1 { font-size: 24px; font-weight: 800; margin: 0 0 4px; }
+  h2 { font-size: 18px; font-weight: 800; margin: 0; }
   .sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+  .hidden { display: none !important; }
 
   .gate { max-width: 360px; margin: 100px auto; background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; text-align: center; }
   .gate input { width: 100%; padding: 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 14px; margin: 14px 0; }
-  .gate button, .refresh-btn { background: var(--lime); color: #12121A; font-weight: 700; padding: 11px 18px; border-radius: 10px; border: none; font-size: 14px; cursor: pointer; width: 100%; }
+  .gate button { background: var(--lime); color: #12121A; font-weight: 700; padding: 11px 18px; border-radius: 10px; border: none; font-size: 14px; cursor: pointer; width: 100%; }
   .err { color: var(--pink); font-size: 12px; }
+
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; font-size: 13px; width: 100%; }
+  label { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; display: block; margin-bottom: 5px; }
+  .field { margin-bottom: 12px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .refresh-btn, .add-btn { background: var(--lime); color: #12121A; font-weight: 700; padding: 9px 16px; border-radius: 10px; border: none; font-size: 13px; }
+  .btn-secondary { background: var(--bg-card); color: var(--text); border: 1px solid var(--line); padding: 9px 16px; border-radius: 10px; font-size: 13px; }
+  .btn-danger { background: rgba(255,95,168,0.15); color: var(--pink); border: 1px solid var(--pink); padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+  .btn-small { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
 
   .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
   @media (max-width: 700px) { .stats { grid-template-columns: repeat(2,1fr); } }
@@ -30,8 +43,13 @@
   .stat .num { font-size: 22px; font-weight: 800; }
   .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; }
 
-  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .refresh-btn { width: auto; padding: 9px 16px; font-size: 13px; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tab-btn { background: none; border: none; color: var(--muted); padding: 10px 16px; font-size: 13px; font-weight: 700; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .tab-btn.active { color: var(--lime); border-bottom-color: var(--lime); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
   table { width: 100%; border-collapse: collapse; margin-top: 10px; }
   th { text-align: left; font-size: 11px; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
@@ -41,6 +59,24 @@
   .badge { background: rgba(198,255,61,0.15); color: var(--lime); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
   .empty { text-align: center; padding: 40px; color: var(--muted); }
   a.wa { color: var(--cyan); text-decoration: none; }
+
+  .cms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+  .cms-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .cms-thumb { width: 100%; height: 110px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 10px; overflow: hidden; }
+  .cms-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .cms-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .cms-meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .cms-actions { display: flex; gap: 6px; }
+  .inactive-tag { background: rgba(255,95,168,0.15); color: var(--pink); font-size: 10px; padding: 2px 6px; border-radius: 5px; font-weight: 700; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; display: none; align-items: flex-start; justify-content: center; padding: 30px 16px; overflow-y: auto; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #17171F; border-radius: 16px; max-width: 520px; width: 100%; padding: 22px; }
+  .modal h3 { font-size: 16px; margin: 0 0 16px; }
+
+  .part-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .part-row select { flex: 1; }
+  .part-row input { width: 70px; }
 </style>
 </head>
 <body>
@@ -48,7 +84,7 @@
 <div class="gate" id="gate">
   <div style="font-size:28px;">🔐</div>
   <h1 style="margin-top:8px;">Admin access</h1>
-  <p class="sub">Owner-only order dashboard</p>
+  <p class="sub">Owner-only dashboard</p>
   <input type="password" id="passInput" placeholder="Enter passcode">
   <p class="err hidden" id="passErr">Wrong passcode.</p>
   <button id="passBtn">Unlock</button>
@@ -57,41 +93,150 @@
 <div class="wrap hidden" id="dashboard">
   <div class="topbar">
     <div>
-      <h1>📦 CircuitRun Orders</h1>
-      <p class="sub">All orders placed on the site, newest first.</p>
+      <h1>⚡ CircuitRun Admin</h1>
+      <p class="sub">Manage orders, catalog, project kits, and blog — all in one place.</p>
     </div>
     <button class="refresh-btn" id="refreshBtn">↻ Refresh</button>
   </div>
 
-  <div class="stats" id="stats"></div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="orders">📦 Orders</button>
+    <button class="tab-btn" data-tab="components">🔧 Components</button>
+    <button class="tab-btn" data-tab="projects">🚀 Projects</button>
+    <button class="tab-btn" data-tab="blog">📰 Blog</button>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="ordersBody"></tbody>
-  </table>
-  <div id="emptyState" class="empty hidden">No orders yet.</div>
+  <div class="tab-panel active" id="tab-orders">
+    <div class="stats" id="stats"></div>
+    <table>
+      <thead>
+        <tr><th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th></tr>
+      </thead>
+      <tbody id="ordersBody"></tbody>
+    </table>
+    <div id="emptyState" class="empty hidden">No orders yet.</div>
+  </div>
+
+  <div class="tab-panel" id="tab-components">
+    <div class="topbar" style="margin-bottom:0;">
+      <h2>Catalog components</h2>
+      <button class="add-btn" id="addComponentBtn">+ Add component</button>
+    </div>
+    <div class="cms-grid" id="componentsGrid"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-projects">
+    <div class="topbar" style="margin-bottom:0;">
+      <h2>Project kits</h2>
+      <button class="add-btn" id="addProjectBtn">+ Add project</button>
+    </div>
+    <div class="cms-grid" id="projectsGridAdmin"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-blog">
+    <div class="topbar" style="margin-bottom:0;">
+      <h2>Blog posts</h2>
+      <button class="add-btn" id="addBlogBtn">+ Add post</button>
+    </div>
+    <div class="cms-grid" id="blogGridAdmin"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="componentModal">
+  <div class="modal">
+    <h3 id="componentModalTitle">Add component</h3>
+    <input type="hidden" id="compId">
+    <div class="field"><label>Name</label><input id="compName" placeholder="e.g. Arduino Uno R3"></div>
+    <div class="field"><label>Spec</label><input id="compSpec" placeholder="e.g. ATmega328P board, USB-B"></div>
+    <div class="field-row">
+      <div class="field"><label>Price (₹)</label><input id="compPrice" type="number"></div>
+      <div class="field"><label>Source</label>
+        <select id="compSource"><option value="local">Quick local</option><option value="batch">Batch trip</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Category</label>
+      <select id="compCategory"></select>
+    </div>
+    <div class="field"><label>Photo (optional)</label><input id="compImage" type="file" accept="image/*"></div>
+    <div class="field" id="compImagePreviewWrap" style="display:none;">
+      <img id="compImagePreview" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px;">
+    </div>
+    <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="compActive" checked style="width:auto;"> Visible on site</label></div>
+    <p class="err hidden" id="compError"></p>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="add-btn" id="compSaveBtn" style="flex:1;">Save</button>
+      <button class="btn-secondary" id="compCancelBtn" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="projectModal">
+  <div class="modal">
+    <h3 id="projectModalTitle">Add project</h3>
+    <input type="hidden" id="projId">
+    <div class="field-row">
+      <div class="field"><label>Emoji</label><input id="projEmoji" placeholder="🚀"></div>
+      <div class="field"><label>Name</label><input id="projName" placeholder="e.g. Smart Irrigation System"></div>
+    </div>
+    <div class="field"><label>Description</label><input id="projDesc" placeholder="One-line summary"></div>
+    <div class="field"><label>Details</label><textarea id="projInfo" rows="3" placeholder="Why this project is good, what it teaches"></textarea></div>
+    <div class="field">
+      <label>Parts</label>
+      <div id="partsRows"></div>
+      <button class="btn-secondary btn-small" id="addPartRowBtn" type="button">+ Add part</button>
+    </div>
+    <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="projActive" checked style="width:auto;"> Visible on site</label></div>
+    <p class="err hidden" id="projError"></p>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="add-btn" id="projSaveBtn" style="flex:1;">Save</button>
+      <button class="btn-secondary" id="projCancelBtn" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="blogModal">
+  <div class="modal">
+    <h3 id="blogModalTitle">Add blog post</h3>
+    <input type="hidden" id="blogId">
+    <div class="field-row">
+      <div class="field"><label>Emoji</label><input id="blogEmoji" placeholder="📰"></div>
+      <div class="field"><label>Tag</label><input id="blogTag" placeholder="e.g. Buying Guide"></div>
+    </div>
+    <div class="field"><label>Title</label><input id="blogTitle" placeholder="Post title"></div>
+    <div class="field"><label>Excerpt</label><input id="blogExcerpt" placeholder="One-line teaser shown on the card"></div>
+    <div class="field"><label>Body</label><textarea id="blogBody" rows="8" placeholder="Full post text. Leave a blank line between paragraphs."></textarea></div>
+    <div class="field"><label>Read time</label><input id="blogReadTime" placeholder="e.g. 4 min read"></div>
+    <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="blogActive" checked style="width:auto;"> Visible on site</label></div>
+    <p class="err hidden" id="blogError"></p>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="add-btn" id="blogSaveBtn" style="flex:1;">Save</button>
+      <button class="btn-secondary" id="blogCancelBtn" style="flex:1;">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YW1lZmVudmd3cmRmcWFhb3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDc5MDgsImV4cCI6MjEwMTUyMzkwOH0.MIDr43LTHfICc68_hP__U0x6rglsIR7KLYEDBuq-LJw";
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let db = null;
+try {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  console.error('Supabase failed to load', e);
+}
 
-// Change this to your own passcode. This is a light deterrent only —
-// not real security, since it lives in the page's source code.
 const ADMIN_PASSCODE = "circuitrun2026";
+const CATEGORIES = ["Microcontrollers & ICs","Sensors","Motors & Actuators","Passive Components","Display & Output","Power & Battery","Prototyping & Wires","Mechanical & Structural","Tools"];
+
+function money(n){ return "₹" + n; }
 
 document.getElementById('passBtn').addEventListener('click', () => {
   const val = document.getElementById('passInput').value;
   if(val === ADMIN_PASSCODE){
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-    loadOrders();
+    loadAll();
   } else {
     document.getElementById('passErr').classList.remove('hidden');
   }
@@ -99,19 +244,30 @@ document.getElementById('passBtn').addEventListener('click', () => {
 document.getElementById('passInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') document.getElementById('passBtn').click();
 });
+document.getElementById('refreshBtn').addEventListener('click', loadAll);
 
-document.getElementById('refreshBtn').addEventListener('click', loadOrders);
+function loadAll(){
+  loadOrders();
+  loadComponents();
+  loadProjects();
+  loadBlog();
+}
 
-function money(n){ return "₹" + n; }
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + btn.dataset.tab));
+  });
+});
 
 async function loadOrders(){
   const body = document.getElementById('ordersBody');
   const empty = document.getElementById('emptyState');
-  body.innerHTML = `<tr><td colspan="5" style="color:var(--muted);">Loading...</td></tr>`;
+  body.innerHTML = `<tr><td colspan="6" style="color:var(--muted);">Loading...</td></tr>`;
 
   const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
   if(error){
-    body.innerHTML = `<tr><td colspan="5" style="color:var(--pink);">Failed to load: ${error.message}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" style="color:var(--pink);">Failed to load: ${error.message}</td></tr>`;
     return;
   }
 
@@ -139,7 +295,7 @@ async function loadOrders(){
       <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
       <td class="mono">${money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
       <td>
-        <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;">
+        <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
           <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
           <option value="Packed" ${o.status==='Packed'?'selected':''}>Packed</option>
           <option value="Out for Delivery" ${o.status==='Out for Delivery'?'selected':''}>Out for Delivery</option>
@@ -152,12 +308,335 @@ async function loadOrders(){
 
 async function updateOrderStatus(orderCode, newStatus){
   const { error } = await db.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
-  if(error){
-    alert('Status update failed: ' + error.message);
-    return;
-  }
+  if(error){ alert('Status update failed: ' + error.message); return; }
   loadOrders();
 }
+
+let componentsCache = [];
+
+function populateCategorySelect(){
+  document.getElementById('compCategory').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+populateCategorySelect();
+
+async function loadComponents(){
+  const grid = document.getElementById('componentsGrid');
+  grid.innerHTML = `<p style="color:var(--muted);">Loading...</p>`;
+  const { data, error } = await db.from('components').select('*').order('category').order('name');
+  if(error){ grid.innerHTML = `<p style="color:var(--pink);">Failed to load: ${error.message}</p>`; return; }
+  componentsCache = data;
+  if(data.length === 0){ grid.innerHTML = `<p style="color:var(--muted);">No components yet. Click "+ Add component" to create your first one.</p>`; return; }
+
+  grid.innerHTML = data.map(c => `
+    <div class="cms-card">
+      <div class="cms-thumb">${c.image_url ? `<img src="${c.image_url}" alt="${c.name}">` : '🔧'}</div>
+      <div class="cms-name">${c.name} ${!c.active ? '<span class="inactive-tag">Hidden</span>' : ''}</div>
+      <div class="cms-meta">${c.category} · ${money(c.price)} · ${c.source === 'batch' ? 'Batch trip' : 'Quick local'}</div>
+      <div class="cms-actions">
+        <button class="btn-secondary btn-small" onclick="editComponent('${c.id}')">Edit</button>
+        <button class="btn-danger btn-small" onclick="deleteComponent('${c.id}', '${c.name.replace(/'/g,"\\'")}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('addComponentBtn').addEventListener('click', () => openComponentModal());
+document.getElementById('compCancelBtn').addEventListener('click', () => document.getElementById('componentModal').classList.remove('show'));
+
+function openComponentModal(comp){
+  document.getElementById('componentModalTitle').textContent = comp ? 'Edit component' : 'Add component';
+  document.getElementById('compId').value = comp ? comp.id : '';
+  document.getElementById('compName').value = comp ? comp.name : '';
+  document.getElementById('compSpec').value = comp ? comp.spec : '';
+  document.getElementById('compPrice').value = comp ? comp.price : '';
+  document.getElementById('compSource').value = comp ? comp.source : 'local';
+  document.getElementById('compCategory').value = comp ? comp.category : CATEGORIES[0];
+  document.getElementById('compActive').checked = comp ? comp.active : true;
+  document.getElementById('compImage').value = '';
+  const previewWrap = document.getElementById('compImagePreviewWrap');
+  if(comp && comp.image_url){
+    document.getElementById('compImagePreview').src = comp.image_url;
+    previewWrap.style.display = 'block';
+  } else {
+    previewWrap.style.display = 'none';
+  }
+  document.getElementById('compError').classList.add('hidden');
+  document.getElementById('componentModal').classList.add('show');
+}
+
+function editComponent(id){
+  const comp = componentsCache.find(c => c.id === id);
+  if(comp) openComponentModal(comp);
+}
+
+async function deleteComponent(id, name){
+  if(!confirm(`Delete "${name}"? This can't be undone.`)) return;
+  const { error } = await db.from('components').delete().eq('id', id);
+  if(error){ alert('Delete failed: ' + error.message); return; }
+  loadComponents();
+}
+
+async function uploadComponentImage(file){
+  const ext = file.name.split('.').pop();
+  const path = `comp_${Date.now()}_${Math.round(Math.random()*10000)}.${ext}`;
+  const { error } = await db.storage.from('component-images').upload(path, file);
+  if(error) throw error;
+  const { data } = db.storage.from('component-images').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+document.getElementById('compSaveBtn').addEventListener('click', async () => {
+  const id = document.getElementById('compId').value;
+  const name = document.getElementById('compName').value.trim();
+  const spec = document.getElementById('compSpec').value.trim();
+  const price = parseInt(document.getElementById('compPrice').value, 10);
+  const source = document.getElementById('compSource').value;
+  const category = document.getElementById('compCategory').value;
+  const active = document.getElementById('compActive').checked;
+  const errEl = document.getElementById('compError');
+  const fileInput = document.getElementById('compImage');
+
+  if(!name || !price){
+    errEl.textContent = 'Name and price are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  const saveBtn = document.getElementById('compSaveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    let image_url = id ? (componentsCache.find(c => c.id === id)?.image_url || null) : null;
+    if(fileInput.files && fileInput.files[0]){
+      image_url = await uploadComponentImage(fileInput.files[0]);
+    }
+    const payload = { name, spec, price, source, category, active, image_url };
+    if(id){
+      const { error } = await db.from('components').update(payload).eq('id', id);
+      if(error) throw error;
+    } else {
+      const { error } = await db.from('components').insert(payload);
+      if(error) throw error;
+    }
+    document.getElementById('componentModal').classList.remove('show');
+    loadComponents();
+  } catch(err) {
+    errEl.textContent = 'Save failed: ' + (err.message || err);
+    errEl.classList.remove('hidden');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+  }
+});
+
+let projectsCache = [];
+
+function addPartRow(componentId, qty){
+  const row = document.createElement('div');
+  row.className = 'part-row';
+  row.innerHTML = `
+    <select class="part-comp-select">${componentsCache.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
+    <input type="number" class="part-qty-input" min="1" value="${qty || 1}">
+    <button type="button" class="btn-danger btn-small" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('partsRows').appendChild(row);
+  if(componentId) row.querySelector('.part-comp-select').value = componentId;
+}
+document.getElementById('addPartRowBtn').addEventListener('click', () => addPartRow());
+
+async function loadProjects(){
+  const grid = document.getElementById('projectsGridAdmin');
+  grid.innerHTML = `<p style="color:var(--muted);">Loading...</p>`;
+  const { data, error } = await db.from('projects').select('*').order('created_at');
+  if(error){ grid.innerHTML = `<p style="color:var(--pink);">Failed to load: ${error.message}</p>`; return; }
+  projectsCache = data;
+  if(data.length === 0){ grid.innerHTML = `<p style="color:var(--muted);">No project kits yet.</p>`; return; }
+
+  grid.innerHTML = data.map(p => `
+    <div class="cms-card">
+      <div class="cms-thumb" style="font-size:32px;">${p.emoji || '🚀'}</div>
+      <div class="cms-name">${p.name} ${!p.active ? '<span class="inactive-tag">Hidden</span>' : ''}</div>
+      <div class="cms-meta">${(p.parts||[]).length} parts</div>
+      <div class="cms-actions">
+        <button class="btn-secondary btn-small" onclick="editProject('${p.id}')">Edit</button>
+        <button class="btn-danger btn-small" onclick="deleteProject('${p.id}', '${p.name.replace(/'/g,"\\'")}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('addProjectBtn').addEventListener('click', () => {
+  if(componentsCache.length === 0){ alert('Add at least one component first — projects are built from components.'); return; }
+  openProjectModal();
+});
+document.getElementById('projCancelBtn').addEventListener('click', () => document.getElementById('projectModal').classList.remove('show'));
+
+function openProjectModal(proj){
+  document.getElementById('projectModalTitle').textContent = proj ? 'Edit project' : 'Add project';
+  document.getElementById('projId').value = proj ? proj.id : '';
+  document.getElementById('projEmoji').value = proj ? proj.emoji : '🚀';
+  document.getElementById('projName').value = proj ? proj.name : '';
+  document.getElementById('projDesc').value = proj ? proj.description : '';
+  document.getElementById('projInfo').value = proj ? proj.info : '';
+  document.getElementById('projActive').checked = proj ? proj.active : true;
+  document.getElementById('partsRows').innerHTML = '';
+  if(proj && proj.parts && proj.parts.length){
+    proj.parts.forEach(p => addPartRow(p.component_id, p.qty));
+  } else {
+    addPartRow();
+  }
+  document.getElementById('projError').classList.add('hidden');
+  document.getElementById('projectModal').classList.add('show');
+}
+
+function editProject(id){
+  const proj = projectsCache.find(p => p.id === id);
+  if(proj) openProjectModal(proj);
+}
+
+async function deleteProject(id, name){
+  if(!confirm(`Delete "${name}"?`)) return;
+  const { error } = await db.from('projects').delete().eq('id', id);
+  if(error){ alert('Delete failed: ' + error.message); return; }
+  loadProjects();
+}
+
+document.getElementById('projSaveBtn').addEventListener('click', async () => {
+  const id = document.getElementById('projId').value;
+  const emoji = document.getElementById('projEmoji').value.trim() || '🚀';
+  const name = document.getElementById('projName').value.trim();
+  const description = document.getElementById('projDesc').value.trim();
+  const info = document.getElementById('projInfo').value.trim();
+  const active = document.getElementById('projActive').checked;
+  const errEl = document.getElementById('projError');
+
+  const parts = Array.from(document.querySelectorAll('#partsRows .part-row')).map(row => ({
+    component_id: row.querySelector('.part-comp-select').value,
+    qty: parseInt(row.querySelector('.part-qty-input').value, 10) || 1
+  }));
+
+  if(!name || parts.length === 0){
+    errEl.textContent = 'Name and at least one part are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  const saveBtn = document.getElementById('projSaveBtn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+
+  try {
+    const payload = { name, emoji, description, info, active, parts };
+    if(id){
+      const { error } = await db.from('projects').update(payload).eq('id', id);
+      if(error) throw error;
+    } else {
+      const { error } = await db.from('projects').insert(payload);
+      if(error) throw error;
+    }
+    document.getElementById('projectModal').classList.remove('show');
+    loadProjects();
+  } catch(err) {
+    errEl.textContent = 'Save failed: ' + (err.message || err);
+    errEl.classList.remove('hidden');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Save';
+  }
+});
+
+let blogCache = [];
+
+async function loadBlog(){
+  const grid = document.getElementById('blogGridAdmin');
+  grid.innerHTML = `<p style="color:var(--muted);">Loading...</p>`;
+  const { data, error } = await db.from('blog_posts').select('*').order('created_at', { ascending: false });
+  if(error){ grid.innerHTML = `<p style="color:var(--pink);">Failed to load: ${error.message}</p>`; return; }
+  blogCache = data;
+  if(data.length === 0){ grid.innerHTML = `<p style="color:var(--muted);">No blog posts yet.</p>`; return; }
+
+  grid.innerHTML = data.map(b => `
+    <div class="cms-card">
+      <div class="cms-thumb" style="font-size:32px;">${b.emoji || '📰'}</div>
+      <div class="cms-name">${b.title} ${!b.active ? '<span class="inactive-tag">Hidden</span>' : ''}</div>
+      <div class="cms-meta">${b.tag || ''} · ${b.read_time || ''}</div>
+      <div class="cms-actions">
+        <button class="btn-secondary btn-small" onclick="editBlog('${b.id}')">Edit</button>
+        <button class="btn-danger btn-small" onclick="deleteBlog('${b.id}', '${b.title.replace(/'/g,"\\'")}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('addBlogBtn').addEventListener('click', () => openBlogModal());
+document.getElementById('blogCancelBtn').addEventListener('click', () => document.getElementById('blogModal').classList.remove('show'));
+
+function openBlogModal(post){
+  document.getElementById('blogModalTitle').textContent = post ? 'Edit post' : 'Add blog post';
+  document.getElementById('blogId').value = post ? post.id : '';
+  document.getElementById('blogEmoji').value = post ? post.emoji : '📰';
+  document.getElementById('blogTag').value = post ? post.tag : '';
+  document.getElementById('blogTitle').value = post ? post.title : '';
+  document.getElementById('blogExcerpt').value = post ? post.excerpt : '';
+  document.getElementById('blogBody').value = post ? post.body : '';
+  document.getElementById('blogReadTime').value = post ? post.read_time : '3 min read';
+  document.getElementById('blogActive').checked = post ? post.active : true;
+  document.getElementById('blogError').classList.add('hidden');
+  document.getElementById('blogModal').classList.add('show');
+}
+
+function editBlog(id){
+  const post = blogCache.find(b => b.id === id);
+  if(post) openBlogModal(post);
+}
+
+async function deleteBlog(id, title){
+  if(!confirm(`Delete "${title}"?`)) return;
+  const { error } = await db.from('blog_posts').delete().eq('id', id);
+  if(error){ alert('Delete failed: ' + error.message); return; }
+  loadBlog();
+}
+
+document.getElementById('blogSaveBtn').addEventListener('click', async () => {
+  const id = document.getElementById('blogId').value;
+  const emoji = document.getElementById('blogEmoji').value.trim() || '📰';
+  const tag = document.getElementById('blogTag').value.trim();
+  const title = document.getElementById('blogTitle').value.trim();
+  const excerpt = document.getElementById('blogExcerpt').value.trim();
+  const body = document.getElementById('blogBody').value.trim();
+  const read_time = document.getElementById('blogReadTime').value.trim() || '3 min read';
+  const active = document.getElementById('blogActive').checked;
+  const errEl = document.getElementById('blogError');
+
+  if(!title || !body){
+    errEl.textContent = 'Title and body are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  const saveBtn = document.getElementById('blogSaveBtn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+
+  try {
+    const payload = { emoji, tag, title, excerpt, body, read_time, active };
+    if(id){
+      const { error } = await db.from('blog_posts').update(payload).eq('id', id);
+      if(error) throw error;
+    } else {
+      const { error } = await db.from('blog_posts').insert(payload);
+      if(error) throw error;
+    }
+    document.getElementById('blogModal').classList.remove('show');
+    loadBlog();
+  } catch(err) {
+    errEl.textContent = 'Save failed: ' + (err.message || err);
+    errEl.classList.remove('hidden');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Save';
+  }
+});
 </script>
 </body>
 </html>

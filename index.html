@@ -651,7 +651,7 @@ try {
 
 const CATEGORIES = ["All","Microcontrollers & ICs","Sensors","Motors & Actuators","Passive Components","Display & Output","Power & Battery","Prototyping & Wires","Mechanical & Structural","Tools"];
 
-const CATALOG = [
+let CATALOG = [
   {id:"c01",name:"Arduino Uno R3",spec:"ATmega328P board, USB-B",price:650,cat:"Microcontrollers & ICs",src:"batch"},
   {id:"c02",name:"ESP32 DevKit V1",spec:"WiFi + BT, 30-pin",price:420,cat:"Microcontrollers & ICs",src:"batch"},
   {id:"c03",name:"NodeMCU ESP8266",spec:"WiFi module, CP2102",price:280,cat:"Microcontrollers & ICs",src:"batch"},
@@ -715,7 +715,7 @@ const CATALOG = [
   {id:"t04",name:"Wire Stripper / Cutter",spec:"6-inch, spring loaded",price:110,cat:"Tools",src:"local"}
 ];
 
-const BLOG_POSTS = [
+let BLOG_POSTS = [
   {
     id: "b01", tag: "Beginner Guide", emoji: "🔌", readTime: "4 min read",
     title: "Arduino vs ESP32: Which one should your project actually use?",
@@ -811,6 +811,40 @@ const CAT_ICON = {
 const ADVANCE_PCT = 0.2;
 const OWNER_WHATSAPP = "917318760011"; // +91 7318760011
 let state = { category: "All", query: "", cart: {}, user: null, orders: [], sort: "default" };
+
+// Pulls live catalog + blog data from the database (managed via the
+// admin panel). Falls back to the hardcoded arrays above if the fetch
+// fails or the tables are empty, so the site never shows a blank page.
+async function loadCatalogFromDB(){
+  if(!db) return;
+  try {
+    const { data, error } = await db.from('components').select('*').eq('active', true);
+    if(!error && data && data.length > 0){
+      CATALOG = data.map(c => ({
+        id: c.id, name: c.name, spec: c.spec || '', price: c.price,
+        cat: c.category, src: c.source, image: c.image_url || null
+      }));
+    }
+  } catch(err) {
+    console.error('catalog fetch failed:', err.message || err);
+  }
+}
+
+async function loadBlogFromDB(){
+  if(!db) return;
+  try {
+    const { data, error } = await db.from('blog_posts').select('*').eq('active', true).order('created_at', { ascending: false });
+    if(!error && data && data.length > 0){
+      BLOG_POSTS = data.map(b => ({
+        id: b.id, tag: b.tag || 'Guide', emoji: b.emoji || '📰',
+        readTime: b.read_time || '3 min read', title: b.title,
+        excerpt: b.excerpt || '', body: b.body || ''
+      }));
+    }
+  } catch(err) {
+    console.error('blog fetch failed:', err.message || err);
+  }
+}
 
 // simple Indian mobile number check: 10 digits, starting 6-9
 function isValidIndianPhone(phone){
@@ -988,17 +1022,24 @@ function addProjectToCart(projId){
 }
 
 // curated picks shown on the homepage teaser strip — not the full catalog,
-// just enough to make the front page feel alive and pull people into it
-const TRENDING_IDS = ["c01","c02","s01","w01","m01","d02","c09","b02","t01","s09"];
+// just enough to make the front page feel alive and pull people into it.
+// Matched by name (not id) so this keeps working after the catalog moves
+// to the database, where ids become fresh UUIDs.
+const TRENDING_NAMES = ["Arduino Uno R3","ESP32 DevKit V1","Ultrasonic Sensor HC-SR04","Breadboard 830-point","SG90 Micro Servo","0.96\" OLED Display","L298N Motor Driver Module","18650 Li-ion Cell","Soldering Iron 25W","MPU6050 Gyro/Accel"];
 
 function renderTrending(){
   const track = document.getElementById('trendingTrack');
   if(!track) return;
-  const items = TRENDING_IDS.map(id => CATALOG.find(c => c.id === id)).filter(Boolean);
+  let items = TRENDING_NAMES.map(name => CATALOG.find(c => c.name === name)).filter(Boolean);
+  if(items.length === 0){
+    // named picks not found (fresh DB catalog with different names) —
+    // just show the first 10 so the strip is never empty
+    items = CATALOG.slice(0, 10);
+  }
   track.innerHTML = items.map(item => {
     const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
     return `<a href="catalog.html?q=${encodeURIComponent(item.name)}" class="trend-card">
-      <div class="trend-icon ${ic.cls}">${ic.icon}</div>
+      <div class="trend-icon ${ic.cls}">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : ic.icon}</div>
       <div class="trend-name">${item.name}</div>
       <div class="trend-price">${money(item.price)}</div>
     </a>`;
@@ -1869,23 +1910,26 @@ function initHeroTilt(){
 initCircuitCanvas();
 initHeroTilt();
 
-renderTrending();
-renderStats();
-
 renderMarquee();
 renderChips();
-renderProjects();
-renderBlog();
-renderCatalog();
-renderCartDrawer();
-updateCartCount();
-updateOrdersCount();
-setupScrollReveal();
 
-if(state.user){
-  updateSidebarProfile();
-  loadUserOrders(state.user.phone);
-}
+(async () => {
+  await Promise.all([loadCatalogFromDB(), loadBlogFromDB()]);
+  renderTrending();
+  renderStats();
+  renderProjects();
+  renderBlog();
+  renderCatalog();
+  renderCartDrawer();
+  updateCartCount();
+  updateOrdersCount();
+  setupScrollReveal();
+
+  if(state.user){
+    updateSidebarProfile();
+    loadUserOrders(state.user.phone);
+  }
+})();
 </script>
 </body>
 </html>
