@@ -118,6 +118,9 @@
   .proj-price { font-weight: 800; font-size: 18px; }
   .proj-view { font-size: 12px; font-weight: 700; color: var(--cyan); }
 
+  .comp-modal-thumb { width: 100%; height: 220px; border-radius: 14px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 56px; overflow: hidden; }
+  .comp-modal-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+
   .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   @media (max-width: 860px) { .blog-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 560px) { .blog-grid { grid-template-columns: 1fr; } }
@@ -131,8 +134,9 @@
 
   .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color .15s, transform .15s; }
   .card:hover { border-color: var(--lime); transform: translateY(-2px); }
-  .card-icon { width: 100%; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; overflow: hidden; }
-  .card-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .card-icon { width: 100%; height: 90px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; overflow: hidden; cursor: pointer; position: relative; transition: transform .15s ease; }
+  .card-icon:hover { transform: scale(1.02); }
+  .card-icon img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
   .icon-lime { background: rgba(198,255,61,0.12); }
   .icon-pink { background: rgba(255,95,168,0.12); }
   .icon-cyan { background: rgba(77,232,255,0.12); }
@@ -513,6 +517,21 @@
   </div>
 </div>
 
+<!-- component detail modal -->
+<div class="modal-overlay" id="componentModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="comp-modal-thumb" id="compModalThumb"></div>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-top:14px;">
+      <h3 id="compModalName" style="margin:0;"></h3>
+      <span class="tag" id="compModalTag" style="flex-shrink:0;"></span>
+    </div>
+    <p class="desc" id="compModalSpec"></p>
+    <div class="row-sb total" style="margin-bottom:14px;"><span>Price</span><span class="mono" id="compModalPrice"></span></div>
+    <div id="compModalQtyArea" style="margin-bottom:14px;"></div>
+    <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="compModalCloseBtn">Close</button>
+  </div>
+</div>
+
 <!-- project detail modal -->
 <div class="modal-overlay" id="projectModalOverlay">
   <div class="modal" style="max-width:420px;">
@@ -866,6 +885,47 @@ function renderProjects(){
   });
 }
 
+function openComponentModal(id){
+  const item = CATALOG.find(c => c.id === id);
+  if(!item) return;
+  const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
+
+  document.getElementById('compModalThumb').innerHTML = item.image
+    ? `<img src="${item.image}" alt="${item.name}">`
+    : `<span class="${ic.cls}" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${ic.icon}</span>`;
+  document.getElementById('compModalName').textContent = item.name;
+  document.getElementById('compModalTag').textContent = item.src === 'batch' ? 'Batch trip' : 'Quick local';
+  document.getElementById('compModalTag').className = 'tag ' + item.src;
+  document.getElementById('compModalSpec').textContent = item.spec;
+  document.getElementById('compModalPrice').textContent = money(item.price);
+  renderCompModalQty(id);
+  document.getElementById('componentModalOverlay').classList.add('show');
+}
+
+function renderCompModalQty(id){
+  const qty = state.cart[id] || 0;
+  const area = document.getElementById('compModalQtyArea');
+  if(qty === 0){
+    area.innerHTML = `<button class="btn-primary" style="width:100%;" id="compModalAddBtn">+ Add to cart</button>`;
+    document.getElementById('compModalAddBtn').addEventListener('click', () => {
+      if(!state.user){ pendingAddId = id; document.getElementById('componentModalOverlay').classList.remove('show'); document.getElementById('loginOverlay').classList.add('show'); return; }
+      changeQty(id, 1);
+      renderCompModalQty(id);
+    });
+  } else {
+    area.innerHTML = `
+      <div class="qty-box" style="justify-content:center; padding:8px;">
+        <button data-modal-dec>–</button><span style="margin:0 14px; font-weight:700;">${qty}</span><button data-modal-inc>+</button>
+      </div>`;
+    area.querySelector('[data-modal-inc]').addEventListener('click', () => { changeQty(id, 1); renderCompModalQty(id); });
+    area.querySelector('[data-modal-dec]').addEventListener('click', () => { changeQty(id, -1); renderCompModalQty(id); });
+  }
+}
+
+document.getElementById('compModalCloseBtn').addEventListener('click', () => {
+  document.getElementById('componentModalOverlay').classList.remove('show');
+});
+
 function openProjectModal(projId){
   const proj = PROJECTS.find(p => p.id === projId);
   if(!proj) return;
@@ -989,7 +1049,7 @@ function renderCatalog(){
     const delay = Math.min(idx, 10) * 30;
     return `<div class="card cr-stagger" style="animation-delay:${delay}ms">
       <div>
-        <div class="card-icon ${ic.cls}">${item.image ? `<img src="${item.image}" alt="${item.name}">` : ic.icon}</div>
+        <div class="card-icon ${ic.cls}" data-view="${item.id}" role="button" aria-label="View details for ${item.name}">${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy">` : ic.icon}</div>
         <div class="card-top">
           <div class="card-name">${item.name}</div>
           <span class="tag ${item.src}">${item.src === 'batch' ? 'Batch trip' : 'Quick local'}</span>
@@ -1005,6 +1065,7 @@ function renderCatalog(){
       </div>
     </div>`;
   }).join('');
+  grid.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => openComponentModal(el.dataset.view)));
   grid.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.add;
     if(!state.user){ pendingAddId = id; document.getElementById('loginOverlay').classList.add('show'); return; }
