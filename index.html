@@ -266,6 +266,7 @@
   }
   #bootOverlay.boot-hide { opacity: 0; visibility: hidden; pointer-events: none; }
   #bootSvg { width: min(80vw, 400px); height: auto; margin-bottom: 18px; }
+  #bootCanvas3d { width: min(90vw, 480px); height: min(50vh, 360px); margin-bottom: 6px; }
   .boot-line { fill: none; stroke: var(--lime); stroke-width: 2; stroke-linecap: round;
     stroke-dasharray: 480; stroke-dashoffset: 480; animation: boot-draw 1s ease forwards; }
   .boot-node { fill: var(--cyan); opacity: 0; animation: boot-node-pop .3s ease forwards; animation-delay: 1s; }
@@ -276,6 +277,7 @@
     opacity: 0; letter-spacing: 0.02em;
     animation: boot-flicker .6s steps(1) forwards; animation-delay: 1s;
   }
+  #bootLogo.boot-delay-3d { animation-delay: 2.7s; }
   .boot-bolt { color: var(--lime); }
   @keyframes boot-flicker {
     0% { opacity: 0; } 15% { opacity: 1; } 25% { opacity: 0.2; } 35% { opacity: 1; }
@@ -285,6 +287,7 @@
     position: absolute; bottom: 26px; font-size: 11px; color: var(--muted); text-transform: uppercase;
     letter-spacing: 0.05em; opacity: 0; animation: boot-node-pop .4s ease forwards; animation-delay: 1.5s;
   }
+  #bootSkip.boot-delay-3d { animation-delay: 0.6s; }
 
   .toast-stack { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; }
   .toast { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); padding: 12px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.4); animation: cr-toast-in .3s ease, cr-toast-out .3s ease 2.2s forwards; white-space: nowrap; }
@@ -321,6 +324,7 @@
 
 <!-- power-on boot sequence — plays once per browser session -->
 <div id="bootOverlay">
+  <canvas id="bootCanvas3d" class="hidden"></canvas>
   <svg id="bootSvg" viewBox="0 0 400 200">
     <path class="boot-line" d="M20 100 L140 100 L160 60 L200 140 L240 60 L260 100 L380 100" />
     <circle class="boot-node" cx="20" cy="100" r="4" />
@@ -676,6 +680,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
@@ -1963,6 +1968,9 @@ function initHeroTilt(){
 }
 
 // ---- Power-on boot sequence (once per browser session) ----
+// Tries a stylized 3D rotating circuit-board animation first; falls back
+// to the lightweight SVG waveform if WebGL or Three.js isn't available
+// (older devices, blocked CDN, etc.) so the intro never breaks the page.
 function initBootSequence(){
   const overlay = document.getElementById('bootOverlay');
   if(!overlay) return;
@@ -1979,9 +1987,208 @@ function initBootSequence(){
     overlay.classList.add('boot-hide');
     setTimeout(() => overlay.remove(), 550);
   }
+
+  const canWebGL = (() => {
+    try {
+      const test = document.createElement('canvas');
+      return !!(window.THREE && (test.getContext('webgl') || test.getContext('experimental-webgl')));
+    } catch(e) { return false; }
+  })();
+
+  if(canWebGL){
+    document.getElementById('bootSvg').classList.add('hidden');
+    document.getElementById('bootLogo').classList.add('boot-delay-3d');
+    document.getElementById('bootSkip').classList.add('boot-delay-3d');
+    try {
+      run3DBoot(overlay, hideBoot);
+      return;
+    } catch(e) {
+      console.error('3D boot failed, falling back:', e);
+      document.getElementById('bootSvg').classList.remove('hidden');
+      document.getElementById('bootLogo').classList.remove('boot-delay-3d');
+      document.getElementById('bootSkip').classList.remove('boot-delay-3d');
+    }
+  }
+
   overlay.addEventListener('click', hideBoot);
   setTimeout(hideBoot, 2200);
 }
+
+function run3DBoot(overlay, hideBoot){
+  const canvas = document.getElementById('bootCanvas3d');
+  canvas.classList.remove('hidden');
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  camera.position.set(0, 1.1, 6.2);
+  camera.lookAt(0, 0, 0);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  function fitCanvas(){
+    const rect = canvas.getBoundingClientRect();
+    renderer.setSize(rect.width, rect.height, false);
+    camera.aspect = rect.width / rect.height;
+    camera.updateProjectionMatrix();
+  }
+  fitCanvas();
+  window.addEventListener('resize', fitCanvas);
+
+  // lighting
+  scene.add(new THREE.AmbientLight(0x404050, 1.2));
+  const key = new THREE.PointLight(0xC6FF3D, 2.2, 20);
+  key.position.set(3, 4, 4);
+  scene.add(key);
+  const rim = new THREE.PointLight(0x4DE8FF, 1.6, 20);
+  rim.position.set(-4, -2, -3);
+  scene.add(rim);
+
+  // ---- PCB group ----
+  const pcb = new THREE.Group();
+  scene.add(pcb);
+
+  const boardMat = new THREE.MeshStandardMaterial({ color: 0x123524, roughness: 0.55, metalness: 0.25 });
+  const board = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.14, 2.2), boardMat);
+  pcb.add(board);
+
+  // glowing edge outline
+  const edges = new THREE.EdgesGeometry(board.geometry);
+  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xC6FF3D }));
+  edgeLines.position.copy(board.position);
+  pcb.add(edgeLines);
+
+  // IC chip (black square with glowing outline)
+  const chip = new THREE.Mesh(
+    new THREE.BoxGeometry(0.7, 0.1, 0.7),
+    new THREE.MeshStandardMaterial({ color: 0x0a0a0f, roughness: 0.4 })
+  );
+  chip.position.set(-0.6, 0.12, 0);
+  pcb.add(chip);
+  const chipEdges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(chip.geometry),
+    new THREE.LineBasicMaterial({ color: 0x4DE8FF })
+  );
+  chipEdges.position.copy(chip.position);
+  pcb.add(chipEdges);
+
+  // capacitors (small cylinders)
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x2C2C39, roughness: 0.5, metalness: 0.4 });
+  [[0.6, 0.4], [0.9, 0.4], [0.75, -0.5]].forEach(([x, z]) => {
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.18, 16), capMat);
+    cap.position.set(x, 0.16, z);
+    pcb.add(cap);
+  });
+
+  // header pins along one edge
+  const pinMat = new THREE.MeshStandardMaterial({ color: 0xD9A544, roughness: 0.3, metalness: 0.8 });
+  for(let i = 0; i < 8; i++){
+    const pin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.05), pinMat);
+    pin.position.set(-1.5, 0.14, -0.85 + i * 0.24);
+    pcb.add(pin);
+  }
+
+  // glowing circuit traces on the board surface
+  const traceMat = new THREE.MeshBasicMaterial({ color: 0xFF5FA8, transparent: true, opacity: 0.85 });
+  const tracePaths = [
+    [[-0.6, -0.6], [-0.1, -0.6], [-0.1, 0]],
+    [[-0.6, 0.6], [-0.1, 0.6], [-0.1, 0.2]],
+    [[0.4, 0], [0.4, 0.7], [1.2, 0.7]],
+  ];
+  const traceMeshes = [];
+  tracePaths.forEach(path => {
+    for(let i = 1; i < path.length; i++){
+      const [x1, z1] = path[i-1], [x2, z2] = path[i];
+      const len = Math.hypot(x2-x1, z2-z1);
+      const seg = new THREE.Mesh(new THREE.BoxGeometry(len, 0.02, 0.035), traceMat);
+      seg.position.set((x1+x2)/2, 0.08, (z1+z2)/2);
+      seg.rotation.y = -Math.atan2(z2-z1, x2-x1);
+      pcb.add(seg);
+      traceMeshes.push(seg);
+    }
+  });
+
+  // ambient particles
+  const particleCount = window.innerWidth < 640 ? 60 : 140;
+  const positions = new Float32Array(particleCount * 3);
+  for(let i = 0; i < particleCount; i++){
+    positions[i*3] = (Math.random() - 0.5) * 8;
+    positions[i*3+1] = (Math.random() - 0.5) * 5;
+    positions[i*3+2] = (Math.random() - 0.5) * 6;
+  }
+  const particleGeo = new THREE.BufferGeometry();
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particleMat = new THREE.PointsMaterial({ color: 0x4DE8FF, size: 0.035, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  scene.add(particles);
+
+  pcb.scale.setScalar(0.001);
+
+  const start = performance.now();
+  const ROTATE_DURATION = 2300; // ms for the 360° spin
+  const TOTAL_DURATION = 3100;  // ms before the board dissolves/fades
+  let rafId;
+  let disposed = false;
+
+  function easeInOutCubic(x){ return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2; }
+
+  function animate(now){
+    if(disposed) return;
+    const elapsed = now - start;
+
+    // scale-in
+    const scaleT = Math.min(1, elapsed / 400);
+    pcb.scale.setScalar(easeInOutCubic(scaleT));
+
+    // 360 rotation with ease
+    const rotT = Math.min(1, elapsed / ROTATE_DURATION);
+    pcb.rotation.y = easeInOutCubic(rotT) * Math.PI * 2;
+
+    // trace pulse
+    traceMeshes.forEach((m, i) => {
+      m.material.opacity = 0.4 + 0.5 * Math.abs(Math.sin(elapsed / 260 + i));
+    });
+
+    // particles drift
+    particles.rotation.y += 0.0015;
+    particles.rotation.x += 0.0004;
+
+    // dissolve near the end
+    if(elapsed > ROTATE_DURATION){
+      const fadeT = Math.min(1, (elapsed - ROTATE_DURATION) / (TOTAL_DURATION - ROTATE_DURATION));
+      pcb.scale.setScalar(1 - fadeT * 0.3);
+      pcb.position.z = -fadeT * 1.5;
+      board.material.opacity = 1 - fadeT;
+      board.material.transparent = true;
+      edgeLines.material.opacity = 1 - fadeT;
+      edgeLines.material.transparent = true;
+      chip.material.opacity = 1 - fadeT;
+      chip.material.transparent = true;
+      chipEdges.material.opacity = 1 - fadeT;
+      chipEdges.material.transparent = true;
+      particleMat.opacity = 0.7 + fadeT * 0.3;
+      particleMat.size = 0.035 + fadeT * 0.03;
+    }
+
+    renderer.render(scene, camera);
+
+    if(elapsed < TOTAL_DURATION + 200){
+      rafId = requestAnimationFrame(animate);
+    }
+  }
+  rafId = requestAnimationFrame(animate);
+
+  function cleanup(){
+    disposed = true;
+    if(rafId) cancelAnimationFrame(rafId);
+    window.removeEventListener('resize', fitCanvas);
+    renderer.dispose();
+  }
+
+  overlay.addEventListener('click', () => { cleanup(); hideBoot(); });
+  setTimeout(() => { cleanup(); hideBoot(); }, TOTAL_DURATION + 400);
+}
+
 initBootSequence();
 
 initCircuitCanvas();
