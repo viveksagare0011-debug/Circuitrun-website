@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CircuitRun — components delivered to campus</title>
+<title>Component — CircuitRun</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23C6FF3D%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>⚡</text></svg>">
 <meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
 <meta property="og:title" content="CircuitRun — components delivered to campus">
@@ -68,9 +68,7 @@
   .chip-sticker:nth-child(even) { transform: rotate(2deg); }
 
   /* hero */
-  .hero { position: relative; padding: 56px 0 32px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; isolation: isolate; }
-  #circuitCanvas { position: absolute; inset: -60px -8vw; width: calc(100% + 16vw); height: calc(100% + 120px); z-index: 0; pointer-events: none; }
-  .hero > div, .hero-card { position: relative; z-index: 1; }
+  .hero { padding: 56px 0 32px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }
   @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding: 36px 0 24px; } }
   .eyebrow { display: inline-block; background: var(--pink); color: #12121A; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 999px; margin-bottom: 16px; transform: rotate(-2deg); }
   h1 { font-size: 42px; line-height: 1.1; font-weight: 800; margin: 0 0 16px; }
@@ -81,7 +79,7 @@
   .btn-primary { background: var(--lime); color: #12121A; font-weight: 700; padding: 13px 22px; border-radius: 999px; font-size: 14px; }
   .btn-outline { background: transparent; color: var(--text); font-weight: 700; padding: 12px 22px; border-radius: 999px; font-size: 14px; border: 2px solid var(--pink); }
 
-  .hero-card { background: rgba(28,28,39,0.82); backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 20px; padding: 20px; transform-style: preserve-3d; transition: transform .15s ease-out; will-change: transform; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+  .hero-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
   .flow-row { display: flex; justify-content: space-between; margin-top: 14px; }
   .flow-step { text-align: center; flex: 1; }
   .flow-dot { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 2px solid var(--lime); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
@@ -120,18 +118,8 @@
   .proj-price { font-weight: 800; font-size: 18px; }
   .proj-view { font-size: 12px; font-weight: 700; color: var(--cyan); }
 
-  .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 8px 0 36px; }
-  @media (max-width: 700px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
-  .stat-tile { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; }
-  .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--lime); }
-  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; }
-
-  .trending-track { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 8px; scroll-snap-type: x proximity; }
-  .trend-card { scroll-snap-align: start; flex: 0 0 150px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-decoration: none; color: var(--text); transition: border-color .15s, transform .15s; }
-  .trend-card:hover { border-color: var(--lime); transform: translateY(-2px); }
-  .trend-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
-  .trend-name { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; min-height: 34px; }
-  .trend-price { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--lime); font-weight: 700; }
+  .comp-modal-thumb { width: 100%; height: 220px; border-radius: 14px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 56px; overflow: hidden; }
+  .comp-modal-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
 
   .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   @media (max-width: 860px) { .blog-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -146,7 +134,9 @@
 
   .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color .15s, transform .15s; }
   .card:hover { border-color: var(--lime); transform: translateY(-2px); }
-  .card-icon { width: 100%; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; }
+  .card-icon { width: 100%; height: 90px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 10px; overflow: hidden; cursor: pointer; position: relative; transition: transform .15s ease; }
+  .card-icon:hover { transform: scale(1.02); }
+  .card-icon img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
   .icon-lime { background: rgba(198,255,61,0.12); }
   .icon-pink { background: rgba(255,95,168,0.12); }
   .icon-cyan { background: rgba(77,232,255,0.12); }
@@ -259,36 +249,6 @@
   .drawer.show { transition: transform .28s cubic-bezier(0.16, 1, 0.3, 1); }
 
   /* toast notifications */
-  #bootOverlay {
-    position: fixed; inset: 0; background: var(--bg); z-index: 300;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    cursor: pointer; transition: opacity .5s ease, visibility .5s;
-  }
-  #bootOverlay.boot-hide { opacity: 0; visibility: hidden; pointer-events: none; }
-  #bootSvg { width: min(80vw, 400px); height: auto; margin-bottom: 18px; }
-  #bootCanvas3d { width: min(90vw, 480px); height: min(50vh, 360px); margin-bottom: 6px; }
-  .boot-line { fill: none; stroke: var(--lime); stroke-width: 2; stroke-linecap: round;
-    stroke-dasharray: 480; stroke-dashoffset: 480; animation: boot-draw 1s ease forwards; }
-  .boot-node { fill: var(--cyan); opacity: 0; animation: boot-node-pop .3s ease forwards; animation-delay: 1s; }
-  @keyframes boot-draw { to { stroke-dashoffset: 0; } }
-  @keyframes boot-node-pop { to { opacity: 1; } }
-  #bootLogo {
-    font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 26px; color: var(--text);
-    opacity: 0; letter-spacing: 0.02em;
-    animation: boot-flicker .6s steps(1) forwards; animation-delay: 1s;
-  }
-  #bootLogo.boot-delay-3d { animation-delay: 2.7s; }
-  .boot-bolt { color: var(--lime); }
-  @keyframes boot-flicker {
-    0% { opacity: 0; } 15% { opacity: 1; } 25% { opacity: 0.2; } 35% { opacity: 1; }
-    45% { opacity: 0.3; } 100% { opacity: 1; }
-  }
-  #bootSkip {
-    position: absolute; bottom: 26px; font-size: 11px; color: var(--muted); text-transform: uppercase;
-    letter-spacing: 0.05em; opacity: 0; animation: boot-node-pop .4s ease forwards; animation-delay: 1.5s;
-  }
-  #bootSkip.boot-delay-3d { animation-delay: 0.6s; }
-
   .toast-stack { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; }
   .toast { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); padding: 12px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.4); animation: cr-toast-in .3s ease, cr-toast-out .3s ease 2.2s forwards; white-space: nowrap; }
   @keyframes cr-toast-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -318,21 +278,20 @@
   .profile-row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
   .profile-row span { color: var(--muted); }
   .profile-row b { font-weight: 600; text-align: right; }
+
+  .product-detail-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 44px; padding: 24px 0 60px; }
+  @media (max-width: 800px) { .product-detail-grid { grid-template-columns: 1fr; gap: 24px; padding-top: 12px; } }
+  .product-image-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 110px; overflow: hidden; }
+  .product-image-box img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+  .product-back-link { color: var(--muted); font-size: 13px; text-decoration: none; display: inline-block; margin: 24px 0 4px; }
+  .product-back-link:hover { color: var(--lime); }
+  .product-price { font-size: 34px; font-weight: 800; color: var(--lime); margin: 14px 0 4px; }
+  .product-details-list { list-style: none; padding: 0; margin: 22px 0 0; border-top: 1px solid var(--line); }
+  .product-details-list li { font-size: 14px; color: var(--text); padding: 11px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; line-height: 1.5; }
+  .product-details-list li::before { content: "▸"; color: var(--lime); font-weight: 700; flex-shrink: 0; }
 </style>
 </head>
 <body>
-
-<!-- power-on boot sequence — plays once per browser session -->
-<div id="bootOverlay">
-  <canvas id="bootCanvas3d" class="hidden"></canvas>
-  <svg id="bootSvg" viewBox="0 0 400 200">
-    <path class="boot-line" d="M20 100 L140 100 L160 60 L200 140 L240 60 L260 100 L380 100" />
-    <circle class="boot-node" cx="20" cy="100" r="4" />
-    <circle class="boot-node" cx="380" cy="100" r="4" />
-  </svg>
-  <div id="bootLogo"><span class="boot-bolt">⚡</span> CircuitRun</div>
-  <div id="bootSkip">tap to skip</div>
-</div>
 
 <div class="toast-stack" id="toastStack"></div>
 
@@ -427,123 +386,30 @@
 </div>
 
 <div class="wrap">
-  <section class="hero" id="home">
-    <canvas id="circuitCanvas"></canvas>
-    <div>
-      <span class="eyebrow">📍 Nerul · Vashi · Belapur runs</span>
-      <h1>Project components, <span class="hl">delivered to your campus.</span></h1>
-      <p class="sub">Tell us what your project needs. We source it and drop it straight to your campus — no bus, no train, no wasted afternoon running around the city.</p>
-      <div class="btn-row">
-        <a href="catalog.html" class="btn-primary" style="text-decoration:none; display:inline-block;">Browse parts →</a>
-        <a href="projects.html" class="btn-outline" style="text-decoration:none; display:inline-block;">Explore project kits 🚀</a>
-      </div>
-    </div>
-    <div class="hero-card" id="heroCard">
-      <div class="disp" style="font-weight:700; font-size:14px; color: var(--muted);">HOW IT WORKS</div>
-      <div class="flow-row">
-        <div class="flow-step"><div class="flow-dot">📝</div><div class="flow-label">You request</div></div>
-        <div class="flow-step"><div class="flow-dot">🏙️</div><div class="flow-label">We source</div></div>
-        <div class="flow-step"><div class="flow-dot">🚲</div><div class="flow-label">Batch run</div></div>
-        <div class="flow-step"><div class="flow-dot">🎓</div><div class="flow-label">On campus</div></div>
-      </div>
-      <div class="trust-strip">
-        <span>🗓️ Batch: Tue & Fri</span>
-        <span>💵 COD available</span>
-        <span>⚡ Local = quick</span>
-      </div>
-    </div>
-  </section>
+  <a href="catalog.html" class="product-back-link">← Back to catalog</a>
 
-  <section id="stats-strip" class="cr-reveal">
-    <div class="stats-bar" id="statsBar"></div>
-  </section>
+  <div id="productLoading" style="padding:60px 0; text-align:center; color:var(--muted);">Loading component...</div>
 
-  <section id="trending">
-    <div class="section-title cr-reveal">
-      <h2>🔥 Trending this week</h2>
-      <span class="count"><a href="catalog.html" style="color:var(--cyan); text-decoration:none;">View full catalog →</a></span>
-    </div>
-    <div class="trending-track" id="trendingTrack"></div>
-  </section>
+  <div id="productNotFound" class="hidden" style="padding:60px 0; text-align:center;">
+    <div style="font-size:40px; margin-bottom:12px;">🔍</div>
+    <h2 style="margin:0 0 8px;">Component not found</h2>
+    <p class="sub">It may have been removed, or the link is incorrect.</p>
+    <a href="catalog.html" class="btn-primary" style="text-decoration:none; display:inline-block;">Browse the catalog →</a>
+  </div>
 
-  <section id="blog">
-    <div class="section-title cr-reveal">
-      <h2>📰 The blog</h2>
-      <span class="count">Tips & guides for your college projects</span>
-    </div>
-    <div class="blog-grid" id="blogGrid"></div>
-  </section>
-
-  <section id="bulkRequest" class="bulk">
-    <div class="bulk-grid">
+  <div id="productContent" class="hidden">
+    <div class="product-detail-grid">
+      <div class="product-image-box" id="productImageBox"></div>
       <div>
-        <span class="eyebrow" style="background:var(--cyan);">🔧 Not on the list?</span>
-        <h2 id="bulkHeading">Request literally any part</h2>
-        <p id="bulkDesc">Give us the name, spec, or even a blurry photo description — we'll quote you a price before you pay a rupee, and bundle it into our next delivery run.</p>
-        <ul>
-          <li>No payment until we confirm price & stock</li>
-          <li>Delivered on the next batch run</li>
-          <li>Pay 20% online, rest cash on delivery</li>
-        </ul>
-      </div>
-      <div>
-        <div class="request-tabs">
-          <button class="req-tab active" data-req-tab="component">🔧 A Component</button>
-          <button class="req-tab" data-req-tab="project">🚀 A Project Kit</button>
-        </div>
-
-        <div class="form-card" id="requestFormComponent">
-          <label>Component name / spec</label>
-          <input id="reqName" required placeholder="e.g. MPU9250 9-axis IMU">
-          <div class="form-row">
-            <div>
-              <label>Quantity</label>
-              <input id="reqQty" placeholder="1">
-            </div>
-            <div>
-              <label>Budget (optional)</label>
-              <input id="reqBudget" placeholder="₹500">
-            </div>
-          </div>
-          <label>WhatsApp number</label>
-          <input id="reqContact" required placeholder="98XXXXXXXX">
-          <p id="reqError" class="hidden" style="color:var(--pink); font-size:12px; margin:0 0 10px;">Please fill in the required fields.</p>
-          <button type="button" id="requestSubmitBtn" class="submit-btn">Send request 🚀</button>
-        </div>
-
-        <div class="form-card hidden" id="requestFormProject">
-          <label>What's the project idea?</label>
-          <input id="projReqName" required placeholder="e.g. Smart Attendance System">
-          <label>Briefly, what should it do?</label>
-          <input id="projReqDesc" placeholder="e.g. RFID-based attendance marking with a display">
-          <label>Budget (optional)</label>
-          <input id="projReqBudget" placeholder="₹1500">
-          <label>WhatsApp number</label>
-          <input id="projReqContact" required placeholder="98XXXXXXXX">
-          <p id="projReqError" class="hidden" style="color:var(--pink); font-size:12px; margin:0 0 10px;">Please fill in the required fields.</p>
-          <button type="button" id="projRequestSubmitBtn" class="submit-btn">Send project request 🚀</button>
-        </div>
-
-        <div class="form-card success-box hidden" id="requestSuccess">
-          <div class="big">✅</div>
-          <p style="font-weight:700; margin:0 0 4px;">Got it!</p>
-          <p style="font-size:13px; color:var(--muted); margin:0 0 14px;">We'll DM you a quote before the next run.</p>
-          <button class="btn-outline" onclick="resetRequestForm()">Send another</button>
-        </div>
+        <span class="tag" id="productTag"></span>
+        <h1 id="productName" style="font-size:28px; margin:10px 0 6px;"></h1>
+        <p class="sub" id="productSpec" style="font-size:15px; margin-bottom:0;"></p>
+        <div class="product-price mono" id="productPrice"></div>
+        <div id="productQtyArea" style="margin:18px 0 6px; max-width:280px;"></div>
+        <ul class="product-details-list" id="productDetailsList"></ul>
       </div>
     </div>
-  </section>
-
-  <section class="trust-cards">
-    <div class="trust-card"><div class="emoji">💵</div><h3>Cash on delivery</h3><p>Pay a small amount online to lock the order, rest in cash when it lands in your hand.</p></div>
-    <div class="trust-card"><div class="emoji">🗓️</div><h3>Fixed batch runs</h3><p>Lamington Road runs happen every Tue & Fri — order before cutoff to make the trip.</p></div>
-    <div class="trust-card"><div class="emoji">📍</div><h3>Delivered on campus</h3><p>Hostel, department, canteen — wherever. No city trips for one IC ever again.</p></div>
-  </section>
-
-  <footer>
-    <div class="logo disp">⚡ CircuitRun</div>
-    <p>Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</p>
-  </footer>
+  </div>
 </div>
 
 <!-- cart drawer -->
@@ -653,6 +519,21 @@
   </div>
 </div>
 
+<!-- component detail modal -->
+<div class="modal-overlay" id="componentModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="comp-modal-thumb" id="compModalThumb"></div>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-top:14px;">
+      <h3 id="compModalName" style="margin:0;"></h3>
+      <span class="tag" id="compModalTag" style="flex-shrink:0;"></span>
+    </div>
+    <p class="desc" id="compModalSpec"></p>
+    <div class="row-sb total" style="margin-bottom:14px;"><span>Price</span><span class="mono" id="compModalPrice"></span></div>
+    <div id="compModalQtyArea" style="margin-bottom:14px;"></div>
+    <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="compModalCloseBtn">Close</button>
+  </div>
+</div>
+
 <!-- project detail modal -->
 <div class="modal-overlay" id="projectModalOverlay">
   <div class="modal" style="max-width:420px;">
@@ -680,7 +561,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
@@ -758,7 +638,7 @@ let CATALOG = [
   {id:"t04",name:"Wire Stripper / Cutter",spec:"6-inch, spring loaded",price:110,cat:"Tools",src:"local",details:"Size: 6-inch overall length\nSpring-loaded handle for repeated one-handed use\nMultiple notch sizes for different wire gauges\nCombined stripping and cutting function"}
 ];
 
-let BLOG_POSTS = [
+const BLOG_POSTS = [
   {
     id: "b01", tag: "Beginner Guide", emoji: "🔌", readTime: "4 min read",
     title: "Arduino vs ESP32: Which one should your project actually use?",
@@ -855,9 +735,10 @@ const ADVANCE_PCT = 0.2;
 const OWNER_WHATSAPP = "917318760011"; // +91 7318760011
 let state = { category: "All", query: "", cart: {}, user: null, orders: [], sort: "default" };
 
-// Pulls live catalog + blog data from the database (managed via the
-// admin panel). Falls back to the hardcoded arrays above if the fetch
-// fails or the tables are empty, so the site never shows a blank page.
+// Pulls the live catalog from the database (managed via the admin panel).
+// If the fetch fails or returns nothing (e.g. DB not set up yet), the
+// hardcoded CATALOG array above stays as a working fallback so the site
+// never shows a blank page.
 async function loadCatalogFromDB(){
   if(!db) return;
   try {
@@ -870,22 +751,6 @@ async function loadCatalogFromDB(){
     }
   } catch(err) {
     console.error('catalog fetch failed:', err.message || err);
-  }
-}
-
-async function loadBlogFromDB(){
-  if(!db) return;
-  try {
-    const { data, error } = await db.from('blog_posts').select('*').eq('active', true).order('created_at', { ascending: false });
-    if(!error && data && data.length > 0){
-      BLOG_POSTS = data.map(b => ({
-        id: b.id, tag: b.tag || 'Guide', emoji: b.emoji || '📰',
-        readTime: b.read_time || '3 min read', title: b.title,
-        excerpt: b.excerpt || '', body: b.body || ''
-      }));
-    }
-  } catch(err) {
-    console.error('blog fetch failed:', err.message || err);
   }
 }
 
@@ -1022,6 +887,47 @@ function renderProjects(){
   });
 }
 
+function openComponentModal(id){
+  const item = CATALOG.find(c => c.id === id);
+  if(!item) return;
+  const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
+
+  document.getElementById('compModalThumb').innerHTML = item.image
+    ? `<img src="${item.image}" alt="${item.name}">`
+    : `<span class="${ic.cls}" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${ic.icon}</span>`;
+  document.getElementById('compModalName').textContent = item.name;
+  document.getElementById('compModalTag').textContent = item.src === 'batch' ? 'Batch trip' : 'Quick local';
+  document.getElementById('compModalTag').className = 'tag ' + item.src;
+  document.getElementById('compModalSpec').textContent = item.spec;
+  document.getElementById('compModalPrice').textContent = money(item.price);
+  renderCompModalQty(id);
+  document.getElementById('componentModalOverlay').classList.add('show');
+}
+
+function renderCompModalQty(id){
+  const qty = state.cart[id] || 0;
+  const area = document.getElementById('compModalQtyArea');
+  if(qty === 0){
+    area.innerHTML = `<button class="btn-primary" style="width:100%;" id="compModalAddBtn">+ Add to cart</button>`;
+    document.getElementById('compModalAddBtn').addEventListener('click', () => {
+      if(!state.user){ pendingAddId = id; document.getElementById('componentModalOverlay').classList.remove('show'); document.getElementById('loginOverlay').classList.add('show'); return; }
+      changeQty(id, 1);
+      renderCompModalQty(id);
+    });
+  } else {
+    area.innerHTML = `
+      <div class="qty-box" style="justify-content:center; padding:8px;">
+        <button data-modal-dec>–</button><span style="margin:0 14px; font-weight:700;">${qty}</span><button data-modal-inc>+</button>
+      </div>`;
+    area.querySelector('[data-modal-inc]').addEventListener('click', () => { changeQty(id, 1); renderCompModalQty(id); });
+    area.querySelector('[data-modal-dec]').addEventListener('click', () => { changeQty(id, -1); renderCompModalQty(id); });
+  }
+}
+
+document.getElementById('compModalCloseBtn').addEventListener('click', () => {
+  document.getElementById('componentModalOverlay').classList.remove('show');
+});
+
 function openProjectModal(projId){
   const proj = PROJECTS.find(p => p.id === projId);
   if(!proj) return;
@@ -1062,54 +968,6 @@ function addProjectToCart(projId){
   showToast(`✅ ${proj.name} kit added to cart`);
   document.getElementById('overlay').classList.add('show');
   document.getElementById('cartDrawer').classList.add('show');
-}
-
-// curated picks shown on the homepage teaser strip — not the full catalog,
-// just enough to make the front page feel alive and pull people into it.
-// Matched by name (not id) so this keeps working after the catalog moves
-// to the database, where ids become fresh UUIDs.
-const TRENDING_NAMES = ["Arduino Uno R3","ESP32 DevKit V1","Ultrasonic Sensor HC-SR04","Breadboard 830-point","SG90 Micro Servo","0.96\" OLED Display","L298N Motor Driver Module","18650 Li-ion Cell","Soldering Iron 25W","MPU6050 Gyro/Accel"];
-
-function renderTrending(){
-  const track = document.getElementById('trendingTrack');
-  if(!track) return;
-  let items = TRENDING_NAMES.map(name => CATALOG.find(c => c.name === name)).filter(Boolean);
-  if(items.length === 0){
-    // named picks not found (fresh DB catalog with different names) —
-    // just show the first 10 so the strip is never empty
-    items = CATALOG.slice(0, 10);
-  }
-  track.innerHTML = items.map(item => {
-    const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
-    return `<a href="product.html?id=${encodeURIComponent(item.id)}" class="trend-card">
-      <div class="trend-icon ${ic.cls}">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : ic.icon}</div>
-      <div class="trend-name">${item.name}</div>
-      <div class="trend-price">${money(item.price)}</div>
-    </a>`;
-  }).join('');
-}
-
-async function renderStats(){
-  const bar = document.getElementById('statsBar');
-  if(!bar) return;
-  let orderCount = null, customerCount = null;
-  if(db){
-    try {
-      const { count: oc } = await db.from('orders').select('*', { count: 'exact', head: true });
-      orderCount = oc;
-      const { data: custData } = await db.from('orders').select('customer_phone');
-      if(custData) customerCount = new Set(custData.map(o => o.customer_phone)).size;
-    } catch(err) {
-      console.error('stats fetch failed:', err.message || err);
-    }
-  }
-  const tiles = [
-    { num: CATALOG.length + '+', label: 'Components listed' },
-    { num: CATEGORIES.length - 1, label: 'Categories' },
-    { num: orderCount !== null ? orderCount : '🚀', label: orderCount !== null ? 'Orders placed' : 'Just launched' },
-    { num: customerCount !== null && customerCount > 0 ? customerCount : 'You?', label: 'Students served' }
-  ];
-  bar.innerHTML = tiles.map(t => `<div class="stat-tile"><div class="stat-num">${t.num}</div><div class="stat-label">${t.label}</div></div>`).join('');
 }
 
 function renderBlog(){
@@ -1193,7 +1051,7 @@ function renderCatalog(){
     const delay = Math.min(idx, 10) * 30;
     return `<div class="card cr-stagger" style="animation-delay:${delay}ms">
       <div>
-        <div class="card-icon ${ic.cls}">${ic.icon}</div>
+        <div class="card-icon ${ic.cls}" data-view="${item.id}" role="button" aria-label="View details for ${item.name}">${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy">` : ic.icon}</div>
         <div class="card-top">
           <div class="card-name">${item.name}</div>
           <span class="tag ${item.src}">${item.src === 'batch' ? 'Batch trip' : 'Quick local'}</span>
@@ -1209,6 +1067,7 @@ function renderCatalog(){
       </div>
     </div>`;
   }).join('');
+  grid.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => openComponentModal(el.dataset.view)));
   grid.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.add;
     if(!state.user){ pendingAddId = id; document.getElementById('loginOverlay').classList.add('show'); return; }
@@ -1226,6 +1085,9 @@ function changeQty(id, delta){
   renderCatalog();
   renderCartDrawer();
   updateCartCount();
+  if(typeof renderProductQty === 'function' && document.getElementById('productQtyArea')){
+    renderProductQty(id);
+  }
   if(delta > 0){
     const item = CATALOG.find(c => c.id === id);
     if(item) showToast(`✅ Added ${item.name} to cart`);
@@ -1780,430 +1642,73 @@ if(qParam && document.getElementById('searchInput')){
   state.query = qParam;
 }
 
-// ---- Living Circuit Board hero animation ----
-// A procedurally generated PCB-trace network with light pulses that
-// continuously travel along the traces, brightening as they pass through
-// solder-pad junctions. Purely canvas 2D (no dependencies), respects
-// prefers-reduced-motion, and pauses when the tab isn't visible.
-function initCircuitCanvas(){
-  const canvas = document.getElementById('circuitCanvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const heroEl = document.querySelector('.hero');
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
-  let traces = [];
-  let mouseX = -9999, mouseY = -9999;
-
-  const PALETTE = ['#C6FF3D', '#FF5FA8', '#4DE8FF'];
-
-  function resize(){
-    const rect = canvas.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    generateTraces();
-  }
-
-  // Builds an orthogonal (right-angle) path from a random start edge to a
-  // random end point, like a real PCB trace routed on a grid.
-  function buildPath(){
-    const gridSize = 42;
-    const cols = Math.max(4, Math.floor(W / gridSize));
-    const rows = Math.max(4, Math.floor(H / gridSize));
-    const startCol = Math.random() < 0.5 ? 0 : cols;
-    const startRow = Math.floor(Math.random() * rows);
-    let x = startCol * gridSize, y = startRow * gridSize;
-    const points = [{x, y}];
-    const turns = 2 + Math.floor(Math.random() * 3);
-    let horizontal = Math.random() < 0.5;
-    for(let i = 0; i < turns; i++){
-      if(horizontal){
-        x += (Math.random() < 0.5 ? -1 : 1) * gridSize * (1 + Math.floor(Math.random()*3));
-        x = Math.max(0, Math.min(W, x));
-      } else {
-        y += (Math.random() < 0.5 ? -1 : 1) * gridSize * (1 + Math.floor(Math.random()*3));
-        y = Math.max(0, Math.min(H, y));
-      }
-      points.push({x, y});
-      horizontal = !horizontal;
-    }
-    return points;
-  }
-
-  function pathLength(points){
-    let len = 0;
-    for(let i = 1; i < points.length; i++){
-      len += Math.hypot(points[i].x - points[i-1].x, points[i].y - points[i-1].y);
-    }
-    return len;
-  }
-
-  function pointAt(points, t){
-    // t is 0..1 fraction of total path length
-    const total = pathLength(points);
-    let target = total * t;
-    for(let i = 1; i < points.length; i++){
-      const segLen = Math.hypot(points[i].x - points[i-1].x, points[i].y - points[i-1].y);
-      if(target <= segLen){
-        const frac = segLen === 0 ? 0 : target / segLen;
-        return {
-          x: points[i-1].x + (points[i].x - points[i-1].x) * frac,
-          y: points[i-1].y + (points[i].y - points[i-1].y) * frac
-        };
-      }
-      target -= segLen;
-    }
-    return points[points.length - 1];
-  }
-
-  function generateTraces(){
-    const count = W < 640 ? 8 : 16;
-    traces = [];
-    for(let i = 0; i < count; i++){
-      const points = buildPath();
-      traces.push({
-        points,
-        color: PALETTE[i % PALETTE.length],
-        speed: 0.00018 + Math.random() * 0.00025,
-        offset: Math.random()
-      });
-    }
-  }
-
-  function draw(time){
-    ctx.clearRect(0, 0, W, H);
-
-    traces.forEach(trace => {
-      // faint static trace line
-      ctx.beginPath();
-      trace.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      const t = (time * trace.speed + trace.offset) % 1;
-      const headPos = pointAt(trace.points, t);
-
-      // junction pads — the one closest to the traveling pulse sparks brighter
-      trace.points.forEach(p => {
-        const jd = Math.hypot(p.x - headPos.x, p.y - headPos.y);
-        const jBoost = jd < 14 ? (1 - jd / 14) : 0;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2 + jBoost * 4, 0, Math.PI * 2);
-        ctx.fillStyle = jBoost > 0 ? trace.color : 'rgba(255,255,255,0.12)';
-        if(jBoost > 0){
-          ctx.shadowColor = trace.color;
-          ctx.shadowBlur = 16 * jBoost;
-        }
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // comet trail — a short fading tail behind the traveling pulse
-      const trailSteps = 6;
-      for(let i = trailSteps; i >= 0; i--){
-        const trailT = ((t - i * 0.0055) % 1 + 1) % 1;
-        const tp = pointAt(trace.points, trailT);
-        const isHead = i === 0;
-        const fade = 1 - i / trailSteps;
-        const dist = Math.hypot(tp.x - mouseX, tp.y - mouseY);
-        const boost = dist < 120 ? (1 - dist / 120) : 0;
-
-        ctx.beginPath();
-        ctx.arc(tp.x, tp.y, isHead ? (2.5 + boost * 2) : (1.6 * fade + 0.4), 0, Math.PI * 2);
-        ctx.fillStyle = trace.color;
-        ctx.globalAlpha = isHead ? 1 : fade * 0.55;
-        ctx.shadowColor = trace.color;
-        ctx.shadowBlur = isHead ? (8 + boost * 14) : 5 * fade;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-      }
-    });
-
-    if(!prefersReduced && !document.hidden){
-      requestAnimationFrame(draw);
-    }
-  }
-
-  window.addEventListener('resize', resize);
-  if(heroEl){
-    heroEl.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
-    });
-    heroEl.addEventListener('mouseleave', () => { mouseX = -9999; mouseY = -9999; });
-  }
-  document.addEventListener('visibilitychange', () => {
-    if(!document.hidden && !prefersReduced) requestAnimationFrame(draw);
-  });
-
-  resize();
-  requestAnimationFrame(draw);
-}
-
-// ---- 3D tilt on the hero "how it works" card ----
-function initHeroTilt(){
-  const card = document.getElementById('heroCard');
-  const heroEl = document.querySelector('.hero');
-  if(!card || !heroEl) return;
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if(window.matchMedia('(hover: none)').matches) return; // skip on touch devices
-
-  heroEl.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    const rotateX = Math.max(-8, Math.min(8, (-y / rect.height) * 14));
-    const rotateY = Math.max(-8, Math.min(8, (x / rect.width) * 14));
-    card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(6px)`;
-  });
-  heroEl.addEventListener('mouseleave', () => {
-    card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0)';
-  });
-}
-
-// ---- Power-on boot sequence (once per browser session) ----
-// Tries a stylized 3D rotating circuit-board animation first; falls back
-// to the lightweight SVG waveform if WebGL or Three.js isn't available
-// (older devices, blocked CDN, etc.) so the intro never breaks the page.
-function initBootSequence(){
-  const overlay = document.getElementById('bootOverlay');
-  if(!overlay) return;
-  const alreadyBooted = sessionStorage.getItem('circuitrun_booted');
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if(alreadyBooted || prefersReduced){
-    overlay.remove();
-    return;
-  }
-  sessionStorage.setItem('circuitrun_booted', '1');
-
-  function hideBoot(){
-    overlay.classList.add('boot-hide');
-    setTimeout(() => overlay.remove(), 550);
-  }
-
-  const canWebGL = (() => {
-    try {
-      const test = document.createElement('canvas');
-      return !!(window.THREE && (test.getContext('webgl') || test.getContext('experimental-webgl')));
-    } catch(e) { return false; }
-  })();
-
-  if(canWebGL){
-    document.getElementById('bootSvg').classList.add('hidden');
-    document.getElementById('bootLogo').classList.add('boot-delay-3d');
-    document.getElementById('bootSkip').classList.add('boot-delay-3d');
-    try {
-      run3DBoot(overlay, hideBoot);
-      return;
-    } catch(e) {
-      console.error('3D boot failed, falling back:', e);
-      document.getElementById('bootSvg').classList.remove('hidden');
-      document.getElementById('bootLogo').classList.remove('boot-delay-3d');
-      document.getElementById('bootSkip').classList.remove('boot-delay-3d');
-    }
-  }
-
-  overlay.addEventListener('click', hideBoot);
-  setTimeout(hideBoot, 2200);
-}
-
-function run3DBoot(overlay, hideBoot){
-  const canvas = document.getElementById('bootCanvas3d');
-  canvas.classList.remove('hidden');
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-  camera.position.set(0, 1.1, 6.2);
-  camera.lookAt(0, 0, 0);
-
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-
-  function fitCanvas(){
-    const rect = canvas.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height, false);
-    camera.aspect = rect.width / rect.height;
-    camera.updateProjectionMatrix();
-  }
-  fitCanvas();
-  window.addEventListener('resize', fitCanvas);
-
-  // lighting
-  scene.add(new THREE.AmbientLight(0x404050, 1.2));
-  const key = new THREE.PointLight(0xC6FF3D, 2.2, 20);
-  key.position.set(3, 4, 4);
-  scene.add(key);
-  const rim = new THREE.PointLight(0x4DE8FF, 1.6, 20);
-  rim.position.set(-4, -2, -3);
-  scene.add(rim);
-
-  // ---- PCB group ----
-  const pcb = new THREE.Group();
-  scene.add(pcb);
-
-  const boardMat = new THREE.MeshStandardMaterial({ color: 0x123524, roughness: 0.55, metalness: 0.25 });
-  const board = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.14, 2.2), boardMat);
-  pcb.add(board);
-
-  // glowing edge outline
-  const edges = new THREE.EdgesGeometry(board.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xC6FF3D }));
-  edgeLines.position.copy(board.position);
-  pcb.add(edgeLines);
-
-  // IC chip (black square with glowing outline)
-  const chip = new THREE.Mesh(
-    new THREE.BoxGeometry(0.7, 0.1, 0.7),
-    new THREE.MeshStandardMaterial({ color: 0x0a0a0f, roughness: 0.4 })
-  );
-  chip.position.set(-0.6, 0.12, 0);
-  pcb.add(chip);
-  const chipEdges = new THREE.LineSegments(
-    new THREE.EdgesGeometry(chip.geometry),
-    new THREE.LineBasicMaterial({ color: 0x4DE8FF })
-  );
-  chipEdges.position.copy(chip.position);
-  pcb.add(chipEdges);
-
-  // capacitors (small cylinders)
-  const capMat = new THREE.MeshStandardMaterial({ color: 0x2C2C39, roughness: 0.5, metalness: 0.4 });
-  [[0.6, 0.4], [0.9, 0.4], [0.75, -0.5]].forEach(([x, z]) => {
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.18, 16), capMat);
-    cap.position.set(x, 0.16, z);
-    pcb.add(cap);
-  });
-
-  // header pins along one edge
-  const pinMat = new THREE.MeshStandardMaterial({ color: 0xD9A544, roughness: 0.3, metalness: 0.8 });
-  for(let i = 0; i < 8; i++){
-    const pin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.05), pinMat);
-    pin.position.set(-1.5, 0.14, -0.85 + i * 0.24);
-    pcb.add(pin);
-  }
-
-  // glowing circuit traces on the board surface
-  const traceMat = new THREE.MeshBasicMaterial({ color: 0xFF5FA8, transparent: true, opacity: 0.85 });
-  const tracePaths = [
-    [[-0.6, -0.6], [-0.1, -0.6], [-0.1, 0]],
-    [[-0.6, 0.6], [-0.1, 0.6], [-0.1, 0.2]],
-    [[0.4, 0], [0.4, 0.7], [1.2, 0.7]],
-  ];
-  const traceMeshes = [];
-  tracePaths.forEach(path => {
-    for(let i = 1; i < path.length; i++){
-      const [x1, z1] = path[i-1], [x2, z2] = path[i];
-      const len = Math.hypot(x2-x1, z2-z1);
-      const seg = new THREE.Mesh(new THREE.BoxGeometry(len, 0.02, 0.035), traceMat);
-      seg.position.set((x1+x2)/2, 0.08, (z1+z2)/2);
-      seg.rotation.y = -Math.atan2(z2-z1, x2-x1);
-      pcb.add(seg);
-      traceMeshes.push(seg);
-    }
-  });
-
-  // ambient particles
-  const particleCount = window.innerWidth < 640 ? 60 : 140;
-  const positions = new Float32Array(particleCount * 3);
-  for(let i = 0; i < particleCount; i++){
-    positions[i*3] = (Math.random() - 0.5) * 8;
-    positions[i*3+1] = (Math.random() - 0.5) * 5;
-    positions[i*3+2] = (Math.random() - 0.5) * 6;
-  }
-  const particleGeo = new THREE.BufferGeometry();
-  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const particleMat = new THREE.PointsMaterial({ color: 0x4DE8FF, size: 0.035, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
-  const particles = new THREE.Points(particleGeo, particleMat);
-  scene.add(particles);
-
-  pcb.scale.setScalar(0.001);
-
-  const start = performance.now();
-  const ROTATE_DURATION = 2300; // ms for the 360° spin
-  const TOTAL_DURATION = 3100;  // ms before the board dissolves/fades
-  let rafId;
-  let disposed = false;
-
-  function easeInOutCubic(x){ return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2; }
-
-  function animate(now){
-    if(disposed) return;
-    const elapsed = now - start;
-
-    // scale-in
-    const scaleT = Math.min(1, elapsed / 400);
-    pcb.scale.setScalar(easeInOutCubic(scaleT));
-
-    // 360 rotation with ease
-    const rotT = Math.min(1, elapsed / ROTATE_DURATION);
-    pcb.rotation.y = easeInOutCubic(rotT) * Math.PI * 2;
-
-    // trace pulse
-    traceMeshes.forEach((m, i) => {
-      m.material.opacity = 0.4 + 0.5 * Math.abs(Math.sin(elapsed / 260 + i));
-    });
-
-    // particles drift
-    particles.rotation.y += 0.0015;
-    particles.rotation.x += 0.0004;
-
-    // dissolve near the end
-    if(elapsed > ROTATE_DURATION){
-      const fadeT = Math.min(1, (elapsed - ROTATE_DURATION) / (TOTAL_DURATION - ROTATE_DURATION));
-      pcb.scale.setScalar(1 - fadeT * 0.3);
-      pcb.position.z = -fadeT * 1.5;
-      board.material.opacity = 1 - fadeT;
-      board.material.transparent = true;
-      edgeLines.material.opacity = 1 - fadeT;
-      edgeLines.material.transparent = true;
-      chip.material.opacity = 1 - fadeT;
-      chip.material.transparent = true;
-      chipEdges.material.opacity = 1 - fadeT;
-      chipEdges.material.transparent = true;
-      particleMat.opacity = 0.7 + fadeT * 0.3;
-      particleMat.size = 0.035 + fadeT * 0.03;
-    }
-
-    renderer.render(scene, camera);
-
-    if(elapsed < TOTAL_DURATION + 200){
-      rafId = requestAnimationFrame(animate);
-    }
-  }
-  rafId = requestAnimationFrame(animate);
-
-  function cleanup(){
-    disposed = true;
-    if(rafId) cancelAnimationFrame(rafId);
-    window.removeEventListener('resize', fitCanvas);
-    renderer.dispose();
-  }
-
-  overlay.addEventListener('click', () => { cleanup(); hideBoot(); });
-  setTimeout(() => { cleanup(); hideBoot(); }, TOTAL_DURATION + 400);
-}
-
-initBootSequence();
-
-initCircuitCanvas();
-initHeroTilt();
-
 renderMarquee();
 renderChips();
 
+function renderProductPage(){
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const item = CATALOG.find(c => c.id === id);
+
+  document.getElementById('productLoading').classList.add('hidden');
+
+  if(!item){
+    document.getElementById('productNotFound').classList.remove('hidden');
+    return;
+  }
+
+  const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
+  document.title = `${item.name} — CircuitRun`;
+
+  document.getElementById('productImageBox').innerHTML = item.image
+    ? `<img src="${item.image}" alt="${item.name}">`
+    : `<span class="${ic.cls}" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${ic.icon}</span>`;
+
+  const tagEl = document.getElementById('productTag');
+  tagEl.textContent = item.src === 'batch' ? 'Batch trip' : 'Quick local';
+  tagEl.className = 'tag ' + item.src;
+
+  document.getElementById('productName').textContent = item.name;
+  document.getElementById('productSpec').textContent = item.spec;
+  document.getElementById('productPrice').textContent = money(item.price);
+
+  const detailsList = document.getElementById('productDetailsList');
+  if(item.details && item.details.trim()){
+    detailsList.innerHTML = item.details.split('\n').filter(Boolean).map(line => `<li>${line}</li>`).join('');
+  } else {
+    detailsList.innerHTML = '';
+  }
+
+  renderProductQty(item.id);
+  document.getElementById('productContent').classList.remove('hidden');
+}
+
+function renderProductQty(id){
+  const qty = state.cart[id] || 0;
+  const area = document.getElementById('productQtyArea');
+  if(qty === 0){
+    area.innerHTML = `<button class="btn-primary" style="width:100%;" id="productAddBtn">+ Add to cart</button>`;
+    document.getElementById('productAddBtn').addEventListener('click', () => {
+      if(!state.user){ pendingAddId = id; document.getElementById('loginOverlay').classList.add('show'); return; }
+      changeQty(id, 1);
+      renderProductQty(id);
+    });
+  } else {
+    area.innerHTML = `
+      <div class="qty-box" style="justify-content:center; padding:10px;">
+        <button data-p-dec>–</button><span style="margin:0 16px; font-weight:700; font-size:15px;">${qty}</span><button data-p-inc>+</button>
+      </div>`;
+    area.querySelector('[data-p-inc]').addEventListener('click', () => { changeQty(id, 1); renderProductQty(id); });
+    area.querySelector('[data-p-dec]').addEventListener('click', () => { changeQty(id, -1); renderProductQty(id); });
+  }
+}
+
 (async () => {
-  await Promise.all([loadCatalogFromDB(), loadBlogFromDB()]);
-  renderTrending();
-  renderStats();
+  await loadCatalogFromDB();
   renderProjects();
   renderBlog();
   renderCatalog();
+  renderProductPage();
   renderCartDrawer();
   updateCartCount();
   updateOrdersCount();

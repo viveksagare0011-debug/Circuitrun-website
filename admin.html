@@ -161,6 +161,7 @@
     <div class="field" id="compImagePreviewWrap" style="display:none;">
       <img id="compImagePreview" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px;">
     </div>
+    <div class="field"><label>Detailed specifications (one point per line)</label><textarea id="compDetails" rows="6" placeholder="e.g.&#10;Microcontroller: ATmega328P, 8-bit AVR&#10;Operating Voltage: 5V | Input Voltage: 7–12V"></textarea></div>
     <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="compActive" checked style="width:auto;"> Visible on site</label></div>
     <p class="err hidden" id="compError"></p>
     <div style="display:flex; gap:10px; margin-top:16px;">
@@ -351,6 +352,7 @@ function openComponentModal(comp){
   document.getElementById('compPrice').value = comp ? comp.price : '';
   document.getElementById('compSource').value = comp ? comp.source : 'local';
   document.getElementById('compCategory').value = comp ? comp.category : CATEGORIES[0];
+  document.getElementById('compDetails').value = comp ? (comp.details || '') : '';
   document.getElementById('compActive').checked = comp ? comp.active : true;
   document.getElementById('compImage').value = '';
   const previewWrap = document.getElementById('compImagePreviewWrap');
@@ -392,6 +394,7 @@ document.getElementById('compSaveBtn').addEventListener('click', async () => {
   const price = parseInt(document.getElementById('compPrice').value, 10);
   const source = document.getElementById('compSource').value;
   const category = document.getElementById('compCategory').value;
+  const details = document.getElementById('compDetails').value.trim();
   const active = document.getElementById('compActive').checked;
   const errEl = document.getElementById('compError');
   const fileInput = document.getElementById('compImage');
@@ -412,7 +415,7 @@ document.getElementById('compSaveBtn').addEventListener('click', async () => {
     if(fileInput.files && fileInput.files[0]){
       image_url = await uploadComponentImage(fileInput.files[0]);
     }
-    const payload = { name, spec, price, source, category, active, image_url };
+    const payload = { name, spec, price, source, category, active, image_url, details };
     if(id){
       const { error } = await db.from('components').update(payload).eq('id', id);
       if(error) throw error;
