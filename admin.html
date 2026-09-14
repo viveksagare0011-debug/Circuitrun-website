@@ -108,6 +108,7 @@
 
   <div class="tab-panel active" id="tab-orders">
     <div class="stats" id="stats"></div>
+    <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="margin-bottom:14px;">
     <table>
       <thead>
         <tr><th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th></tr>
@@ -262,6 +263,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+let ordersCache = [];
+
 async function loadOrders(){
   const body = document.getElementById('ordersBody');
   const empty = document.getElementById('emptyState');
@@ -273,6 +276,8 @@ async function loadOrders(){
     return;
   }
 
+  ordersCache = data;
+
   const totalRevenue = data.reduce((s,o) => s + o.subtotal, 0);
   const pendingCod = data.reduce((s,o) => s + o.cod, 0);
   document.getElementById('stats').innerHTML = `
@@ -282,9 +287,17 @@ async function loadOrders(){
     <div class="stat"><div class="num">${new Set(data.map(o=>o.customer_phone)).size}</div><div class="label">Unique customers</div></div>
   `;
 
+  renderOrdersTable(data);
+}
+
+function renderOrdersTable(data){
+  const body = document.getElementById('ordersBody');
+  const empty = document.getElementById('emptyState');
+
   if(data.length === 0){
     body.innerHTML = '';
     empty.classList.remove('hidden');
+    empty.textContent = ordersCache.length === 0 ? 'No orders yet.' : 'No orders match your search.';
     return;
   }
   empty.classList.add('hidden');
@@ -307,6 +320,17 @@ async function loadOrders(){
     </tr>
   `).join('');
 }
+
+document.getElementById('orderSearchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ renderOrdersTable(ordersCache); return; }
+  const filtered = ordersCache.filter(o =>
+    (o.order_code || '').toLowerCase().includes(q) ||
+    (o.customer_name || '').toLowerCase().includes(q) ||
+    (o.customer_phone || '').toLowerCase().includes(q)
+  );
+  renderOrdersTable(filtered);
+});
 
 async function updateOrderStatus(orderCode, newStatus){
   const payload = { status: newStatus };
