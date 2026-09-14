@@ -186,6 +186,7 @@
       <div id="partsRows"></div>
       <button class="btn-secondary btn-small" id="addPartRowBtn" type="button">+ Add part</button>
     </div>
+    <div class="field"><label>Build manual (step-by-step guide shown on the project page)</label><textarea id="projManual" rows="8" placeholder="e.g.&#10;1. Connect the ultrasonic sensor's VCC and GND to 5V and GND&#10;2. Connect TRIG to pin 9, ECHO to pin 10&#10;3. Upload the code and test..."></textarea></div>
     <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="projActive" checked style="width:auto;"> Visible on site</label></div>
     <p class="err hidden" id="projError"></p>
     <div style="display:flex; gap:10px; margin-top:16px;">
@@ -308,7 +309,9 @@ async function loadOrders(){
 }
 
 async function updateOrderStatus(orderCode, newStatus){
-  const { error } = await db.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
+  const payload = { status: newStatus };
+  if(newStatus === 'Delivered') payload.delivered_at = new Date().toISOString();
+  const { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
   if(error){ alert('Status update failed: ' + error.message); return; }
   loadOrders();
 }
@@ -483,6 +486,7 @@ function openProjectModal(proj){
   document.getElementById('projName').value = proj ? proj.name : '';
   document.getElementById('projDesc').value = proj ? proj.description : '';
   document.getElementById('projInfo').value = proj ? proj.info : '';
+  document.getElementById('projManual').value = proj ? (proj.manual || '') : '';
   document.getElementById('projActive').checked = proj ? proj.active : true;
   document.getElementById('partsRows').innerHTML = '';
   if(proj && proj.parts && proj.parts.length){
@@ -512,6 +516,7 @@ document.getElementById('projSaveBtn').addEventListener('click', async () => {
   const name = document.getElementById('projName').value.trim();
   const description = document.getElementById('projDesc').value.trim();
   const info = document.getElementById('projInfo').value.trim();
+  const manual = document.getElementById('projManual').value.trim();
   const active = document.getElementById('projActive').checked;
   const errEl = document.getElementById('projError');
 
@@ -531,7 +536,7 @@ document.getElementById('projSaveBtn').addEventListener('click', async () => {
   saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
 
   try {
-    const payload = { name, emoji, description, info, active, parts };
+    const payload = { name, emoji, description, info, manual, active, parts };
     if(id){
       const { error } = await db.from('projects').update(payload).eq('id', id);
       if(error) throw error;

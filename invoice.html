@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice — CircuitRun</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23C6FF3D%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>⚡</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --bg: #12121A; --bg-card: #1C1C27; --line: #2C2C39;
+    --lime: #C6FF3D; --pink: #FF5FA8; --cyan: #4DE8FF;
+    --text: #F4F3F7; --muted: #9A98A8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+  .disp { font-family: 'Space Grotesk', sans-serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .hidden { display: none !important; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 30px 20px 60px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .back-link { color: var(--muted); font-size: 13px; text-decoration: none; }
+  .back-link:hover { color: var(--lime); }
+  .print-btn { background: var(--lime); color: #12121A; font-weight: 700; border: none; padding: 9px 18px; border-radius: 999px; font-size: 13px; cursor: pointer; }
+
+  .invoice-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
+  .inv-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 20px; }
+  .inv-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 20px; }
+  .inv-logo .bolt { color: var(--lime); }
+  .inv-meta { text-align: right; font-size: 12px; color: var(--muted); }
+  .inv-meta .code { color: var(--text); font-weight: 700; font-size: 14px; font-family: 'IBM Plex Mono', monospace; }
+
+  .inv-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .inv-col-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+  .inv-col-value { font-size: 13px; line-height: 1.6; }
+
+  table.inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .inv-table th { text-align: left; font-size: 10px; text-transform: uppercase; color: var(--muted); padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  .inv-table td { padding: 10px 6px; font-size: 13px; border-bottom: 1px solid var(--line); }
+  .inv-table td.num, .inv-table th.num { text-align: right; }
+
+  .inv-totals { margin-left: auto; width: 240px; }
+  .inv-totals .row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; }
+  .inv-totals .row.grand { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px; font-weight: 800; font-size: 15px; }
+
+  .inv-footer-note { margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .topbar, .back-link, .print-btn { display: none !important; }
+    .invoice-card { border: none; background: #fff; color: #000; padding: 0; }
+    .inv-logo, .inv-col-value, .inv-table td, .inv-totals .row { color: #000; }
+    .inv-meta, .inv-col-label, .inv-footer-note, .inv-table th { color: #555; }
+    .inv-header, .inv-table th, .inv-table td, .inv-totals .row.grand { border-color: #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <a href="index.html" class="back-link">← Back to CircuitRun</a>
+    <button class="print-btn" id="printBtn">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div id="invoiceLoading" style="text-align:center; padding:60px 0; color:var(--muted);">Loading invoice...</div>
+
+  <div id="invoiceNotFound" class="empty hidden">
+    <div style="font-size:36px; margin-bottom:10px;">🧾</div>
+    <h2 style="margin:0 0 8px;">Invoice not found</h2>
+    <p>Check the link, or contact us on WhatsApp if you think this is a mistake.</p>
+  </div>
+
+  <div class="invoice-card hidden" id="invoiceCard">
+    <div class="inv-header">
+      <div class="inv-logo"><span class="bolt">⚡</span> CircuitRun</div>
+      <div class="inv-meta">
+        <div class="code" id="invOrderCode"></div>
+        <div id="invDate"></div>
+        <div id="invStatus"></div>
+      </div>
+    </div>
+
+    <div class="inv-cols">
+      <div>
+        <div class="inv-col-label">Billed to</div>
+        <div class="inv-col-value" id="invCustomer"></div>
+      </div>
+      <div>
+        <div class="inv-col-label">Delivery details</div>
+        <div class="inv-col-value" id="invDelivery"></div>
+      </div>
+    </div>
+
+    <table class="inv-table">
+      <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Subtotal</th></tr></thead>
+      <tbody id="invItemsBody"></tbody>
+    </table>
+
+    <div class="inv-totals" id="invTotals"></div>
+
+    <div class="inv-footer-note">
+      Advance paid online at checkout. Remaining balance is due in cash on delivery.
+      Return/replace requests are accepted within 7 days of delivery — see "My Orders" on the site,
+      or message us on WhatsApp with your order code.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YW1lZmVudmd3cmRmcWFhb3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDc5MDgsImV4cCI6MjEwMTUyMzkwOH0.MIDr43LTHfICc68_hP__U0x6rglsIR7KLYEDBuq-LJw";
+let db = null;
+try { db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.error('Supabase failed to load', e); }
+
+function money(n){ return "₹" + n; }
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+async function loadInvoice(){
+  const params = new URLSearchParams(window.location.search);
+  const orderCode = params.get('order');
+  const loading = document.getElementById('invoiceLoading');
+  const notFound = document.getElementById('invoiceNotFound');
+  const card = document.getElementById('invoiceCard');
+
+  if(!orderCode || !db){
+    loading.classList.add('hidden');
+    notFound.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const { data, error } = await db.from('orders').select('*').eq('order_code', orderCode).single();
+    loading.classList.add('hidden');
+    if(error || !data){
+      notFound.classList.remove('hidden');
+      return;
+    }
+
+    document.title = `Invoice ${data.order_code} — CircuitRun`;
+    document.getElementById('invOrderCode').textContent = `Invoice #${data.order_code}`;
+    document.getElementById('invDate').textContent = new Date(data.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('invStatus').textContent = `Status: ${data.status}`;
+
+    document.getElementById('invCustomer').innerHTML = `
+      ${data.customer_name}<br>
+      ${data.customer_phone}<br>
+      ${data.customer_college || ''}${data.customer_department ? ' · ' + data.customer_department : ''}
+    `;
+    document.getElementById('invDelivery').innerHTML = `
+      📍 ${data.delivery_location || 'Not specified'}<br>
+      ${data.batch_date ? '📅 Batch run: ' + new Date(data.batch_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }) : ''}
+    `;
+
+    const items = data.items || [];
+    document.getElementById('invItemsBody').innerHTML = items.map(i => `
+      <tr>
+        <td>${i.name}</td>
+        <td class="num">${i.qty}</td>
+        <td class="num mono">${money(i.price)}</td>
+        <td class="num mono">${money(i.price * i.qty)}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('invTotals').innerHTML = `
+      <div class="row"><span>Subtotal</span><span class="mono">${money(data.subtotal)}</span></div>
+      <div class="row"><span>Advance paid (online)</span><span class="mono">${money(data.advance)}</span></div>
+      <div class="row grand"><span>Balance due (COD)</span><span class="mono">${money(data.cod)}</span></div>
+    `;
+
+    card.classList.remove('hidden');
+  } catch(err) {
+    loading.classList.add('hidden');
+    notFound.classList.remove('hidden');
+    console.error('invoice load failed:', err.message || err);
+  }
+}
+
+loadInvoice();
+</script>
+</body>
+</html>

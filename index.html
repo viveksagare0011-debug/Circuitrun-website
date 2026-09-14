@@ -676,6 +676,7 @@
     <h3>Order confirmed!</h3>
     <p class="desc" id="successMsg"></p>
     <div class="box" style="text-align:left;" id="successItems"></div>
+    <a id="viewInvoiceBtn" href="#" target="_blank" class="btn-outline" style="width:100%; box-sizing:border-box; display:block; text-align:center; text-decoration:none; border-color:var(--cyan); color:var(--cyan); margin-bottom:8px;">🧾 View invoice</a>
     <button class="btn-primary" style="width:100%;" id="backToCatalogBtn">Back to catalog</button>
   </div>
 </div>
@@ -972,6 +973,8 @@ async function loadUserOrders(phone){
       state.orders = data.map(o => ({
         id: o.order_code, items: o.items, subtotal: o.subtotal,
         advance: o.advance, cod: o.cod, status: o.status,
+        createdAt: o.created_at, deliveredAt: o.delivered_at,
+        returnRequested: o.return_requested,
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
       updateOrdersCount();
@@ -1472,6 +1475,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
 
   checkoutOverlay.classList.remove('show');
   document.getElementById('successMsg').textContent = `Order #${order.id} is confirmed for the ${order.batchLabel} run. Pay ${money(t.cod)} in cash at delivery.`;
+  document.getElementById('viewInvoiceBtn').href = `invoice.html?order=${order.id}`;
   document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + `<div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.subtotal)}</span></div>`;
   successOverlay.classList.add('show');
   btn.disabled = false;
@@ -1529,6 +1533,8 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
       state.orders = data.map(o => ({
         id: o.order_code, items: o.items, subtotal: o.subtotal,
         advance: o.advance, cod: o.cod, status: o.status,
+        createdAt: o.created_at, deliveredAt: o.delivered_at,
+        returnRequested: o.return_requested,
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
       updateOrdersCount();
@@ -1565,6 +1571,12 @@ function closeOrdersDrawer(){ ordersOverlay.classList.remove('show'); ordersDraw
 document.getElementById('ordersCloseBtn').addEventListener('click', closeOrdersDrawer);
 ordersOverlay.addEventListener('click', closeOrdersDrawer);
 
+function withinReturnWindow(o){
+  if(!o.deliveredAt) return false;
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  return (Date.now() - new Date(o.deliveredAt).getTime()) <= sevenDaysMs;
+}
+
 function renderOrdersDrawer(){
   const body = document.getElementById('ordersBody');
   if(state.orders.length === 0){
@@ -1581,10 +1593,52 @@ function renderOrdersDrawer(){
       ${o.batchLabel ? `<div class="meta" style="color:var(--cyan);">📅 ${o.batchLabel} run</div>` : ''}
       <div class="row-sb total" style="margin-top:8px;"><span>Total</span><span class="mono">${money(o.subtotal)}</span></div>
       <div class="meta">Paid online: ${money(o.advance)} · COD due: ${money(o.cod)}</div>
+      <a href="invoice.html?order=${o.id}" target="_blank" style="display:block; text-align:center; font-size:12px; color:var(--cyan); text-decoration:none; margin-top:10px;">🧾 View invoice</a>
+      ${o.returnRequested
+        ? `<div class="meta" style="color:var(--pink); text-align:center; margin-top:6px;">🔄 Return/replace requested</div>`
+        : withinReturnWindow(o)
+          ? `<button class="btn-outline" style="width:100%; margin-top:8px; border-color:var(--pink); color:var(--pink); background:none;" data-return-order="${o.id}">🔄 Request return/replace</button>`
+          : ''
+      }
     </div>
   `).join('');
+
+  body.querySelectorAll('[data-return-order]').forEach(btn => {
+    btn.addEventListener('click', () => requestReturn(btn.dataset.returnOrder));
+  });
 }
 
+async function requestReturn(orderCode){
+  const reason = prompt('Briefly tell us why you want a return/replace (e.g. "item damaged", "wrong item received"):');
+  if(reason === null) return;
+  if(!reason.trim()){ alert('Please enter a reason.'); return; }
+
+  if(db){
+    try {
+      await db.from('orders').update({
+        return_requested: true,
+        return_reason: reason.trim(),
+        return_requested_at: new Date().toISOString()
+      }).eq('order_code', orderCode);
+    } catch(err) {
+      console.error('return request save failed:', err.message || err);
+    }
+  }
+
+  const order = state.orders.find(o => o.id === orderCode);
+  if(order) order.returnRequested = true;
+  renderOrdersDrawer();
+
+  const msg = [
+    `🔄 RETURN/REPLACE REQUEST`,
+    `Order: ${orderCode}`,
+    `Customer: ${state.user ? state.user.name : 'Unknown'}`,
+    `Phone: ${state.user ? state.user.phone : ''}`,
+    `Reason: ${reason.trim()}`
+  ].join('\n');
+  window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+  showToast('🔄 Return request sent');
+}
 function updateOrdersCount(){
   const el = document.getElementById('ordersCount');
   el.textContent = state.orders.length;
