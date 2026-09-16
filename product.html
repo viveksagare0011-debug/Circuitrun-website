@@ -839,7 +839,7 @@ async function loadUserOrders(phone){
         id: o.order_code, items: o.items, subtotal: o.subtotal,
         advance: o.advance, cod: o.cod, status: o.status,
         createdAt: o.created_at, deliveredAt: o.delivered_at,
-        returnRequested: o.return_requested,
+        returnRequested: o.return_requested, returnType: o.return_type,
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
       updateOrdersCount();
@@ -1396,7 +1396,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
         id: o.order_code, items: o.items, subtotal: o.subtotal,
         advance: o.advance, cod: o.cod, status: o.status,
         createdAt: o.created_at, deliveredAt: o.delivered_at,
-        returnRequested: o.return_requested,
+        returnRequested: o.return_requested, returnType: o.return_type,
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
       updateOrdersCount();
@@ -1457,21 +1457,25 @@ function renderOrdersDrawer(){
       <div class="meta">Paid online: ${money(o.advance)} · COD due: ${money(o.cod)}</div>
       <a href="invoice.html?order=${o.id}" target="_blank" style="display:block; text-align:center; font-size:12px; color:var(--cyan); text-decoration:none; margin-top:10px;">🧾 View invoice</a>
       ${o.returnRequested
-        ? `<div class="meta" style="color:var(--pink); text-align:center; margin-top:6px;">🔄 Return/replace requested</div>`
+        ? `<div class="meta" style="color:var(--pink); text-align:center; margin-top:6px;">${o.returnType === 'replace' ? '🔁 Replace requested' : '↩️ Return requested'}</div>`
         : withinReturnWindow(o)
-          ? `<button class="btn-outline" style="width:100%; margin-top:8px; border-color:var(--pink); color:var(--pink); background:none;" data-return-order="${o.id}">🔄 Request return/replace</button>`
+          ? `<div style="display:flex; gap:8px; margin-top:8px;">
+               <button class="btn-outline" style="flex:1; border-color:var(--pink); color:var(--pink); background:none; font-size:12px; padding:8px 6px;" data-return-order="${o.id}" data-return-type="return">↩️ Return</button>
+               <button class="btn-outline" style="flex:1; border-color:var(--cyan); color:var(--cyan); background:none; font-size:12px; padding:8px 6px;" data-return-order="${o.id}" data-return-type="replace">🔁 Replace</button>
+             </div>`
           : ''
       }
     </div>
   `).join('');
 
   body.querySelectorAll('[data-return-order]').forEach(btn => {
-    btn.addEventListener('click', () => requestReturn(btn.dataset.returnOrder));
+    btn.addEventListener('click', () => requestReturn(btn.dataset.returnOrder, btn.dataset.returnType));
   });
 }
 
-async function requestReturn(orderCode){
-  const reason = prompt('Briefly tell us why you want a return/replace (e.g. "item damaged", "wrong item received"):');
+async function requestReturn(orderCode, returnType){
+  const isReplace = returnType === 'replace';
+  const reason = prompt(`Briefly tell us why you want a ${isReplace ? 'replacement' : 'return'} (e.g. "item damaged", "wrong item received"):`);
   if(reason === null) return;
   if(!reason.trim()){ alert('Please enter a reason.'); return; }
 
@@ -1479,6 +1483,7 @@ async function requestReturn(orderCode){
     try {
       await db.from('orders').update({
         return_requested: true,
+        return_type: returnType,
         return_reason: reason.trim(),
         return_requested_at: new Date().toISOString()
       }).eq('order_code', orderCode);
@@ -1488,19 +1493,20 @@ async function requestReturn(orderCode){
   }
 
   const order = state.orders.find(o => o.id === orderCode);
-  if(order) order.returnRequested = true;
+  if(order){ order.returnRequested = true; order.returnType = returnType; }
   renderOrdersDrawer();
 
   const msg = [
-    `🔄 RETURN/REPLACE REQUEST`,
+    isReplace ? `🔁 REPLACEMENT REQUEST` : `↩️ RETURN REQUEST`,
     `Order: ${orderCode}`,
     `Customer: ${state.user ? state.user.name : 'Unknown'}`,
     `Phone: ${state.user ? state.user.phone : ''}`,
     `Reason: ${reason.trim()}`
   ].join('\n');
   window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
-  showToast('🔄 Return request sent');
+  showToast(isReplace ? '🔁 Replacement request sent' : '↩️ Return request sent');
 }
+
 function updateOrdersCount(){
   const el = document.getElementById('ordersCount');
   el.textContent = state.orders.length;

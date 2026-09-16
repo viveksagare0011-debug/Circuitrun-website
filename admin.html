@@ -108,10 +108,13 @@
 
   <div class="tab-panel active" id="tab-orders">
     <div class="stats" id="stats"></div>
-    <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="margin-bottom:14px;">
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+      <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="flex:1; min-width:200px;">
+      <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">🔄 Returns only</button>
+    </div>
     <table>
       <thead>
-        <tr><th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th></tr>
+        <tr><th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th><th>Return</th></tr>
       </thead>
       <tbody id="ordersBody"></tbody>
     </table>
@@ -303,7 +306,7 @@ function renderOrdersTable(data){
   empty.classList.add('hidden');
 
   body.innerHTML = data.map(o => `
-    <tr>
+    <tr style="${o.return_requested ? 'background:rgba(255,95,168,0.06);' : ''}">
       <td class="mono">${o.order_code}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span></td>
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
       <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">📍 ${o.delivery_location || 'not specified'}</span></td>
@@ -317,19 +320,51 @@ function renderOrdersTable(data){
           <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
         </select>
       </td>
+      <td style="max-width:170px;">
+        ${o.return_requested
+          ? `<span class="badge" style="background:rgba(255,95,168,0.15); color:var(--pink);">${o.return_type === 'replace' ? '🔁 Replace' : '↩️ Return'}</span>
+             <div style="font-size:11px; color:var(--muted); margin:6px 0;">${o.return_reason || ''}</div>
+             <div style="font-size:10px; color:var(--muted); margin-bottom:6px;">${o.return_requested_at ? new Date(o.return_requested_at).toLocaleString() : ''}</div>
+             <button class="btn-secondary btn-small" onclick="markReturnHandled('${o.order_code}')">✅ Mark handled</button>`
+          : `<span style="color:var(--muted); font-size:12px;">—</span>`
+        }
+      </td>
     </tr>
   `).join('');
 }
 
-document.getElementById('orderSearchInput').addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  if(!q){ renderOrdersTable(ordersCache); return; }
-  const filtered = ordersCache.filter(o =>
-    (o.order_code || '').toLowerCase().includes(q) ||
-    (o.customer_name || '').toLowerCase().includes(q) ||
-    (o.customer_phone || '').toLowerCase().includes(q)
-  );
+async function markReturnHandled(orderCode){
+  const { error } = await db.from('orders').update({ return_requested: false }).eq('order_code', orderCode);
+  if(error){ alert('Update failed: ' + error.message); return; }
+  loadOrders();
+}
+
+let showReturnsOnly = false;
+document.getElementById('returnsOnlyBtn').addEventListener('click', () => {
+  showReturnsOnly = !showReturnsOnly;
+  const btn = document.getElementById('returnsOnlyBtn');
+  btn.style.background = showReturnsOnly ? 'var(--pink)' : '';
+  btn.style.color = showReturnsOnly ? '#12121A' : '';
+  btn.style.borderColor = showReturnsOnly ? 'var(--pink)' : '';
+  const q = document.getElementById('orderSearchInput').value.trim().toLowerCase();
+  applyOrderFilters(q);
+});
+
+function applyOrderFilters(q){
+  let filtered = ordersCache;
+  if(showReturnsOnly) filtered = filtered.filter(o => o.return_requested);
+  if(q){
+    filtered = filtered.filter(o =>
+      (o.order_code || '').toLowerCase().includes(q) ||
+      (o.customer_name || '').toLowerCase().includes(q) ||
+      (o.customer_phone || '').toLowerCase().includes(q)
+    );
+  }
   renderOrdersTable(filtered);
+}
+
+document.getElementById('orderSearchInput').addEventListener('input', (e) => {
+  applyOrderFilters(e.target.value.trim().toLowerCase());
 });
 
 async function updateOrderStatus(orderCode, newStatus){
