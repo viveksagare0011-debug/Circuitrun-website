@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Us — CircuitRun</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23C6FF3D%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>⚡</text></svg>">
+<meta name="description" content="CircuitRun is a student-run platform delivering electronics and project components to engineering campuses in Navi Mumbai.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --bg: #12121A; --bg-card: #1C1C27; --line: #2C2C39;
+    --lime: #C6FF3D; --pink: #FF5FA8; --cyan: #4DE8FF;
+    --text: #F4F3F7; --muted: #9A98A8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.7; }
+  .disp { font-family: 'Space Grotesk', sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 30px 20px 70px; }
+
+  header { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 10px; margin-bottom: 10px; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; text-decoration: none; color: var(--text); }
+  .logo-badge { width: 30px; height: 30px; border-radius: 9px; background: var(--lime); display: flex; align-items: center; justify-content: center; font-size: 15px; transform: rotate(-6deg); }
+  .back-link { color: var(--muted); font-size: 13px; text-decoration: none; }
+  .back-link:hover { color: var(--lime); }
+
+  .eyebrow { display: inline-block; background: var(--pink); color: #12121A; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 999px; margin-bottom: 16px; transform: rotate(-2deg); }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 800; line-height: 1.2; margin: 0 0 20px; }
+  h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; margin: 36px 0 12px; }
+  p { color: var(--text); font-size: 15px; margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0; }
+  .stat-tile { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; }
+  .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: var(--lime); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+  .value-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+  .value-card .emoji { font-size: 22px; margin-bottom: 8px; }
+  .value-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 15px; margin: 0 0 6px; }
+  .value-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  .cta-box { background: linear-gradient(135deg, #1a1a26, #17171f); border: 1px solid var(--line); border-radius: 16px; padding: 26px; text-align: center; margin-top: 36px; }
+  .cta-box h2 { margin-top: 0; }
+  .btn-primary { background: var(--lime); color: #12121A; font-weight: 700; padding: 12px 24px; border-radius: 999px; font-size: 14px; text-decoration: none; display: inline-block; margin-top: 6px; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 50px; padding-top: 20px; font-size: 12px; color: var(--muted); text-align: center; }
+  footer a { color: var(--muted); text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: var(--lime); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a href="index.html" class="logo"><span class="logo-badge">⚡</span> CircuitRun</a>
+    <a href="index.html" class="back-link">← Back to site</a>
+  </header>
+
+  <span class="eyebrow">🎓 Built by students, for students</span>
+  <h1>We got tired of losing entire afternoons for one resistor. So we fixed it.</h1>
+
+  <p>CircuitRun started as a simple frustration shared by every engineering student in Nerul, Vashi, and Belapur: your mini-project needs one small component, and getting it means an entire afternoon lost to travel — buses, trains, and a shop that might not even have what you need when you get there.</p>
+
+  <p class="muted">We're a small team of engineering students ourselves, building this alongside our own coursework, projects, and exams. This isn't a big company — it's a handful of us trying to solve a problem we deal with every semester, for everyone around us dealing with the same thing.</p>
+
+  <h2>What we do</h2>
+  <p>We collect component requests from students across campus, source everything in organized batches, and deliver straight to your hostel, department, or wherever's easiest — no travel required on your end. Need something specific for a project? We'll quote you a price before you pay anything.</p>
+
+  <div class="stats-row">
+    <div class="stat-tile"><div class="stat-num">60+</div><div class="stat-label">Components listed</div></div>
+    <div class="stat-tile"><div class="stat-num">2x</div><div class="stat-label">Weekly batch runs</div></div>
+    <div class="stat-tile"><div class="stat-num">100%</div><div class="stat-label">Student-run</div></div>
+  </div>
+
+  <h2>Why it's different</h2>
+  <div class="value-card">
+    <div class="emoji">💵</div>
+    <h3>Pay-as-you-trust</h3>
+    <p>A small advance online, the rest in cash on delivery — we built this to work the way students actually want to pay, not the way a typical checkout forces you to.</p>
+  </div>
+  <div class="value-card">
+    <div class="emoji">🗓️</div>
+    <h3>Predictable batch runs</h3>
+    <p>We don't promise same-day miracles we can't keep. Fixed batch days mean your order has a real, honest delivery timeline.</p>
+  </div>
+  <div class="value-card">
+    <div class="emoji">🎓</div>
+    <h3>We've been exactly where you are</h3>
+    <p>Every part of this — the catalog, the project kits, the blog — is shaped by what we ourselves needed when we were scrambling to finish a project the night before a deadline.</p>
+  </div>
+
+  <div class="cta-box">
+    <h2>Got a question, or a component we don't list?</h2>
+    <p class="muted">Message us directly — we read and reply to everything ourselves.</p>
+    <a href="index.html#bulkRequest" class="btn-primary">Request a component →</a>
+  </div>
+
+  <footer>
+    <div style="margin-bottom:10px;">⚡ CircuitRun · Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</div>
+    <a href="index.html">Home</a> · <a href="catalog.html">Catalog</a> · <a href="projects.html">Project Kits</a> · <a href="policy.html">Terms & Policy</a>
+  </footer>
+</div>
+
+</body>
+</html>

@@ -111,6 +111,7 @@
     <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
       <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="flex:1; min-width:200px;">
       <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">🔄 Returns only</button>
+      <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">⬇️ Export CSV</button>
     </div>
     <table>
       <thead>
@@ -342,6 +343,56 @@ function renderOrdersTable(data){
     </tr>
   `).join('');
 }
+
+function csvEscape(val){
+  if(val === null || val === undefined) return '';
+  const s = String(val).replace(/"/g, '""');
+  return `"${s}"`;
+}
+
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  if(ordersCache.length === 0){ alert('No orders to export.'); return; }
+
+  const headers = [
+    'Order Code', 'Date', 'Batch Date', 'Customer Name', 'Phone', 'Year',
+    'College', 'Department', 'Delivery Location', 'Items', 'Subtotal',
+    'Advance Paid', 'COD Due', 'Status', 'Return Requested', 'Return Type', 'Return Reason'
+  ];
+
+  const rows = ordersCache.map(o => [
+    o.order_code,
+    new Date(o.created_at).toLocaleString('en-IN'),
+    o.batch_date || '',
+    o.customer_name,
+    o.customer_phone,
+    o.customer_year || '',
+    o.customer_college || '',
+    o.customer_department || '',
+    o.delivery_location || '',
+    (o.items || []).map(i => `${i.name} x${i.qty}`).join('; '),
+    o.subtotal,
+    o.advance,
+    o.cod,
+    o.status,
+    o.return_requested ? 'Yes' : 'No',
+    o.return_type || '',
+    o.return_reason || ''
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(csvEscape).join(','))
+    .join('\r\n');
+
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `circuitrun-orders-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
 
 async function markReturnHandled(orderCode){
   const { error } = await db.from('orders').update({ return_requested: false }).eq('order_code', orderCode);
