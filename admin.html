@@ -119,6 +119,16 @@
       <tbody id="ordersBody"></tbody>
     </table>
     <div id="emptyState" class="empty hidden">No orders yet.</div>
+
+    <div style="margin-top:40px; border:1px solid var(--pink); border-radius:14px; padding:18px 20px; background:rgba(255,95,168,0.05);">
+      <h2 style="color:var(--pink); font-size:14px; margin:0 0 6px;">⚠️ Danger zone</h2>
+      <p class="sub" style="margin-bottom:14px;">Permanently deletes every row in the <b>orders</b> table — order history, invoices, everything. This does <b>not</b> touch components, project kits, blog posts, or customer profiles. This cannot be undone.</p>
+      <label style="display:block;">Type <span class="mono" style="color:var(--pink);">DELETE ORDERS</span> to confirm</label>
+      <input id="deleteOrdersConfirmInput" placeholder="DELETE ORDERS" style="margin:8px 0 12px; max-width:280px;">
+      <br>
+      <button class="btn-danger" id="deleteAllOrdersBtn" style="padding:10px 20px; font-size:13px;" disabled>🗑️ Delete all orders</button>
+      <p class="err hidden" id="deleteOrdersMsg" style="margin-top:10px;"></p>
+    </div>
   </div>
 
   <div class="tab-panel" id="tab-components">
@@ -338,6 +348,46 @@ async function markReturnHandled(orderCode){
   if(error){ alert('Update failed: ' + error.message); return; }
   loadOrders();
 }
+
+// ---- Danger zone: delete all orders (orders table only) ----
+const deleteOrdersConfirmInput = document.getElementById('deleteOrdersConfirmInput');
+const deleteAllOrdersBtn = document.getElementById('deleteAllOrdersBtn');
+
+deleteOrdersConfirmInput.addEventListener('input', () => {
+  deleteAllOrdersBtn.disabled = deleteOrdersConfirmInput.value.trim() !== 'DELETE ORDERS';
+});
+
+deleteAllOrdersBtn.addEventListener('click', async () => {
+  if(deleteOrdersConfirmInput.value.trim() !== 'DELETE ORDERS') return;
+
+  const doubleCheck = confirm(`This will permanently delete all ${ordersCache.length} order(s). This cannot be undone. Are you absolutely sure?`);
+  if(!doubleCheck) return;
+
+  const msgEl = document.getElementById('deleteOrdersMsg');
+  deleteAllOrdersBtn.disabled = true;
+  deleteAllOrdersBtn.textContent = 'Deleting...';
+  msgEl.classList.add('hidden');
+
+  try {
+    // matches every row regardless of id — required since Supabase needs
+    // an explicit filter on delete(); this condition is always true
+    const { error } = await db.from('orders').delete().gte('created_at', '1970-01-01');
+    if(error) throw error;
+
+    msgEl.textContent = '✅ All orders deleted.';
+    msgEl.style.color = 'var(--lime)';
+    msgEl.classList.remove('hidden');
+    deleteOrdersConfirmInput.value = '';
+    loadOrders();
+  } catch(err) {
+    msgEl.textContent = '❌ Failed: ' + (err.message || err);
+    msgEl.style.color = 'var(--pink)';
+    msgEl.classList.remove('hidden');
+  } finally {
+    deleteAllOrdersBtn.textContent = '🗑️ Delete all orders';
+    deleteAllOrdersBtn.disabled = true;
+  }
+});
 
 let showReturnsOnly = false;
 document.getElementById('returnsOnlyBtn').addEventListener('click', () => {
