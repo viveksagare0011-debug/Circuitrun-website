@@ -108,10 +108,13 @@
 
   <div class="tab-panel active" id="tab-orders">
     <div class="stats" id="stats"></div>
-    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
       <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="flex:1; min-width:200px;">
       <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">🔄 Returns only</button>
       <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">⬇️ Export CSV</button>
+      <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); text-transform:none; white-space:nowrap;">
+        <input type="checkbox" id="notifyToggle" checked style="width:auto;"> 🔔 Notify on status change
+      </label>
     </div>
     <table>
       <thead>
@@ -468,12 +471,37 @@ document.getElementById('orderSearchInput').addEventListener('input', (e) => {
   applyOrderFilters(e.target.value.trim().toLowerCase());
 });
 
+const STATUS_MESSAGES = {
+  'Confirmed': (o) => `Hey ${o.customer_name}! 👋 Your CircuitRun order #${o.order_code} is confirmed ✅. We'll update you as it moves along.`,
+  'Packed': (o) => `📦 Update on order #${o.order_code}: it's been packed and is ready for the batch run!`,
+  'Out for Delivery': (o) => `🚲 Your CircuitRun order #${o.order_code} is out for delivery — it should reach you soon!`,
+  'Delivered': (o) => `✅ Order #${o.order_code} has been delivered. Thanks for ordering with CircuitRun! If anything's wrong with it, you can request a return/replace from "My Orders" on the site within 7 days.`
+};
+
 async function updateOrderStatus(orderCode, newStatus){
-  const payload = { status: newStatus };
-  if(newStatus === 'Delivered') payload.delivered_at = new Date().toISOString();
-  const { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
-  if(error){ alert('Status update failed: ' + error.message); return; }
-  loadOrders();
+  const notifyEnabled = document.getElementById('notifyToggle').checked;
+  const notifyWindow = notifyEnabled ? window.open('', '_blank') : null;
+
+  try {
+    const payload = { status: newStatus };
+    if(newStatus === 'Delivered') payload.delivered_at = new Date().toISOString();
+    const { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
+    if(error) throw error;
+
+    const order = ordersCache.find(o => o.order_code === orderCode);
+    if(notifyWindow){
+      if(order && order.customer_phone && STATUS_MESSAGES[newStatus]){
+        const msg = STATUS_MESSAGES[newStatus](order);
+        notifyWindow.location.href = `https://wa.me/91${order.customer_phone}?text=${encodeURIComponent(msg)}`;
+      } else {
+        notifyWindow.close();
+      }
+    }
+    loadOrders();
+  } catch(err) {
+    if(notifyWindow) notifyWindow.close();
+    alert('Status update failed: ' + (err.message || err));
+  }
 }
 
 let componentsCache = [];
@@ -808,3 +836,4 @@ document.getElementById('blogSaveBtn').addEventListener('click', async () => {
 </script>
 </body>
 </html>
+
