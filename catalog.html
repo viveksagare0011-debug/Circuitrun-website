@@ -250,6 +250,17 @@
 
   /* toast notifications */
   .toast-stack { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+
+  /* spark-burst celebration */
+  @keyframes spark-burst {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; }
+  }
+  .spark-particle {
+    position: fixed; top: 0; left: 0; width: 8px; height: 8px; border-radius: 50%;
+    pointer-events: none; z-index: 200;
+    animation: spark-burst 0.85s cubic-bezier(0.15, 0.8, 0.25, 1) forwards;
+  }
   .toast { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); padding: 12px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.4); animation: cr-toast-in .3s ease, cr-toast-out .3s ease 2.2s forwards; white-space: nowrap; }
   @keyframes cr-toast-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes cr-toast-out { to { opacity: 0; transform: translateY(-8px); } }
@@ -803,6 +814,29 @@ function showToast(message){
   setTimeout(() => el.remove(), 2600);
 }
 
+// Electric spark-burst celebration — used on order confirmation.
+// Respects prefers-reduced-motion by skipping entirely.
+function burstSparks(x, y){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#C6FF3D', '#FF5FA8', '#4DE8FF'];
+  const count = 26;
+  for(let i = 0; i < count; i++){
+    const el = document.createElement('div');
+    el.className = 'spark-particle';
+    const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
+    const distance = 60 + Math.random() * 90;
+    const color = colors[i % colors.length];
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.background = color;
+    el.style.boxShadow = `0 0 8px ${color}`;
+    el.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+    el.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+}
+
 // scroll-reveal for section headers
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -1345,6 +1379,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   document.getElementById('viewInvoiceBtn').href = `invoice.html?order=${order.id}`;
   document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + `<div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.subtotal)}</span></div>`;
   successOverlay.classList.add('show');
+  setTimeout(() => burstSparks(window.innerWidth / 2, window.innerHeight * 0.35), 150);
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.textContent = "I've paid — confirm order";
