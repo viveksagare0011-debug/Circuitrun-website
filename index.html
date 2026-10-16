@@ -1180,6 +1180,15 @@ async function renderStats(){
     const isNumeric = t.value !== null && t.value !== undefined;
     return `<div class="stat-tile"><div class="stat-num" id="statNum${i}" ${isNumeric ? `data-target="${t.value}" data-suffix="${t.suffix}"` : ''}>${isNumeric ? '0' + t.suffix : t.fallback}</div><div class="stat-label">${t.label}</div></div>`;
   }).join('');
+  // the scroll-reveal may have fired before the DB answered; count up now if the strip is already visible
+  const strip = document.getElementById('stats-strip');
+  if(strip && strip.classList.contains('cr-visible')) countUpStats();
+  // safety net: never leave real numbers stuck at 0
+  setTimeout(() => {
+    document.querySelectorAll('#statsBar .stat-num[data-target]').forEach(el => {
+      if(parseInt(el.textContent, 10) === 0 && parseInt(el.dataset.target, 10) > 0 && strip && strip.classList.contains('cr-visible')) el.textContent = el.dataset.target + (el.dataset.suffix || '');
+    });
+  }, 2500);
 }
 
 function renderBlog(){
