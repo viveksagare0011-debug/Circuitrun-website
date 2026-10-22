@@ -167,6 +167,7 @@
     ['contact', /\b(contact|whatsapp|call|phone number|number|owner|founder|support|talk to|baat karni|reach|email|mail)\b/],
     ['track', /\b(track|tracking|my orders?|order status|status|where is my order|mera order|order kahan|invoice|bill|receipt)\b/],
     ['login', /\b(login|log in|sign in|signin|sign up|signup|register|account|logout|log out|password|otp)\b/],
+    ['discount', /\b(discount|coupon|promo|cheaper|bargain|negotiat)\b/],
     ['stock', /\b(in stock|out of stock|stock|availab|milega kya|hai kya|available hai)\b/],
     ['discount', /\b(discount|coupon|promo|offer|code|sale|bulk|cheaper|negotiat|bargain|student discount)\b/],
     ['request', /\b(request|not listed|not in (the )?(list|catalog)|nahi (mil raha|dikh)|missing|add (new )?component|custom|other component|aur component|suggest (a )?component)\b/],
@@ -305,8 +306,8 @@
     },
     discount: function (h) {
       var r = R();
-      T(r, pick('There are no discount codes on the site right now. Prices shown are final for the order. For a bulk or group order, you can ask the owner on WhatsApp.',
-        'Abhi site pe koi discount code nahi hai. Dikhaye gaye prices order ke liye final hain. Bulk ya group order ke liye owner se WhatsApp pe pooch sakte ho.', h));
+      T(r, pick('If you have a **coupon code**, type it in the **"Have a coupon?"** box when you check out and tap Apply — the discount is applied to the order before the advance is calculated. Which items a code covers depends on the code, and some have a minimum cart value or an expiry date. If a code doesn\'t work, the message under the box tells you why. For a bulk or group order, you can ask the owner on WhatsApp.',
+        'Agar tumhare paas **coupon code** hai to checkout pe **"Have a coupon?"** box mein daalo aur Apply dabao — discount order pe lagta hai, uske baad advance calculate hota hai. Code kin items pe chalega yeh code pe depend karta hai, kuch codes pe minimum cart value ya expiry date hoti hai. Code na chale to box ke neeche likha aata hai kyun. Bulk ya group order ke liye owner se WhatsApp pe pooch sakte ho.', h));
       BTN(r, pick('Ask on WhatsApp', 'WhatsApp pe pucho', h), waLink('Hi CircuitRun, I want to ask about a bulk order.')); return r;
     },
     request: function (h) {

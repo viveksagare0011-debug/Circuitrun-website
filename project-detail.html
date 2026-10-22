@@ -465,8 +465,18 @@
     <p class="desc" id="checkoutSub"></p>
     <div class="box">
       <div class="row-sb"><span>Subtotal</span><span class="mono" id="coSubtotal"></span></div>
+      <div class="row-sb hidden" id="coDiscountRow" style="color:var(--lime);"><span id="coDiscountLabel">Coupon</span><span class="mono" id="coDiscount"></span></div>
       <div class="row-sb" style="font-weight:700;"><span>Pay online now</span><span class="mono" id="coAdvance"></span></div>
       <div class="row-sb"><span>Due on delivery</span><span class="mono" id="coCod"></span></div>
+    </div>
+
+    <div class="field-group">
+      <label>Have a coupon?</label>
+      <div style="display:flex; gap:8px;">
+        <input id="coCouponInput" placeholder="Enter code" autocomplete="off" style="text-transform:uppercase; flex:1; min-width:0;">
+        <button type="button" class="btn-outline" id="coCouponApplyBtn" style="white-space:nowrap; padding:0 16px;">Apply</button>
+      </div>
+      <p id="coCouponMsg" class="hidden" style="font-size:12px; margin:6px 0 0;"></p>
     </div>
 
     <div class="field-group">
@@ -877,6 +887,7 @@ async function loadUserOrders(phone){
     if(!error && data){
       state.orders = data.map(o => ({
         id: o.order_code, items: o.items, subtotal: o.subtotal,
+        discount: o.discount || 0, couponCode: o.coupon_code || null,
         advance: o.advance, cod: o.cod, status: o.status,
         createdAt: o.created_at, deliveredAt: o.delivered_at,
         returnRequested: o.return_requested, returnType: o.return_type,
@@ -1242,19 +1253,81 @@ document.getElementById('profileSaveBtn').addEventListener('click', async () => 
   }
 });
 
+// ---- coupons (discount codes managed from the admin panel) ----
+state.coupon = null;
+
+function couponDiscount(c, items){
+  const targets = Array.isArray(c.targets) ? c.targets : [];
+  const elig = items.filter(i =>
+    c.scope === 'all' ||
+    (c.scope === 'category' && targets.includes(i.cat)) ||
+    (c.scope === 'item' && targets.includes(i.id)));
+  const eligible = elig.reduce((s,i) => s + i.price*i.qty, 0);
+  const subtotal = items.reduce((s,i) => s + i.price*i.qty, 0);
+  let d = c.discount_type === 'flat' ? Math.min(c.discount_value, eligible) : Math.round(eligible * c.discount_value / 100);
+  if(c.max_discount) d = Math.min(d, c.max_discount);
+  d = Math.max(0, Math.min(d, subtotal - 1)); // customer always pays at least Rs.1
+  return { discount: d, eligible };
+}
+
+// totals() plus the applied coupon (if any)
+function totalsWithCoupon(){
+  const base = totals();
+  if(!state.coupon) return { ...base, discount: 0, total: base.subtotal };
+  const { discount } = couponDiscount(state.coupon, cartItems());
+  const total = base.subtotal - discount;
+  const advance = Math.max(1, Math.round(total * ADVANCE_PCT));
+  return { ...base, discount, total, advance, cod: total - advance };
+}
+
+async function validateCoupon(code){
+  if(!db) return { error: 'Coupons are unavailable right now. Please try again.' };
+  const { data, error } = await db.from('coupons').select('*').eq('code', code).eq('active', true).limit(1);
+  if(error) return { error: 'Could not check this coupon right now. Please try again.' };
+  const c = data && data[0];
+  if(!c) return { error: 'Invalid coupon code.' };
+  if(c.expires_at && new Date(c.expires_at + 'T23:59:59') < new Date()) return { error: 'This coupon has expired.' };
+  if(c.max_uses != null && c.used_count >= c.max_uses) return { error: 'This coupon has reached its usage limit.' };
+  const base = totals();
+  if(c.min_order && base.subtotal < c.min_order) return { error: 'Add items worth ' + money(c.min_order) + ' or more to use this coupon.' };
+  if(c.one_per_customer !== false && state.user){
+    const prev = await db.from('orders').select('order_code').eq('customer_phone', state.user.phone).eq('coupon_code', c.code).limit(1);
+    if(prev.data && prev.data.length) return { error: 'You have already used this coupon.' };
+  }
+  const r = couponDiscount(c, cartItems());
+  if(r.eligible === 0) return { error: "This coupon doesn't apply to the items in your cart." };
+  if(r.discount <= 0) return { error: 'This coupon gives no discount on your cart.' };
+  return { coupon: c, discount: r.discount };
+}
+
+function setCouponMsg(text, ok){
+  const m = document.getElementById('coCouponMsg');
+  m.textContent = text || '';
+  m.style.color = ok ? 'var(--lime)' : 'var(--pink)';
+  m.classList.toggle('hidden', !text);
+}
+function resetCouponUI(){
+  const inp = document.getElementById('coCouponInput');
+  inp.value = ''; inp.disabled = false;
+  document.getElementById('coCouponApplyBtn').textContent = 'Apply';
+  setCouponMsg('');
+}
+
 // checkout modal
 const UPI_ID = "viveksagare0011-1@oksbi";
 const checkoutOverlay = document.getElementById('checkoutModalOverlay');
-document.getElementById('checkoutBtn').addEventListener('click', () => {
-  if(!state.user){ closeDrawer(); document.getElementById('loginOverlay').classList.add('show'); return; }
-  closeDrawer();
-  const t = totals();
+function refreshCheckout(){
+  const t = totalsWithCoupon();
   document.getElementById('checkoutSub').textContent = `${t.count} item(s) · delivered on the ${formatBatchDate(getAssignedBatch())} run`;
   document.getElementById('coSubtotal').textContent = money(t.subtotal);
+  const dRow = document.getElementById('coDiscountRow');
+  if(t.discount > 0 && state.coupon){
+    dRow.classList.remove('hidden');
+    document.getElementById('coDiscountLabel').textContent = 'Coupon ' + state.coupon.code;
+    document.getElementById('coDiscount').textContent = '− ' + money(t.discount);
+  } else { dRow.classList.add('hidden'); }
   document.getElementById('coAdvance').textContent = money(t.advance);
   document.getElementById('coCod').textContent = money(t.cod);
-  document.getElementById('coDeliveryLocation').value = state.lastDeliveryLocation || '';
-  document.getElementById('deliveryError').classList.add('hidden');
 
   // Note: the VPA (pa) is intentionally left unencoded — some UPI apps
   // fail to resolve the payee when the "@" is percent-encoded (%40) even
@@ -1274,8 +1347,38 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
     document.getElementById('qrImg').closest('div').classList.add('hidden');
     document.getElementById('qrFallbackMsg').classList.remove('hidden');
   });
+}
 
+document.getElementById('checkoutBtn').addEventListener('click', () => {
+  if(!state.user){ closeDrawer(); document.getElementById('loginOverlay').classList.add('show'); return; }
+  closeDrawer();
+  state.coupon = null; resetCouponUI();
+  document.getElementById('coDeliveryLocation').value = state.lastDeliveryLocation || '';
+  document.getElementById('deliveryError').classList.add('hidden');
+  refreshCheckout();
   checkoutOverlay.classList.add('show');
+});
+
+document.getElementById('coCouponApplyBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('coCouponApplyBtn');
+  const inp = document.getElementById('coCouponInput');
+  if(state.coupon){ // currently applied -> remove
+    state.coupon = null; resetCouponUI(); refreshCheckout(); return;
+  }
+  const code = inp.value.trim().toUpperCase();
+  if(!code){ setCouponMsg('Enter a coupon code first.', false); return; }
+  btn.disabled = true; btn.textContent = 'Checking...';
+  const res = await validateCoupon(code);
+  btn.disabled = false; btn.textContent = 'Apply';
+  if(res.error){ setCouponMsg(res.error, false); return; }
+  state.coupon = res.coupon;
+  inp.value = res.coupon.code; inp.disabled = true;
+  btn.textContent = 'Remove';
+  setCouponMsg('✅ ' + res.coupon.code + ' applied — you save ' + money(res.discount), true);
+  refreshCheckout();
+});
+document.getElementById('coCouponInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('coCouponApplyBtn').click(); }
 });
 document.getElementById('cancelCheckoutBtn').addEventListener('click', () => checkoutOverlay.classList.remove('show'));
 
@@ -1294,7 +1397,8 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   btn.style.opacity = '0.6';
   btn.textContent = 'Placing order...';
 
-  const t = totals();
+  const t = totalsWithCoupon();
+  const usedCoupon = (t.discount > 0 && state.coupon) ? state.coupon : null;
   const items = cartItems();
   const orderCode = "CR" + Date.now().toString().slice(-6);
   const assignedBatch = getAssignedBatch();
@@ -1302,6 +1406,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   const order = {
     id: orderCode,
     items, subtotal: t.subtotal, advance: t.advance, cod: t.cod,
+    discount: t.discount, couponCode: usedCoupon ? usedCoupon.code : null,
     status: "Confirmed ✅", time: new Date().toLocaleString(), deliveryLocation, batchLabel
   };
   state.orders.push(order);
@@ -1310,7 +1415,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   // save order to the database
   try {
     if(!db) throw new Error('database not available');
-    const { error } = await db.from('orders').insert({
+    const orderRow = {
       order_code: orderCode,
       customer_name: state.user.name,
       customer_phone: state.user.phone,
@@ -1324,24 +1429,26 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
       advance: t.advance,
       cod: t.cod,
       status: "Confirmed"
-    });
+    };
+    // coupon columns are only sent when a coupon was used, so normal orders keep working
+    if(usedCoupon){ orderRow.discount = t.discount; orderRow.coupon_code = usedCoupon.code; }
+    const { error } = await db.from('orders').insert(orderRow);
     if(error) console.error('order save error:', error.message || JSON.stringify(error));
+    else if(usedCoupon){ db.rpc('redeem_coupon', { p_code: usedCoupon.code }).then(({error:e2}) => { if(e2) console.error('coupon count error:', e2.message || e2); }); }
   } catch(err) {
     console.error('order save failed:', err.message || err);
   }
 
-  const waText = encodeURIComponent(buildWhatsAppMessage(order));
-  window.open(`https://wa.me/${OWNER_WHATSAPP}?text=${waText}`, '_blank');
-
   checkoutOverlay.classList.remove('show');
   document.getElementById('successMsg').textContent = `Order #${order.id} is confirmed for the ${order.batchLabel} run. Pay ${money(t.cod)} in cash at delivery.`;
   document.getElementById('viewInvoiceBtn').href = `invoice.html?order=${order.id}`;
-  document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + `<div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.subtotal)}</span></div>`;
+  document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + (t.discount > 0 ? `<div class="row-sb" style="margin-top:6px; color:var(--lime);"><span>Coupon ${usedCoupon.code}</span><span class="mono">− ${money(t.discount)}</span></div>` : '') + `<div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.total)}</span></div>`;
   successOverlay.classList.add('show');
   setTimeout(() => burstSparks(window.innerWidth / 2, window.innerHeight * 0.35), 150);
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.textContent = "I've paid — confirm order";
+  state.coupon = null;
 });
 document.getElementById('backToCatalogBtn').addEventListener('click', () => {
   successOverlay.classList.remove('show');
@@ -1393,6 +1500,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
     if(!error && data){
       state.orders = data.map(o => ({
         id: o.order_code, items: o.items, subtotal: o.subtotal,
+        discount: o.discount || 0, couponCode: o.coupon_code || null,
         advance: o.advance, cod: o.cod, status: o.status,
         createdAt: o.created_at, deliveredAt: o.delivered_at,
         returnRequested: o.return_requested, returnType: o.return_type,
@@ -1452,7 +1560,8 @@ function renderOrdersDrawer(){
       </div>
       ${o.items.map(i => `<div class="meta" style="margin-bottom:2px;">${i.name} × ${i.qty} — ${money(i.price*i.qty)}</div>`).join('')}
       ${o.batchLabel ? `<div class="meta" style="color:var(--cyan);">📅 ${o.batchLabel} run</div>` : ''}
-      <div class="row-sb total" style="margin-top:8px;"><span>Total</span><span class="mono">${money(o.subtotal)}</span></div>
+      ${o.discount > 0 ? `<div class="row-sb" style="margin-top:8px; color:var(--lime); font-size:12px;"><span>Coupon ${o.couponCode || ''}</span><span class="mono">− ${money(o.discount)}</span></div>` : ''}
+      <div class="row-sb total" style="margin-top:${o.discount > 0 ? 4 : 8}px;"><span>Total</span><span class="mono">${money(o.subtotal - (o.discount || 0))}</span></div>
       <div class="meta">Paid online: ${money(o.advance)} · COD due: ${money(o.cod)}</div>
       <a href="invoice.html?order=${o.id}" target="_blank" style="display:block; text-align:center; font-size:12px; color:var(--cyan); text-decoration:none; margin-top:10px;">🧾 View invoice</a>
       ${o.returnRequested

@@ -77,6 +77,20 @@
   .part-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
   .part-row select { flex: 1; }
   .part-row input { width: 70px; }
+
+  .new-badge { background: var(--pink); color: #12121A; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; vertical-align: middle; letter-spacing: .04em; }
+  .banner { background: rgba(198,255,61,0.10); border: 1px solid var(--lime); color: var(--lime); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .chip { display: inline-block; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; font-size: 11px; margin: 2px 4px 2px 0; color: var(--text); }
+  .pick-list { max-height: 190px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--bg); }
+  .pick-list label { display: flex; align-items: center; gap: 8px; text-transform: none; font-size: 13px; font-weight: 500; color: var(--text); margin: 0; padding: 5px 0; cursor: pointer; }
+  .pick-list input { width: auto; }
+  .seg { display: flex; gap: 6px; margin-bottom: 12px; }
+  .seg button { flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--muted); padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+  .seg button.on { background: var(--lime); color: #12121A; border-color: var(--lime); }
+  .quick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .modal.wide { max-width: 800px; }
+  .toggle-btn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+  .toggle-btn.on { border-color: var(--lime); color: var(--lime); }
 </style>
 </head>
 <body>
@@ -103,15 +117,17 @@
     <button class="tab-btn active" data-tab="orders">📦 Orders</button>
     <button class="tab-btn" data-tab="components">🔧 Components</button>
     <button class="tab-btn" data-tab="projects">🚀 Projects</button>
+    <button class="tab-btn" data-tab="coupons">🎟️ Coupons</button>
     <button class="tab-btn" data-tab="blog">📰 Blog</button>
   </div>
 
   <div class="tab-panel active" id="tab-orders">
+    <div class="banner hidden" id="newOrdersBanner"><span id="newOrdersText"></span><button class="btn-secondary btn-small" id="markSeenBtn">✓ Mark all seen</button></div>
     <div class="stats" id="stats"></div>
     <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
       <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="flex:1; min-width:200px;">
       <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">🔄 Returns only</button>
-      <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">⬇️ Export CSV</button>
+      <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">⬇️ Export CSV…</button>
       <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); text-transform:none; white-space:nowrap;">
         <input type="checkbox" id="notifyToggle" checked style="width:auto;"> 🔔 Notify on status change
       </label>
@@ -149,6 +165,22 @@
       <button class="add-btn" id="addProjectBtn">+ Add project</button>
     </div>
     <div class="cms-grid" id="projectsGridAdmin"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-coupons">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Coupons</h2>
+        <p class="sub" style="margin-top:4px;">Create discount codes and choose exactly what they apply to — everything, a whole category, or specific components.</p>
+      </div>
+      <button class="add-btn" id="addCouponBtn">+ New coupon</button>
+    </div>
+    <p class="err hidden" id="couponsSetupMsg"></p>
+    <table>
+      <thead><tr><th>Code</th><th>Discount</th><th>Applies to</th><th>Rules</th><th>Status</th><th></th></tr></thead>
+      <tbody id="couponsBody"></tbody>
+    </table>
+    <div id="couponsEmpty" class="empty hidden">No coupons yet. Click "+ New coupon" to create your first one.</div>
   </div>
 
   <div class="tab-panel" id="tab-blog">
@@ -235,6 +267,107 @@
   </div>
 </div>
 
+
+<div class="modal-overlay" id="couponModal">
+  <div class="modal">
+    <h3 id="couponModalTitle">New coupon</h3>
+    <input type="hidden" id="cpId">
+    <div class="field-row">
+      <div class="field"><label>Coupon code</label><input id="cpCode" placeholder="e.g. WELCOME10" maxlength="20" style="text-transform:uppercase;"></div>
+      <div class="field"><label>Description (internal)</label><input id="cpDesc" placeholder="e.g. First-order offer"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Discount type</label>
+        <select id="cpType"><option value="percent">Percent (%)</option><option value="flat">Flat amount (₹)</option></select>
+      </div>
+      <div class="field"><label id="cpValueLabel">Discount (%)</label><input id="cpValue" type="number" min="1" placeholder="10"></div>
+    </div>
+    <div class="field"><label>Maximum discount per order (₹, optional)</label><input id="cpMax" type="number" min="1" placeholder="e.g. 100 — leave empty for no cap"></div>
+    <div class="field"><label>Applies to</label>
+      <select id="cpScope">
+        <option value="all">Everything in the cart</option>
+        <option value="category">Selected categories only</option>
+        <option value="item">Selected components only</option>
+      </select>
+    </div>
+    <div class="field hidden" id="cpCatWrap"><label>Pick categories</label><div class="pick-list" id="cpCatList"></div></div>
+    <div class="field hidden" id="cpItemWrap"><label>Pick components</label>
+      <input id="cpItemSearch" placeholder="🔍 Search components..." style="margin-bottom:6px;">
+      <div class="pick-list" id="cpItemList"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Minimum cart value (₹)</label><input id="cpMin" type="number" min="0" placeholder="0"></div>
+      <div class="field"><label>Total uses allowed (optional)</label><input id="cpUses" type="number" min="1" placeholder="unlimited"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Valid until (optional)</label><input id="cpExpiry" type="date"></div>
+      <div class="field"><label>&nbsp;</label>
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px; margin-top:8px;"><input type="checkbox" id="cpOnce" checked style="width:auto;"> One use per customer</label>
+      </div>
+    </div>
+    <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="cpActive" checked style="width:auto;"> Active</label></div>
+    <p class="err hidden" id="cpError"></p>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="add-btn" id="cpSaveBtn" style="flex:1;">Save coupon</button>
+      <button class="btn-secondary" id="cpCancelBtn" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <h3>⬇️ Export orders to CSV</h3>
+    <p class="sub" style="margin-bottom:12px;">Choose which orders to download. Orders are numbered <b>#1 = oldest</b>, so a bigger number is a newer order.</p>
+    <div class="seg">
+      <button type="button" id="exModeDate" class="on">By date</button>
+      <button type="button" id="exModeRow">By order number</button>
+      <button type="button" id="exModeAll">All orders</button>
+    </div>
+    <div id="exDateBox">
+      <div class="quick">
+        <button class="btn-secondary btn-small" type="button" data-q="today">Today</button>
+        <button class="btn-secondary btn-small" type="button" data-q="7">Last 7 days</button>
+        <button class="btn-secondary btn-small" type="button" data-q="30">Last 30 days</button>
+        <button class="btn-secondary btn-small" type="button" data-q="month">This month</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>From date</label><input type="date" id="exFromDate"></div>
+        <div class="field"><label>To date</label><input type="date" id="exToDate"></div>
+      </div>
+    </div>
+    <div id="exRowBox" class="hidden">
+      <div class="field-row">
+        <div class="field"><label>From order #</label><input type="number" min="1" id="exFromRow"></div>
+        <div class="field"><label>To order #</label><input type="number" min="1" id="exToRow"></div>
+      </div>
+      <p class="sub" id="exRowHint" style="margin:-4px 0 12px;"></p>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="exStatus"><option value="">All statuses</option><option>Confirmed</option><option>Packed</option><option>Out for Delivery</option><option>Delivered</option></select>
+    </div>
+    <div class="banner" style="margin-bottom:0;"><span id="exPreview"></span></div>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="add-btn" id="exDownloadBtn" style="flex:1;">Download CSV</button>
+      <button class="btn-secondary" id="exCancelBtn" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal wide">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+      <h3 style="margin:0;" id="invModalTitle">Invoice</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary btn-small" id="invCopyBtn">📋 Copy customer link</button>
+        <button class="add-btn btn-small" id="invPrintBtn" style="padding:6px 14px;">🖨️ Print / PDF</button>
+        <button class="btn-secondary btn-small" id="invCloseBtn">✕ Close</button>
+      </div>
+    </div>
+    <p class="sub" style="margin-bottom:10px;">This is exactly what the customer sees.</p>
+    <iframe id="invFrame" title="Invoice" style="width:100%; height:68vh; border:1px solid var(--line); border-radius:10px; background:#12121A;"></iframe>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
@@ -257,6 +390,7 @@ document.getElementById('passBtn').addEventListener('click', () => {
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     loadAll();
+    startPolling();
   } else {
     document.getElementById('passErr').classList.remove('hidden');
   }
@@ -271,6 +405,7 @@ function loadAll(){
   loadComponents();
   loadProjects();
   loadBlog();
+  loadCoupons();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -281,30 +416,83 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 let ordersCache = [];
+let lastOrdersSig = '';
+let lastOrderCount = null;
 
-async function loadOrders(){
+function getLastSeen(){ try { return Number(localStorage.getItem('cr_admin_lastseen') || 0); } catch(e){ return 0; } }
+function setLastSeen(ts){ try { localStorage.setItem('cr_admin_lastseen', String(ts)); } catch(e){} }
+const netOf = (o) => (o.subtotal || 0) - (o.discount || 0);
+
+function beep(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.frequency.value = 880; g.gain.value = 0.08;
+    osc.start(); osc.stop(ctx.currentTime + 0.18);
+  } catch(e){}
+}
+
+function updateNewBanner(){
+  const seen = getLastSeen();
+  const fresh = ordersCache.filter(o => new Date(o.created_at).getTime() > seen);
+  const banner = document.getElementById('newOrdersBanner');
+  banner.classList.toggle('hidden', fresh.length === 0);
+  document.getElementById('newOrdersText').textContent = `🔔 ${fresh.length} new order${fresh.length === 1 ? '' : 's'} since you last checked`;
+  document.title = (fresh.length ? `(${fresh.length}) ` : '') + 'CircuitRun Admin';
+}
+document.getElementById('markSeenBtn').addEventListener('click', () => {
+  const newest = ordersCache.reduce((m,o) => Math.max(m, new Date(o.created_at).getTime()), Date.now());
+  setLastSeen(Math.max(newest, Date.now()));
+  updateNewBanner();
+  applyOrderFilters(document.getElementById('orderSearchInput').value.trim().toLowerCase());
+});
+
+async function loadOrders(silent){
   const body = document.getElementById('ordersBody');
-  const empty = document.getElementById('emptyState');
-  body.innerHTML = `<tr><td colspan="6" style="color:var(--muted);">Loading...</td></tr>`;
+  if(!silent) body.innerHTML = `<tr><td colspan="7" style="color:var(--muted);">Loading...</td></tr>`;
 
   const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
   if(error){
-    body.innerHTML = `<tr><td colspan="6" style="color:var(--pink);">Failed to load: ${error.message}</td></tr>`;
+    if(!silent) body.innerHTML = `<tr><td colspan="7" style="color:var(--pink);">Failed to load: ${error.message}</td></tr>`;
     return;
   }
 
+  // serial numbers: #1 = oldest order
+  data.forEach((o, i) => { o._sr = data.length - i; });
+
+  // first ever visit on this browser: don't flag the whole history as "new"
+  if(!silent && getLastSeen() === 0) setLastSeen(Date.now());
+
+  const sig = JSON.stringify(data.map(o => [o.order_code, o.status, o.return_requested]));
+  const changed = sig !== lastOrdersSig;
+  const prevCount = lastOrderCount;
+  lastOrdersSig = sig; lastOrderCount = data.length;
   ordersCache = data;
 
-  const totalRevenue = data.reduce((s,o) => s + o.subtotal, 0);
+  if(silent && prevCount !== null && data.length > prevCount){
+    beep();
+  }
+
+  const totalRevenue = data.reduce((s,o) => s + netOf(o), 0);
   const pendingCod = data.reduce((s,o) => s + o.cod, 0);
+  const totalDiscount = data.reduce((s,o) => s + (o.discount || 0), 0);
   document.getElementById('stats').innerHTML = `
     <div class="stat"><div class="num">${data.length}</div><div class="label">Total orders</div></div>
-    <div class="stat"><div class="num">${money(totalRevenue)}</div><div class="label">Total value</div></div>
+    <div class="stat"><div class="num">${money(totalRevenue)}</div><div class="label">Total value${totalDiscount ? ` (after ${money(totalDiscount)} discounts)` : ''}</div></div>
     <div class="stat"><div class="num">${money(pendingCod)}</div><div class="label">COD pending</div></div>
     <div class="stat"><div class="num">${new Set(data.map(o=>o.customer_phone)).size}</div><div class="label">Unique customers</div></div>
   `;
 
-  renderOrdersTable(data);
+  updateNewBanner();
+  if(!silent || changed) applyOrderFilters(document.getElementById('orderSearchInput').value.trim().toLowerCase());
+}
+
+// check for new orders every 30 seconds while the dashboard is open
+let pollTimer = null;
+function startPolling(){
+  if(pollTimer) return;
+  pollTimer = setInterval(() => { if(!document.hidden) loadOrders(true); }, 30000);
 }
 
 function renderOrdersTable(data){
@@ -321,11 +509,11 @@ function renderOrdersTable(data){
 
   body.innerHTML = data.map(o => `
     <tr style="${o.return_requested ? 'background:rgba(255,95,168,0.06);' : ''}">
-      <td class="mono">${o.order_code}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span></td>
+      <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${o.order_code} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${o.order_code}')">🧾 Invoice</button></td>
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
       <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">📍 ${o.delivery_location || 'not specified'}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
-      <td class="mono">${money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
+      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(o.subtotal)}</s> ${money(netOf(o))}<br><span style="color:var(--lime); font-size:11px;">🎟️ ${o.coupon_code || 'coupon'} −${money(o.discount)}</span>` : money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
       <td>
         <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
           <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
@@ -353,16 +541,15 @@ function csvEscape(val){
   return `"${s}"`;
 }
 
-document.getElementById('exportCsvBtn').addEventListener('click', () => {
-  if(ordersCache.length === 0){ alert('No orders to export.'); return; }
-
+function downloadOrdersCsv(list){
   const headers = [
-    'Order Code', 'Date', 'Batch Date', 'Customer Name', 'Phone', 'Year',
+    'Order No.', 'Order Code', 'Date', 'Batch Date', 'Customer Name', 'Phone', 'Year',
     'College', 'Department', 'Delivery Location', 'Items', 'Subtotal',
-    'Advance Paid', 'COD Due', 'Status', 'Return Requested', 'Return Type', 'Return Reason'
+    'Coupon', 'Discount', 'Order Total', 'Advance Paid', 'COD Due', 'Status',
+    'Return Requested', 'Return Type', 'Return Reason'
   ];
-
-  const rows = ordersCache.map(o => [
+  const rows = list.map(o => [
+    o._sr,
     o.order_code,
     new Date(o.created_at).toLocaleString('en-IN'),
     o.batch_date || '',
@@ -374,6 +561,9 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     o.delivery_location || '',
     (o.items || []).map(i => `${i.name} x${i.qty}`).join('; '),
     o.subtotal,
+    o.coupon_code || '',
+    o.discount || 0,
+    netOf(o),
     o.advance,
     o.cod,
     o.status,
@@ -381,12 +571,8 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     o.return_type || '',
     o.return_reason || ''
   ]);
-
-  const csvContent = [headers, ...rows]
-    .map(row => row.map(csvEscape).join(','))
-    .join('\r\n');
-
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const csvContent = [headers, ...rows].map(row => row.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -395,6 +581,99 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ---- Export CSV with a selectable range ----
+let exMode = 'date';
+const exEl = (id) => document.getElementById(id);
+const ymd = (d) => { const z = new Date(d.getTime() - d.getTimezoneOffset()*60000); return z.toISOString().slice(0,10); };
+
+function exSelection(){
+  const status = exEl('exStatus').value;
+  let list = ordersCache.slice();
+  if(exMode === 'date'){
+    const f = exEl('exFromDate').value, to = exEl('exToDate').value;
+    list = list.filter(o => {
+      const d = ymd(new Date(o.created_at));
+      return (!f || d >= f) && (!to || d <= to);
+    });
+  } else if(exMode === 'row'){
+    let a = parseInt(exEl('exFromRow').value, 10), b = parseInt(exEl('exToRow').value, 10);
+    if(isNaN(a)) a = 1; if(isNaN(b)) b = ordersCache.length;
+    if(a > b) [a, b] = [b, a];
+    list = list.filter(o => o._sr >= a && o._sr <= b);
+  }
+  if(status) list = list.filter(o => o.status === status);
+  return list.sort((x, y) => x._sr - y._sr); // oldest first, like a ledger
+}
+function exRefresh(){
+  const list = exSelection();
+  exEl('exPreview').textContent = list.length
+    ? `${list.length} order${list.length === 1 ? '' : 's'} selected (#${list[0]._sr} to #${list[list.length-1]._sr})`
+    : 'No orders match this selection.';
+  exEl('exDownloadBtn').disabled = list.length === 0;
+  exEl('exDownloadBtn').style.opacity = list.length ? '1' : '0.5';
+}
+function exSetMode(m){
+  exMode = m;
+  exEl('exModeDate').classList.toggle('on', m === 'date');
+  exEl('exModeRow').classList.toggle('on', m === 'row');
+  exEl('exModeAll').classList.toggle('on', m === 'all');
+  exEl('exDateBox').classList.toggle('hidden', m !== 'date');
+  exEl('exRowBox').classList.toggle('hidden', m !== 'row');
+  exRefresh();
+}
+exEl('exModeDate').addEventListener('click', () => exSetMode('date'));
+exEl('exModeRow').addEventListener('click', () => exSetMode('row'));
+exEl('exModeAll').addEventListener('click', () => exSetMode('all'));
+['exFromDate','exToDate','exFromRow','exToRow','exStatus'].forEach(id => {
+  exEl(id).addEventListener('input', exRefresh);
+  exEl(id).addEventListener('change', exRefresh);
+});
+document.querySelectorAll('#exportModal .quick button').forEach(b => b.addEventListener('click', () => {
+  const now = new Date(); let from = new Date(now);
+  if(b.dataset.q === '7') from.setDate(now.getDate() - 6);
+  else if(b.dataset.q === '30') from.setDate(now.getDate() - 29);
+  else if(b.dataset.q === 'month') from = new Date(now.getFullYear(), now.getMonth(), 1);
+  exEl('exFromDate').value = ymd(from); exEl('exToDate').value = ymd(now);
+  exRefresh();
+}));
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  if(ordersCache.length === 0){ alert('No orders to export.'); return; }
+  const dates = ordersCache.map(o => ymd(new Date(o.created_at))).sort();
+  exEl('exFromDate').value = dates[0]; exEl('exToDate').value = dates[dates.length-1];
+  exEl('exFromRow').value = 1; exEl('exToRow').value = ordersCache.length;
+  exEl('exRowHint').textContent = `You have ${ordersCache.length} order(s): #1 (oldest) to #${ordersCache.length} (newest).`;
+  exEl('exStatus').value = '';
+  exSetMode('date');
+  exEl('exportModal').classList.add('show');
+});
+exEl('exCancelBtn').addEventListener('click', () => exEl('exportModal').classList.remove('show'));
+exEl('exDownloadBtn').addEventListener('click', () => {
+  const list = exSelection();
+  if(!list.length) return;
+  downloadOrdersCsv(list);
+  exEl('exportModal').classList.remove('show');
+});
+
+// ---- Invoice popup (same page the customer sees) ----
+let invCode = null;
+function openInvoice(code){
+  invCode = code;
+  exEl('invModalTitle').textContent = `Invoice #${code}`;
+  exEl('invFrame').src = `invoice.html?order=${encodeURIComponent(code)}&embed=1`;
+  exEl('invoiceModal').classList.add('show');
+}
+exEl('invCloseBtn').addEventListener('click', () => { exEl('invoiceModal').classList.remove('show'); exEl('invFrame').src = 'about:blank'; });
+exEl('invPrintBtn').addEventListener('click', () => {
+  try { exEl('invFrame').contentWindow.focus(); exEl('invFrame').contentWindow.print(); }
+  catch(e){ window.open(`invoice.html?order=${encodeURIComponent(invCode)}`, '_blank'); }
+});
+exEl('invCopyBtn').addEventListener('click', async () => {
+  const url = new URL(`invoice.html?order=${encodeURIComponent(invCode)}`, window.location.href).href;
+  try { await navigator.clipboard.writeText(url); exEl('invCopyBtn').textContent = '✅ Copied'; }
+  catch(e){ prompt('Copy this link:', url); }
+  setTimeout(() => { exEl('invCopyBtn').textContent = '📋 Copy customer link'; }, 1800);
 });
 
 async function markReturnHandled(orderCode){
@@ -402,6 +681,168 @@ async function markReturnHandled(orderCode){
   if(error){ alert('Update failed: ' + error.message); return; }
   loadOrders();
 }
+
+// ---- Coupons ----
+let couponsCache = [];
+const scopeLabel = (c) => {
+  const tg = Array.isArray(c.targets) ? c.targets : [];
+  if(c.scope === 'category') return tg.map(x => `<span class="chip">${x}</span>`).join('') || '—';
+  if(c.scope === 'item'){
+    const names = tg.map(id => (componentsCache.find(x => x.id === id) || {}).name || 'removed item');
+    return names.slice(0, 3).map(n => `<span class="chip">${n}</span>`).join('') + (names.length > 3 ? `<span class="chip">+${names.length - 3} more</span>` : '');
+  }
+  return '<span class="chip">Everything</span>';
+};
+
+async function loadCoupons(){
+  const body = document.getElementById('couponsBody');
+  const msg = document.getElementById('couponsSetupMsg');
+  const { data, error } = await db.from('coupons').select('*').order('created_at', { ascending: false });
+  if(error){
+    body.innerHTML = '';
+    msg.textContent = 'Coupons are not set up yet. Run coupons.sql once in the Supabase SQL Editor, then refresh. (' + error.message + ')';
+    msg.classList.remove('hidden');
+    document.getElementById('couponsEmpty').classList.add('hidden');
+    return;
+  }
+  msg.classList.add('hidden');
+  couponsCache = data;
+  document.getElementById('couponsEmpty').classList.toggle('hidden', data.length > 0);
+  const today = new Date().toISOString().slice(0,10);
+  body.innerHTML = data.map(c => {
+    const expired = c.expires_at && c.expires_at < today;
+    const full = c.max_uses != null && c.used_count >= c.max_uses;
+    const status = !c.active ? 'Paused' : expired ? 'Expired' : full ? 'Used up' : 'Live';
+    const live = status === 'Live';
+    return `<tr>
+      <td class="mono" style="font-weight:700;">${c.code}<br><span style="color:var(--muted); font-size:11px; font-weight:400;">${c.description || ''}</span></td>
+      <td class="mono">${c.discount_type === 'flat' ? money(c.discount_value) + ' off' : c.discount_value + '% off'}${c.max_discount ? `<br><span style="color:var(--muted); font-size:11px;">max ${money(c.max_discount)}</span>` : ''}</td>
+      <td>${scopeLabel(c)}</td>
+      <td style="font-size:12px; color:var(--muted);">
+        ${c.min_order ? `Min cart ${money(c.min_order)}<br>` : ''}
+        Used ${c.used_count}${c.max_uses != null ? ' / ' + c.max_uses : ''}<br>
+        ${c.expires_at ? 'Until ' + c.expires_at + '<br>' : ''}${c.one_per_customer ? 'Once per customer' : 'Repeat use allowed'}
+      </td>
+      <td><button class="toggle-btn ${live ? 'on' : ''}" onclick="toggleCoupon('${c.id}', ${!c.active})" title="Click to ${c.active ? 'pause' : 'activate'}">${status}</button></td>
+      <td style="white-space:nowrap;">
+        <button class="btn-secondary btn-small" onclick="editCoupon('${c.id}')">Edit</button>
+        <button class="btn-danger btn-small" onclick="deleteCoupon('${c.id}', '${c.code}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleCoupon(id, makeActive){
+  const { error } = await db.from('coupons').update({ active: makeActive }).eq('id', id);
+  if(error){ alert('Update failed: ' + error.message); return; }
+  loadCoupons();
+}
+async function deleteCoupon(id, code){
+  if(!confirm(`Delete coupon ${code}? Past orders that used it keep their discount record.`)) return;
+  const { error } = await db.from('coupons').delete().eq('id', id);
+  if(error){ alert('Delete failed: ' + error.message); return; }
+  loadCoupons();
+}
+
+function renderPickLists(selCats, selItems){
+  document.getElementById('cpCatList').innerHTML = CATEGORIES.map(c =>
+    `<label><input type="checkbox" data-cat="${c}" ${selCats.includes(c) ? 'checked' : ''}> ${c}</label>`).join('');
+  const q = document.getElementById('cpItemSearch').value.trim().toLowerCase();
+  const keep = new Set(selItems);
+  document.getElementById('cpItemList').innerHTML = componentsCache
+    .filter(c => !q || c.name.toLowerCase().includes(q) || (c.category || '').toLowerCase().includes(q))
+    .map(c => `<label><input type="checkbox" data-item="${c.id}" ${keep.has(c.id) ? 'checked' : ''}> ${c.name} <span style="color:var(--muted); font-size:11px;">· ${money(c.price)}</span></label>`).join('')
+    || '<p class="sub" style="margin:6px 0;">No components found.</p>';
+}
+function currentPicks(){
+  return {
+    cats: [...document.querySelectorAll('#cpCatList input:checked')].map(i => i.dataset.cat),
+    items: [...document.querySelectorAll('#cpItemList input:checked')].map(i => i.dataset.item)
+  };
+}
+let pickedItems = new Set();
+function syncScopeUI(){
+  const sc = document.getElementById('cpScope').value;
+  document.getElementById('cpCatWrap').classList.toggle('hidden', sc !== 'category');
+  document.getElementById('cpItemWrap').classList.toggle('hidden', sc !== 'item');
+}
+document.getElementById('cpScope').addEventListener('change', syncScopeUI);
+document.getElementById('cpType').addEventListener('change', () => {
+  document.getElementById('cpValueLabel').textContent = document.getElementById('cpType').value === 'flat' ? 'Discount (₹)' : 'Discount (%)';
+});
+// keep ticks when the search box re-filters the list
+document.getElementById('cpItemList').addEventListener('change', (e) => {
+  const id = e.target.dataset.item; if(!id) return;
+  e.target.checked ? pickedItems.add(id) : pickedItems.delete(id);
+});
+document.getElementById('cpItemSearch').addEventListener('input', () => renderPickLists(currentPicks().cats, [...pickedItems]));
+
+function openCouponModal(c){
+  document.getElementById('couponModalTitle').textContent = c ? 'Edit coupon' : 'New coupon';
+  document.getElementById('cpId').value = c ? c.id : '';
+  document.getElementById('cpCode').value = c ? c.code : '';
+  document.getElementById('cpDesc').value = c ? (c.description || '') : '';
+  document.getElementById('cpType').value = c ? c.discount_type : 'percent';
+  document.getElementById('cpValue').value = c ? c.discount_value : '';
+  document.getElementById('cpValueLabel').textContent = (c && c.discount_type === 'flat') ? 'Discount (₹)' : 'Discount (%)';
+  document.getElementById('cpMax').value = c && c.max_discount ? c.max_discount : '';
+  document.getElementById('cpScope').value = c ? c.scope : 'all';
+  document.getElementById('cpMin').value = c && c.min_order ? c.min_order : '';
+  document.getElementById('cpUses').value = c && c.max_uses != null ? c.max_uses : '';
+  document.getElementById('cpExpiry').value = c && c.expires_at ? c.expires_at : '';
+  document.getElementById('cpOnce').checked = c ? c.one_per_customer !== false : true;
+  document.getElementById('cpActive').checked = c ? !!c.active : true;
+  document.getElementById('cpItemSearch').value = '';
+  const tg = c && Array.isArray(c.targets) ? c.targets : [];
+  pickedItems = new Set(c && c.scope === 'item' ? tg : []);
+  renderPickLists(c && c.scope === 'category' ? tg : [], [...pickedItems]);
+  syncScopeUI();
+  document.getElementById('cpError').classList.add('hidden');
+  document.getElementById('couponModal').classList.add('show');
+}
+function editCoupon(id){ const c = couponsCache.find(x => x.id === id); if(c) openCouponModal(c); }
+document.getElementById('addCouponBtn').addEventListener('click', () => openCouponModal());
+document.getElementById('cpCancelBtn').addEventListener('click', () => document.getElementById('couponModal').classList.remove('show'));
+
+document.getElementById('cpSaveBtn').addEventListener('click', async () => {
+  const err = document.getElementById('cpError');
+  const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); };
+  err.classList.add('hidden');
+  const id = document.getElementById('cpId').value;
+  const code = document.getElementById('cpCode').value.trim().toUpperCase();
+  const type = document.getElementById('cpType').value;
+  const value = parseInt(document.getElementById('cpValue').value, 10);
+  const scope = document.getElementById('cpScope').value;
+  if(!/^[A-Z0-9_-]{3,20}$/.test(code)) return fail('Code must be 3–20 characters: letters, numbers, - or _ (no spaces).');
+  if(isNaN(value) || value < 1) return fail('Enter a discount value of at least 1.');
+  if(type === 'percent' && value > 100) return fail('Percent discount cannot be more than 100.');
+  let targets = [];
+  if(scope === 'category'){ targets = currentPicks().cats; if(!targets.length) return fail('Pick at least one category.'); }
+  if(scope === 'item'){ targets = [...pickedItems]; if(!targets.length) return fail('Pick at least one component.'); }
+  const num = (elId) => { const v = parseInt(document.getElementById(elId).value, 10); return isNaN(v) ? null : v; };
+  const payload = {
+    code,
+    description: document.getElementById('cpDesc').value.trim() || null,
+    discount_type: type,
+    discount_value: value,
+    max_discount: num('cpMax'),
+    scope, targets,
+    min_order: num('cpMin') || 0,
+    max_uses: num('cpUses'),
+    one_per_customer: document.getElementById('cpOnce').checked,
+    expires_at: document.getElementById('cpExpiry').value || null,
+    active: document.getElementById('cpActive').checked
+  };
+  const btn = document.getElementById('cpSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const res = id ? await db.from('coupons').update(payload).eq('id', id) : await db.from('coupons').insert(payload);
+  btn.disabled = false; btn.textContent = 'Save coupon';
+  if(res.error){
+    return fail(/duplicate|unique/i.test(res.error.message) ? 'A coupon with this code already exists.' : 'Save failed: ' + res.error.message);
+  }
+  document.getElementById('couponModal').classList.remove('show');
+  loadCoupons();
+});
 
 // ---- Danger zone: delete all orders (orders table only) ----
 const deleteOrdersConfirmInput = document.getElementById('deleteOrdersConfirmInput');
@@ -836,4 +1277,3 @@ document.getElementById('blogSaveBtn').addEventListener('click', async () => {
 </script>
 </body>
 </html>
-
