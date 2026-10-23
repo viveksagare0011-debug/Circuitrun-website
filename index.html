@@ -2541,12 +2541,14 @@ document.getElementById('rvSubmit').addEventListener('click', async ()=>{
   let u={}; try{u=JSON.parse(localStorage.getItem('circuitrun_user')||'{}');}catch(e){}
   const btn = document.getElementById('rvSubmit'); btn.disabled=true; msg.textContent='Submitting…';
   try{
-    const { error } = await db.from('reviews').insert({ order_code: rvOrder, customer_name: (u.name||'Student').split(' ')[0], customer_college: u.college||null, rating: rvRating, comment: document.getElementById('rvText').value.trim()||null, status:'pending' });
+    const { data: res, error } = await db.rpc('submit_review', { p_code: rvOrder, p_phone: u.phone || '', p_rating: rvRating, p_comment: document.getElementById('rvText').value.trim() });
     if(error) throw error;
+    if(res === 'duplicate'){ rvDone.add(rvOrder); renderOrdersDrawer(); throw new Error('duplicate'); }
+    if(res !== 'ok') throw new Error(res || 'failed');
     rvDone.add(rvOrder); renderOrdersDrawer();
     msg.textContent='Thanks! Your review will appear after a quick check.';
     setTimeout(()=>{document.getElementById('rvOverlay').style.display='none';},1400);
-  }catch(e){ msg.textContent = /duplicate|unique/i.test(e.message||'') ? 'You already reviewed this order.' : 'Could not submit. Try again.'; }
+  }catch(e){ msg.textContent = /duplicate/i.test(e.message||'') ? 'You already reviewed this order.' : (/not_delivered/.test(e.message||'') ? 'You can review once the order is delivered.' : 'Could not submit. Try again.'); }
   btn.disabled=false;
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-rate-order]'); if(b) openReview(b.dataset.rateOrder);});
