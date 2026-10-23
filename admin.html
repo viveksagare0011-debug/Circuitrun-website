@@ -45,6 +45,9 @@
 
   .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
 
+  .rv-badge { background: var(--pink, #ff5fa8); color:#000; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px; }
+  .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  html, body { overflow-x: clip; max-width: 100%; }
   .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
   .tab-btn { background: none; border: none; color: var(--muted); padding: 10px 16px; font-size: 13px; font-weight: 700; border-bottom: 2px solid transparent; white-space: nowrap; }
   .tab-btn.active { color: var(--lime); border-bottom-color: var(--lime); }
@@ -99,9 +102,10 @@
   <div style="font-size:28px;">🔐</div>
   <h1 style="margin-top:8px;">Admin access</h1>
   <p class="sub">Owner-only dashboard</p>
-  <input type="password" id="passInput" placeholder="Enter passcode">
-  <p class="err hidden" id="passErr">Wrong passcode.</p>
-  <button id="passBtn">Unlock</button>
+  <input type="email" id="emailInput" placeholder="Admin email" autocomplete="username">
+  <input type="password" id="passInput" placeholder="Password" autocomplete="current-password">
+  <p class="err hidden" id="passErr">Wrong email or password.</p>
+  <button id="passBtn">Sign in</button>
 </div>
 
 <div class="wrap hidden" id="dashboard">
@@ -111,6 +115,8 @@
       <p class="sub">Manage orders, catalog, project kits, and blog — all in one place.</p>
     </div>
     <button class="refresh-btn" id="refreshBtn">↻ Refresh</button>
+      <button class="btn-secondary" onclick="runSystemCheck()">🩺 System check</button>
+      <button class="btn-secondary" onclick="adminLogout()">Sign out</button>
   </div>
 
   <div class="tabs">
@@ -118,6 +124,7 @@
     <button class="tab-btn" data-tab="components">🔧 Components</button>
     <button class="tab-btn" data-tab="projects">🚀 Projects</button>
     <button class="tab-btn" data-tab="coupons">🎟️ Coupons</button>
+    <button class="tab-btn" data-tab="reviews">⭐ Reviews <span class="rv-badge hidden" id="rvPendingBadge"></span></button>
     <button class="tab-btn" data-tab="blog">📰 Blog</button>
   </div>
 
@@ -132,12 +139,12 @@
         <input type="checkbox" id="notifyToggle" checked style="width:auto;"> 🔔 Notify on status change
       </label>
     </div>
-    <table>
+    <div class="tbl-scroll"><table>
       <thead>
         <tr><th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th><th>Return</th></tr>
       </thead>
       <tbody id="ordersBody"></tbody>
-    </table>
+    </table></div>
     <div id="emptyState" class="empty hidden">No orders yet.</div>
 
     <div style="margin-top:40px; border:1px solid var(--pink); border-radius:14px; padding:18px 20px; background:rgba(255,95,168,0.05);">
@@ -176,11 +183,26 @@
       <button class="add-btn" id="addCouponBtn">+ New coupon</button>
     </div>
     <p class="err hidden" id="couponsSetupMsg"></p>
-    <table>
+    <div class="tbl-scroll"><table>
       <thead><tr><th>Code</th><th>Discount</th><th>Applies to</th><th>Rules</th><th>Status</th><th></th></tr></thead>
       <tbody id="couponsBody"></tbody>
-    </table>
+    </table></div>
     <div id="couponsEmpty" class="empty hidden">No coupons yet. Click "+ New coupon" to create your first one.</div>
+  </div>
+
+  <div class="tab-panel" id="tab-reviews">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Customer reviews</h2>
+        <p class="sub" style="margin-top:4px;">New reviews arrive as <b>pending</b>. Only approved ones show on the website. Approve genuine feedback, hide anything abusive or fake.</p>
+      </div>
+    </div>
+    <p class="err hidden" id="reviewsSetupMsg"></p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Order</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Status</th><th></th></tr></thead>
+      <tbody id="reviewsBody"></tbody>
+    </table></div>
+    <div id="reviewsEmpty" class="empty hidden">No reviews yet. Customers can rate an order from "My Orders" once it is Delivered.</div>
   </div>
 
   <div class="tab-panel" id="tab-blog">
@@ -368,6 +390,11 @@
   </div>
 </div>
 
+<dialog id="sysDlg" style="max-width:480px; width:calc(100% - 32px); background:var(--bg-card); color:var(--text); border:1px solid var(--line); border-radius:14px; padding:18px;">
+  <h3 style="margin-top:0;">System check</h3>
+  <div id="sysOut" style="font-size:13px; line-height:1.7;">Running…</div>
+  <button class="btn-secondary" style="margin-top:12px;" onclick="document.getElementById('sysDlg').close()">Close</button>
+</dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://cyamefenvgwrdfqaaoxj.supabase.co";
@@ -379,25 +406,37 @@ try {
   console.error('Supabase failed to load', e);
 }
 
-const ADMIN_PASSCODE = "circuitrun2026";
 const CATEGORIES = ["Microcontrollers & ICs","Sensors","Motors & Actuators","Passive Components","Display & Output","Power & Battery","Prototyping & Wires","Mechanical & Structural","Tools"];
 
 function money(n){ return "₹" + n; }
 
-document.getElementById('passBtn').addEventListener('click', () => {
-  const val = document.getElementById('passInput').value;
-  if(val === ADMIN_PASSCODE){
-    document.getElementById('gate').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    loadAll();
-    startPolling();
-  } else {
-    document.getElementById('passErr').classList.remove('hidden');
+function showDashboard(){
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  loadAll();
+  startPolling();
+}
+document.getElementById('passBtn').addEventListener('click', async () => {
+  const err = document.getElementById('passErr');
+  err.classList.add('hidden');
+  try{
+    const { data, error } = await db.auth.signInWithPassword({
+      email: document.getElementById('emailInput').value.trim(),
+      password: document.getElementById('passInput').value
+    });
+    if(error || !data || !data.session) throw error || new Error('no session');
+    showDashboard();
+  }catch(e){
+    err.textContent = (e && e.message && /network|fetch/i.test(e.message)) ? 'Network problem. Try again.' : 'Wrong email or password.';
+    err.classList.remove('hidden');
   }
 });
 document.getElementById('passInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') document.getElementById('passBtn').click();
 });
+// stay signed in across refreshes (Supabase keeps the session in this browser)
+(async () => { try{ const { data } = await db.auth.getSession(); if(data && data.session) showDashboard(); }catch(e){} })();
+async function adminLogout(){ try{ await db.auth.signOut(); }catch(e){} location.reload(); }
 document.getElementById('refreshBtn').addEventListener('click', loadAll);
 
 function loadAll(){
@@ -406,6 +445,7 @@ function loadAll(){
   loadProjects();
   loadBlog();
   loadCoupons();
+  loadReviewsAdmin();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -464,7 +504,7 @@ async function loadOrders(silent){
   // first ever visit on this browser: don't flag the whole history as "new"
   if(!silent && getLastSeen() === 0) setLastSeen(Date.now());
 
-  const sig = JSON.stringify(data.map(o => [o.order_code, o.status, o.return_requested]));
+  const sig = JSON.stringify(data.map(o => [o.order_code, o.status, o.return_requested, o.acknowledged, o.payment_verified]));
   const changed = sig !== lastOrdersSig;
   const prevCount = lastOrderCount;
   lastOrdersSig = sig; lastOrderCount = data.length;
@@ -513,8 +553,9 @@ function renderOrdersTable(data){
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
       <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">📍 ${o.delivery_location || 'not specified'}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
-      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(o.subtotal)}</s> ${money(netOf(o))}<br><span style="color:var(--lime); font-size:11px;">🎟️ ${o.coupon_code || 'coupon'} −${money(o.discount)}</span>` : money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span></td>
+      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(o.subtotal)}</s> ${money(netOf(o))}<br><span style="color:var(--lime); font-size:11px;">🎟️ ${o.coupon_code || 'coupon'} −${money(o.discount)}</span>` : money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${o.payment_ref}</span><br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${o.order_code}', this.checked)"> ${o.payment_verified?'✅ Verified in bank':'Verify in bank app'}</label>` : ''}</td>
       <td>
+        ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${o.order_code}')">✅ Accept order</button><br>` : ''}
         <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
           <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
           <option value="Packed" ${o.status==='Packed'?'selected':''}>Packed</option>
@@ -925,8 +966,13 @@ async function updateOrderStatus(orderCode, newStatus){
 
   try {
     const payload = { status: newStatus };
+    payload.acknowledged = true;
     if(newStatus === 'Delivered') payload.delivered_at = new Date().toISOString();
-    const { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
+    let { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
+    if(error && /acknowledged/.test(error.message || '')){   // notifications.sql not run yet
+      delete payload.acknowledged;
+      ({ error } = await db.from('orders').update(payload).eq('order_code', orderCode));
+    }
     if(error) throw error;
 
     const order = ordersCache.find(o => o.order_code === orderCode);
@@ -1274,6 +1320,66 @@ document.getElementById('blogSaveBtn').addEventListener('click', async () => {
     saveBtn.disabled = false; saveBtn.textContent = 'Save';
   }
 });
+
+// ---- reviews moderation ----
+const rvEscA = t => String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function loadReviewsAdmin(){
+  const body = document.getElementById('reviewsBody'), msg = document.getElementById('reviewsSetupMsg');
+  const { data, error } = await db.from('reviews').select('*').order('created_at', { ascending: false });
+  if(error){ body.innerHTML=''; msg.textContent='Reviews are not set up yet. Run reviews.sql once in the Supabase SQL Editor, then refresh. ('+error.message+')'; msg.classList.remove('hidden'); return; }
+  msg.classList.add('hidden');
+  document.getElementById('reviewsEmpty').classList.toggle('hidden', data.length>0);
+  const pending = data.filter(r=>r.status==='pending').length;
+  const bd = document.getElementById('rvPendingBadge'); bd.textContent = pending; bd.classList.toggle('hidden', !pending);
+  body.innerHTML = data.map(r=>`<tr>
+    <td class="mono">#${rvEscA(r.order_code)}</td>
+    <td>${rvEscA(r.customer_name)}<div class="sub">${rvEscA(r.customer_college||'')}</div></td>
+    <td style="color:#ffc933; white-space:nowrap;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
+    <td style="min-width:180px;">${rvEscA(r.comment||'—')}</td>
+    <td><span class="chip">${r.status}</span></td>
+    <td style="white-space:nowrap;">
+      ${r.status!=='approved'?`<button class="add-btn" data-rv="approved" data-id="${r.id}">Approve</button>`:''}
+      ${r.status!=='hidden'?`<button class="add-btn" data-rv="hidden" data-id="${r.id}">Hide</button>`:''}
+      <button class="add-btn" data-rv="delete" data-id="${r.id}">Delete</button>
+    </td></tr>`).join('');
+}
+document.getElementById('reviewsBody').addEventListener('click', async e=>{
+  const b = e.target.closest('[data-rv]'); if(!b) return;
+  if(b.dataset.rv==='delete'){ if(!confirm('Delete this review permanently?')) return; await db.from('reviews').delete().eq('id', b.dataset.id); }
+  else await db.from('reviews').update({status:b.dataset.rv}).eq('id', b.dataset.id);
+  loadReviewsAdmin();
+});
+
+async function setPaymentVerified(code, v){
+  const { error } = await db.from('orders').update({ payment_verified: v }).eq('order_code', code);
+  if(error){ alert('Could not save: ' + error.message + '\n(Run payments.sql once in Supabase.)'); }
+  loadOrders(true);
+}
+
+async function acceptOrder(code){
+  const { error } = await db.from('orders').update({ acknowledged: true, acknowledged_at: new Date().toISOString() }).eq('order_code', code);
+  if(error){ alert('Could not save: ' + error.message + '\n(Run notifications.sql once in Supabase.)'); return; }
+  loadOrders(true);
+}
+
+// read-only health check: never writes or deletes anything
+async function runSystemCheck(){
+  const dlg = document.getElementById('sysDlg'), out = document.getElementById('sysOut');
+  out.textContent = 'Running…'; dlg.showModal();
+  const rows = [];
+  const add = (ok, label, hint) => rows.push(`${ok?'✅':'❌'} ${label}${!ok&&hint?`<div style="color:var(--muted); font-size:12px; margin-left:22px;">${hint}</div>`:''}`);
+  const probe = async (label, fn, hint) => { try{ const r = await fn(); add(!r.error, label, hint + (r.error?' ('+r.error.message+')':'')); }catch(e){ add(false,label,hint+' ('+e.message+')'); } };
+  const { data: sess } = await db.auth.getSession();
+  add(!!(sess && sess.session), 'Signed in as admin' + (sess && sess.session && sess.session.user ? ' ('+sess.session.user.email+')' : ''), 'Sign out and sign in again.');
+  for(const t of ['orders','components','projects','blog_posts','coupons','reviews'])
+    await probe('Table "'+t+'" readable', () => db.from(t).select('*', { count:'exact', head:true }), 'Run the matching .sql file.');
+  await probe('orders.payment_ref / payment_verified columns', () => db.from('orders').select('payment_ref,payment_verified').limit(1), 'Run payments.sql.');
+  await probe('orders.acknowledged column', () => db.from('orders').select('acknowledged').limit(1), 'Run notifications.sql.');
+  await probe('coupons.sql function redeem_coupon', () => db.rpc('redeem_coupon', { p_code: '__HEALTHCHECK__' }), 'Run coupons.sql.');
+  await probe('orders_lockdown.sql functions (public_stats)', () => db.rpc('public_stats'), 'Only needed after phase 2 lockdown.');
+  await probe('orders_lockdown.sql functions (my_orders)', () => db.rpc('my_orders', { p_phone: '0000000000' }), 'Only needed after phase 2 lockdown.');
+  out.innerHTML = rows.join('<br>') + '<div style="color:var(--muted); font-size:12px; margin-top:10px;">Read-only check. Notifications (WhatsApp/ntfy) can only be verified with a real test order.</div>';
+}
 </script>
 </body>
 </html>

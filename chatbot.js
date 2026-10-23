@@ -278,7 +278,8 @@
       var r = R();
       T(r, pick('Best way to reach us is WhatsApp (+' + waNumber().replace(/^91/, '91 ') + '). It\'s a small student-run team and the owner reads messages personally.',
         'Sabse best tarika WhatsApp hai (+' + waNumber().replace(/^91/, '91 ') + '). Chhoti student-run team hai aur owner khud messages padhta hai.', h));
-      BTN(r, pick('Chat on WhatsApp', 'WhatsApp pe chat karo', h), waLink('Hi CircuitRun, I have a question.')); return r;
+      BTN(r, pick('Chat on WhatsApp', 'WhatsApp pe chat karo', h), waLink('Hi CircuitRun, I have a question.'));
+      BTN(r, pick('Follow on Instagram', 'Instagram pe follow karo', h), 'https://www.instagram.com/circuitrun.in'); return r;
     },
     track: function (h) {
       var r = R(), o = G(function () { return state.orders[0]; }, null);

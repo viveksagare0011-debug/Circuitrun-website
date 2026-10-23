@@ -4,11 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CircuitRun — components delivered to campus</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23C6FF3D%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>⚡</text></svg>">
+<link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
+<link rel="apple-touch-icon" href="brand/icon-180.png">
 <meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
 <meta property="og:title" content="CircuitRun — components delivered to campus">
 <meta property="og:description" content="Order electronics & project components online, delivered to your campus. Built for engineering students in Navi Mumbai.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
+<meta property="og:url" content="https://viveksagare0011-debug.github.io/Circuitrun-website/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#12121A">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -24,7 +29,7 @@
     --muted: #9A98A8;
   }
   * { box-sizing: border-box; }
-  html, body { overflow-x: hidden; max-width: 100%; }
+  html, body { overflow-x: hidden; max-width: 100%; } html, body { overflow-x: clip; } .wrap { overflow-x: clip; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
   .disp { font-family: 'Space Grotesk', sans-serif; }
   .mono { font-family: 'IBM Plex Mono', monospace; }
@@ -329,6 +334,24 @@
   .profile-row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
   .profile-row span { color: var(--muted); }
   .profile-row b { font-weight: 600; text-align: right; }
+  .logo-img { height: 32px; width: auto; display: block; flex-shrink: 0; }
+  .social-link { color: var(--muted); text-decoration: none; }
+  .social-link:hover { color: var(--lime); }
+
+  /* reviews */
+  .rv-sec { margin: 44px 0 8px; }
+  .rv-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .rv-head h2 { margin:0; }
+  .rv-avg { font-family: var(--mono, monospace); color: var(--lime); font-weight:700; }
+  .rv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
+  .rv-card { border:1px solid var(--line, rgba(255,255,255,.12)); border-radius:14px; padding:14px; background:rgba(255,255,255,.03); }
+  .rv-stars { color:#ffc933; letter-spacing:2px; font-size:15px; }
+  .rv-card p { margin:8px 0; font-size:14px; line-height:1.45; word-wrap:break-word; }
+  .rv-meta { font-size:12px; opacity:.7; }
+  .rv-empty { opacity:.75; font-size:14px; }
+  .star-pick { display:flex; gap:6px; font-size:34px; margin:8px 0 12px; }
+  .star-pick button { background:none; border:0; color:#555; font-size:34px; line-height:1; cursor:pointer; padding:2px; }
+  .star-pick button.on { color:#ffc933; }
 </style>
 </head>
 <body>
@@ -341,7 +364,7 @@
     <circle class="boot-node" cx="20" cy="100" r="4" />
     <circle class="boot-node" cx="380" cy="100" r="4" />
   </svg>
-  <div id="bootLogo"><span class="boot-bolt">⚡</span> CircuitRun</div>
+  <div id="bootLogo"><img src="brand/logo-mark.png" alt="" style="height:36px; width:auto; vertical-align:-8px; margin-right:6px;"> CircuitRun</div>
   <div id="bootSkip">tap to skip</div>
 </div>
 
@@ -350,7 +373,7 @@
 <header>
   <div class="wrap headbar">
     <button id="sidebarOpenBtn" class="hamburger-btn" aria-label="Menu">☰</button>
-    <a href="index.html" style="text-decoration:none; color:inherit;"><div class="logo"><span class="logo-badge">⚡</span> CircuitRun</div></a>
+    <a href="index.html" style="text-decoration:none; color:inherit;"><div class="logo"><img class="logo-img" src="brand/logo-mark.png" alt="CircuitRun logo"> CircuitRun</div></a>
     <div class="search-box">
       <span class="icon">🔍</span>
       <input id="searchInput" placeholder="Arduino, sensors, jumper wires..." autocomplete="off">
@@ -365,7 +388,7 @@
 <div class="overlay" id="sidebarOverlay"></div>
 <div class="drawer drawer-left" id="sidebarDrawer">
   <div class="drawer-head">
-    <div class="logo" style="font-size:15px;"><span class="logo-badge" style="width:26px; height:26px; font-size:13px;">⚡</span> CircuitRun</div>
+    <div class="logo" style="font-size:15px;"><img class="logo-img" style="height:26px;" src="brand/logo-mark.png" alt=""> CircuitRun</div>
     <button id="sidebarCloseBtn">✕</button>
   </div>
   <div class="sidebar-body">
@@ -376,6 +399,7 @@
     <a href="index.html#bulkRequest" class="side-link" data-close-sidebar>🔧 Request a part</a>
     <a href="about.html" class="side-link" data-close-sidebar>ℹ️ About us</a>
     <a href="policy.html" class="side-link" data-close-sidebar>📄 Terms & policy</a>
+    <a href="https://www.instagram.com/circuitrun.in" class="side-link" target="_blank" rel="noopener" data-close-sidebar>📸 Instagram</a>
     <div class="side-divider"></div>
     <button class="side-link side-btn" id="sideProfileBtn">👤 My profile</button>
     <button class="side-link side-btn" id="sideOrdersBtn">📦 My orders</button>
@@ -547,6 +571,11 @@
     </div>
   </section>
 
+  <section class="rv-sec" id="reviews">
+    <div class="rv-head"><h2>What students say</h2><span class="rv-avg" id="rvAvg"></span></div>
+    <div class="rv-grid" id="rvGrid"><div class="rv-empty">Loading reviews…</div></div>
+  </section>
+
   <section class="trust-cards">
     <div class="trust-card"><div class="emoji">💵</div><h3>Cash on delivery</h3><p>Pay a small amount online to lock the order, rest in cash when it lands in your hand.</p></div>
     <div class="trust-card"><div class="emoji">🗓️</div><h3>Fixed batch runs</h3><p>Lamington Road runs happen every Tue & Fri — order before cutoff to make the trip.</p></div>
@@ -555,12 +584,13 @@
 
   <footer>
     <div>
-      <div class="logo disp">⚡ CircuitRun</div>
+      <div class="logo disp"><img class="logo-img" style="height:26px;" src="brand/logo-mark.png" alt=""> CircuitRun</div>
       <p>Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</p>
     </div>
     <div style="display:flex; gap:14px; font-size:12px;">
       <a href="about.html" style="color:var(--muted); text-decoration:none;">About Us</a>
       <a href="policy.html" style="color:var(--muted); text-decoration:none;">Terms & Policy</a>
+      <a href="https://www.instagram.com/circuitrun.in" target="_blank" rel="noopener" style="color:var(--muted); text-decoration:none;">📸 Instagram</a>
     </div>
   </footer>
 </div>
@@ -627,6 +657,12 @@
       <p class="mono" style="font-size:12px; color:var(--muted); margin:0 0 10px;">viveksagare0011-1@oksbi</p>
       <a id="upiAppLink" href="#" target="_blank" class="btn-outline" style="display:block; text-decoration:none; box-sizing:border-box; border-color:var(--cyan); color:var(--cyan);">Open in UPI app 📲</a>
     </div>
+
+    <div class="field-group">
+      <label>UPI transaction ID (UTR) — 12 digits</label>
+      <input id="coUtr" inputmode="numeric" maxlength="12" placeholder="Shown in your UPI app after paying">
+    </div>
+    <p id="utrError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Enter the 12-digit UTR from your payment receipt.</p>
 
     <button class="btn-primary" style="width:100%; margin-bottom:8px;" id="confirmPayBtn">I've paid — confirm order</button>
     <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="cancelCheckoutBtn">Cancel</button>
@@ -707,6 +743,20 @@
     <div class="box" style="text-align:left;" id="successItems"></div>
     <a id="viewInvoiceBtn" href="#" target="_blank" class="btn-outline" style="width:100%; box-sizing:border-box; display:block; text-align:center; text-decoration:none; border-color:var(--cyan); color:var(--cyan); margin-bottom:8px;">🧾 View invoice</a>
     <button class="btn-primary" style="width:100%;" id="backToCatalogBtn">Back to catalog</button>
+  </div>
+</div>
+
+<div class="overlay" id="rvOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:300; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:var(--bg2,#12161f); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:20px; width:100%; max-width:380px;">
+    <h3 style="margin:0 0 4px;">Rate your order <span class="mono" id="rvCode"></span></h3>
+    <div class="meta">Your honest feedback helps other students.</div>
+    <div class="star-pick" id="rvStars"></div>
+    <textarea id="rvText" maxlength="500" rows="4" placeholder="How was the product and delivery? (optional)" style="width:100%; box-sizing:border-box; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.05); color:inherit; font:inherit;"></textarea>
+    <div class="meta" id="rvMsg" style="min-height:18px; margin:6px 0;"></div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-outline" id="rvCancel" style="flex:1; background:none;">Cancel</button>
+      <button class="btn-primary" id="rvSubmit" style="flex:1;">Submit</button>
+    </div>
   </div>
 </div>
 
@@ -1039,10 +1089,7 @@ function saveCart(){
 async function loadUserOrders(phone){
   try {
     if(!db) return;
-    const { data, error } = await db.from('orders')
-      .select('*')
-      .eq('customer_phone', phone)
-      .order('created_at', { ascending: false });
+    const { data, error } = await db.rpc('my_orders', { p_phone: phone });
     if(!error && data){
       state.orders = data.map(o => ({
         id: o.order_code, items: o.items, subtotal: o.subtotal,
@@ -1052,7 +1099,7 @@ async function loadUserOrders(phone){
         returnRequested: o.return_requested, returnType: o.return_type,
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
-      updateOrdersCount();
+      updateOrdersCount(); loadMyReviewed();
       if(data.length > 0 && data[0].delivery_location){
         state.lastDeliveryLocation = data[0].delivery_location;
       }
@@ -1173,10 +1220,8 @@ async function renderStats(){
   let orderCount = null, customerCount = null;
   if(db){
     try {
-      const { count: oc } = await db.from('orders').select('*', { count: 'exact', head: true });
-      orderCount = oc;
-      const { data: custData } = await db.from('orders').select('customer_phone');
-      if(custData) customerCount = new Set(custData.map(o => o.customer_phone)).size;
+      const { data: st } = await db.rpc('public_stats');
+      if(st){ orderCount = st.orders; customerCount = st.customers; }
     } catch(err) {
       console.error('stats fetch failed:', err.message || err);
     }
@@ -1457,7 +1502,7 @@ document.getElementById('profileSaveBtn').addEventListener('click', async () => 
   showProfileView();
 
   if(db){
-    db.from('customers').upsert({ name, phone, year, college, department }, { onConflict: 'phone' }).then(({error}) => {
+    db.rpc('upsert_customer', { p_name: name, p_phone: phone, p_year: year, p_college: college, p_department: department }).then(({error}) => {
       if(error) console.error('profile update error:', error.message || JSON.stringify(error));
     });
   }
@@ -1501,8 +1546,8 @@ async function validateCoupon(code){
   const base = totals();
   if(c.min_order && base.subtotal < c.min_order) return { error: 'Add items worth ' + money(c.min_order) + ' or more to use this coupon.' };
   if(c.one_per_customer !== false && state.user){
-    const prev = await db.from('orders').select('order_code').eq('customer_phone', state.user.phone).eq('coupon_code', c.code).limit(1);
-    if(prev.data && prev.data.length) return { error: 'You have already used this coupon.' };
+    const prev = await db.rpc('coupon_used', { p_phone: state.user.phone, p_code: c.code });
+    if(prev.data === true) return { error: 'You have already used this coupon.' };
   }
   const r = couponDiscount(c, cartItems());
   if(r.eligible === 0) return { error: "This coupon doesn't apply to the items in your cart." };
@@ -1603,6 +1648,10 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   }
   document.getElementById('deliveryError').classList.add('hidden');
   state.lastDeliveryLocation = deliveryLocation;
+  const utr = (document.getElementById('coUtr').value || '').trim();
+  const utrErr = document.getElementById('utrError');
+  if(!/^\d{12}$/.test(utr)){ utrErr.classList.remove('hidden'); document.getElementById('coUtr').focus(); return; }
+  utrErr.classList.add('hidden');
   btn.disabled = true;
   btn.style.opacity = '0.6';
   btn.textContent = 'Placing order...';
@@ -1642,7 +1691,13 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
     };
     // coupon columns are only sent when a coupon was used, so normal orders keep working
     if(usedCoupon){ orderRow.discount = t.discount; orderRow.coupon_code = usedCoupon.code; }
-    const { error } = await db.from('orders').insert(orderRow);
+    orderRow.payment_ref = utr;
+    let { error } = await db.from('orders').insert(orderRow);
+    if(error && /payment_ref|payment_verified/.test(error.message || '')){
+      // payments.sql not run yet: never lose the order, keep the UTR in the delivery note instead
+      delete orderRow.payment_ref; orderRow.delivery_location = deliveryLocation + ' [UTR ' + utr + ']';
+      ({ error } = await db.from('orders').insert(orderRow));
+    }
     if(error) console.error('order save error:', error.message || JSON.stringify(error));
     else if(usedCoupon){ db.rpc('redeem_coupon', { p_code: usedCoupon.code }).then(({error:e2}) => { if(e2) console.error('coupon count error:', e2.message || e2); }); }
   } catch(err) {
@@ -1695,7 +1750,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   // save/update customer profile (fire and forget) — upsert on phone
   // so logging in again updates the same profile instead of duplicating it
   if(db){
-    db.from('customers').upsert({ name, phone, year, college, department }, { onConflict: 'phone' }).then(({error}) => {
+    db.rpc('upsert_customer', { p_name: name, p_phone: phone, p_year: year, p_college: college, p_department: department }).then(({error}) => {
       if(error) console.error('customer save error:', error.message || JSON.stringify(error));
     });
   }
@@ -1703,10 +1758,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   // load this customer's past orders from the database
   try {
     if(!db) throw new Error('database not available');
-    const { data, error } = await db.from('orders')
-      .select('*')
-      .eq('customer_phone', phone)
-      .order('created_at', { ascending: false });
+    const { data, error } = await db.rpc('my_orders', { p_phone: phone });
     if(!error && data){
       state.orders = data.map(o => ({
         id: o.order_code, items: o.items, subtotal: o.subtotal,
@@ -1726,6 +1778,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   }
 });
 
+var rvDone = new Set();
 // my orders drawer
 const ordersOverlay = document.getElementById('ordersOverlay');
 const ordersDrawer = document.getElementById('ordersDrawer');
@@ -1774,6 +1827,7 @@ function renderOrdersDrawer(){
       <div class="row-sb total" style="margin-top:${o.discount > 0 ? 4 : 8}px;"><span>Total</span><span class="mono">${money(o.subtotal - (o.discount || 0))}</span></div>
       <div class="meta">Paid online: ${money(o.advance)} · COD due: ${money(o.cod)}</div>
       <a href="invoice.html?order=${o.id}" target="_blank" style="display:block; text-align:center; font-size:12px; color:var(--cyan); text-decoration:none; margin-top:10px;">🧾 View invoice</a>
+      ${o.status==='Delivered' && !rvDone.has(o.id) ? `<button class="btn-outline" style="width:100%; margin-top:8px; background:none; font-size:12px; padding:8px;" data-rate-order="${o.id}">⭐ Rate this order</button>` : (o.status==='Delivered' ? '<div class="meta" style="text-align:center; margin-top:8px;">⭐ Thanks for your review</div>' : '')}
       ${o.returnRequested
         ? `<div class="meta" style="color:var(--pink); text-align:center; margin-top:6px;">${o.returnType === 'replace' ? '🔁 Replace requested' : '↩️ Return requested'}</div>`
         : withinReturnWindow(o)
@@ -1799,12 +1853,7 @@ async function requestReturn(orderCode, returnType){
 
   if(db){
     try {
-      await db.from('orders').update({
-        return_requested: true,
-        return_type: returnType,
-        return_reason: reason.trim(),
-        return_requested_at: new Date().toISOString()
-      }).eq('order_code', orderCode);
+      await db.rpc('request_return', { p_code: orderCode, p_phone: state.user ? state.user.phone : '', p_type: returnType, p_reason: reason.trim() });
     } catch(err) {
       console.error('return request save failed:', err.message || err);
     }
@@ -2454,7 +2503,57 @@ renderChips();
     loadUserOrders(state.user.phone);
   }
 })();
+// ---- reviews ----
+const rvEsc = t => String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let rvRating = 0, rvOrder = null;
+async function loadReviews(){
+  const grid = document.getElementById('rvGrid'); if(!grid) return;
+  try{
+    if(!db) throw new Error('no db');
+    const { data, error } = await db.from('reviews').select('*').eq('status','approved').order('created_at',{ascending:false}).limit(60);
+    if(error) throw error;
+    if(!data.length){ grid.innerHTML = '<div class="rv-empty">No reviews yet — be the first to order and tell us how it went.</div>'; document.getElementById('rvAvg').textContent=''; return; }
+    const avg = data.reduce((a,r)=>a+r.rating,0)/data.length;
+    document.getElementById('rvAvg').textContent = '★ '+avg.toFixed(1)+' · '+data.length+' review'+(data.length>1?'s':'');
+    grid.innerHTML = data.map(r=>`<div class="rv-card"><div class="rv-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>${r.comment?`<p>${rvEsc(r.comment)}</p>`:''}<div class="rv-meta">${rvEsc(r.customer_name)}${r.customer_college?' · '+rvEsc(r.customer_college):''} · Verified order</div></div>`).join('');
+  }catch(e){ grid.innerHTML = '<div class="rv-empty">Reviews unavailable right now.</div>'; }
+}
+async function loadMyReviewed(){
+  try{
+    const codes = state.orders.map(o=>o.id); if(!db||!codes.length) return;
+    const { data } = await db.from('reviews').select('order_code').in('order_code',codes);
+    rvDone = new Set((data||[]).map(r=>r.order_code)); renderOrdersDrawer();
+  }catch(e){}
+}
+function openReview(code){
+  rvOrder = code; rvRating = 0;
+  document.getElementById('rvCode').textContent = '#'+code;
+  document.getElementById('rvText').value=''; document.getElementById('rvMsg').textContent='';
+  const sp = document.getElementById('rvStars');
+  sp.innerHTML = [1,2,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-label="${n} star">★</button>`).join('');
+  sp.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ rvRating=+b.dataset.n; sp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n<=rvRating)); }));
+  document.getElementById('rvOverlay').style.display='flex';
+}
+document.getElementById('rvCancel').addEventListener('click',()=>{document.getElementById('rvOverlay').style.display='none';});
+document.getElementById('rvSubmit').addEventListener('click', async ()=>{
+  const msg = document.getElementById('rvMsg');
+  if(!rvRating){ msg.textContent='Please pick a star rating.'; return; }
+  let u={}; try{u=JSON.parse(localStorage.getItem('circuitrun_user')||'{}');}catch(e){}
+  const btn = document.getElementById('rvSubmit'); btn.disabled=true; msg.textContent='Submitting…';
+  try{
+    const { error } = await db.from('reviews').insert({ order_code: rvOrder, customer_name: (u.name||'Student').split(' ')[0], customer_college: u.college||null, rating: rvRating, comment: document.getElementById('rvText').value.trim()||null, status:'pending' });
+    if(error) throw error;
+    rvDone.add(rvOrder); renderOrdersDrawer();
+    msg.textContent='Thanks! Your review will appear after a quick check.';
+    setTimeout(()=>{document.getElementById('rvOverlay').style.display='none';},1400);
+  }catch(e){ msg.textContent = /duplicate|unique/i.test(e.message||'') ? 'You already reviewed this order.' : 'Could not submit. Try again.'; }
+  btn.disabled=false;
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-rate-order]'); if(b) openReview(b.dataset.rateOrder);});
+setTimeout(loadReviews,800);
+
 </script>
 <script src="chatbot.js" defer></script>
+
 </body>
 </html>
