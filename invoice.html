@@ -108,9 +108,12 @@
     <div class="inv-totals" id="invTotals"></div>
 
     <div class="inv-footer-note">
-      Advance paid online at checkout. Remaining balance is due in cash on delivery.
+      <div id="invPayNote">Advance paid online at checkout. Remaining balance is due in cash on delivery.</div>
       Return/replace requests are accepted within 7 days of delivery — see "My Orders" on the site,
       or message us on WhatsApp with your order code.
+      <div style="margin-top:10px;">This is a computer-generated invoice and needs no signature. It is produced live from the order record
+      <span class="mono" id="invRef"></span>, so the status and amounts shown always match what our system holds.</div>
+      <div style="margin-top:10px; font-weight:700; color:var(--text);">Thank you for ordering from CircuitRun. Visit again for your next components and project kits!</div>
     </div>
   </div>
 </div>
@@ -178,14 +181,22 @@ async function loadInvoice(){
       </tr>
     `).join('');
 
+    const paidInFull = data.status === 'Delivered';
     document.getElementById('invTotals').innerHTML = `
       <div class="row"><span>Subtotal</span><span class="mono">${money(data.subtotal)}</span></div>
       ${data.discount > 0 ? `
       <div class="row" style="color:var(--lime);"><span>Discount${data.coupon_code ? ' (' + crEsc(data.coupon_code) + ')' : ''}</span><span class="mono">− ${money(data.discount)}</span></div>
       <div class="row" style="font-weight:700;"><span>Order total</span><span class="mono">${money(data.subtotal - data.discount)}</span></div>` : ''}
       <div class="row"><span>Advance paid (online)</span><span class="mono">${money(data.advance)}</span></div>
-      <div class="row grand"><span>Balance due (COD)</span><span class="mono">${money(data.cod)}</span></div>
+      ${paidInFull
+        ? `<div class="row"><span>Paid on delivery (COD)</span><span class="mono">${money(data.cod)}</span></div>
+           <div class="row grand" style="color:var(--lime);"><span>Payment complete</span><span class="mono">${money(data.advance + data.cod)} paid</span></div>`
+        : `<div class="row grand"><span>Balance due (COD)</span><span class="mono">${money(data.cod)}</span></div>`}
     `;
+    document.getElementById('invPayNote').textContent = paidInFull
+      ? 'Payment received in full (advance online + balance on delivery). Nothing is due on this order.'
+      : 'Advance paid online at checkout. Remaining balance is due in cash on delivery.';
+    document.getElementById('invRef').textContent = '#' + data.order_code;
 
     card.classList.remove('hidden');
   } catch(err) {
