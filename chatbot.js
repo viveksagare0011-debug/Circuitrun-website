@@ -211,13 +211,13 @@
   var handlers = {
     greet: function (h) {
       var r = R(), nm = G(function () { return String(state.user.name).split(' ')[0].replace(/\*/g, '').slice(0, 20); }, '');
-      T(r, pick('Hi' + (nm ? ' ' + nm : '') + '! 👋 I\'m Volty, the CircuitRun assistant. Ask me about components, project kits, delivery, payment or returns.',
-        'Hi' + (nm ? ' ' + nm : '') + '! 👋 Main Volty hoon, CircuitRun ka assistant. Components, project kits, delivery, payment ya returns — kuch bhi pucho.', h));
+      T(r, pick('Hi' + (nm ? ' ' + nm : '') + '! I\'m Volty, the CircuitRun assistant. Ask me about components, project kits, delivery, payment or returns.',
+        'Hi' + (nm ? ' ' + nm : '') + '! Main Volty hoon, CircuitRun ka assistant. Components, project kits, delivery, payment ya returns — kuch bhi pucho.', h));
       r.chips = starterChips(h); return r;
     },
     ack: function (h) { var r = R(); T(r, pick('👍 Anything else I can help with?', '👍 Aur kuch madad chahiye?', h)); r.chips = starterChips(h); return r; },
-    thanks: function (h) { var r = R(); T(r, pick('Happy to help! Anything else?', 'Koi baat nahi! Aur kuch chahiye to pucho 🙂', h)); r.chips = starterChips(h); return r; },
-    bye: function (h) { var r = R(); T(r, pick('Bye! Happy building ⚡', 'Bye! Happy building ⚡', h)); return r; },
+    thanks: function (h) { var r = R(); T(r, pick('Happy to help! Anything else?', 'Koi baat nahi! Aur kuch chahiye to pucho', h)); r.chips = starterChips(h); return r; },
+    bye: function (h) { var r = R(); T(r, pick('Bye! Happy building', 'Bye! Happy building', h)); return r; },
     whoami: function (h) {
       var r = R();
       T(r, pick('I\'m an automated assistant on the CircuitRun site — not a human. I answer from this site\'s catalog, project kits and policies. If I\'m not sure about something, I\'ll say so and point you to the owner on WhatsApp.',
@@ -286,11 +286,11 @@
       if (o && o.id) {
         var tail = ' (advance ' + rupee(o.advance) + ', COD ' + rupee(o.cod) + ').' + (o.batchLabel ? ' Batch run: ' + o.batchLabel + '.' : '');
         T(r, pick('Your latest order **#' + o.id + '**: status **' + o.status + '**, total ' + rupee(o.subtotal) + tail, 'Tumhara latest order **#' + o.id + '**: status **' + o.status + '**, total ' + rupee(o.subtotal) + tail, h));
-        T(r, pick('All your orders are under **📦 My Orders**.', 'Saare orders **📦 My Orders** mein hain.', h));
+        T(r, pick('All your orders are under **My Orders**.', 'Saare orders **My Orders** mein hain.', h));
         return r;
       }
-      T(r, pick('Open **📦 My Orders** at the top of the site (log in with your WhatsApp number) to see your orders and status — Confirmed → Packed → Out for Delivery → Delivered. Return/Replace buttons are there too.',
-        'Site ke upar **📦 My Orders** kholo (WhatsApp number se login) — wahan orders aur status dikhega: Confirmed → Packed → Out for Delivery → Delivered. Return/Replace button bhi wahin hai.', h));
+      T(r, pick('Open **My Orders** at the top of the site (log in with your WhatsApp number) to see your orders and status — Confirmed → Packed → Out for Delivery → Delivered. Return/Replace buttons are there too.',
+        'Site ke upar **My Orders** kholo (WhatsApp number se login) — wahan orders aur status dikhega: Confirmed → Packed → Out for Delivery → Delivered. Return/Replace button bhi wahin hai.', h));
       return r;
     },
     login: function (h) {
@@ -776,7 +776,7 @@
         b.addEventListener('click', function () {
           logEvent(q, 'feedback', !reply.fallback, x[1]);
           fb.textContent = '';
-          if (x[1]) fb.appendChild(document.createTextNode('Thanks! 🙌'));
+          if (x[1]) fb.appendChild(document.createTextNode('Thanks!'));
           else { fb.appendChild(document.createTextNode('Sorry about that. ')); var wa = mk('a', '', 'Ask the owner'); wa.href = waLink('Hi CircuitRun, your assistant could not answer: ' + String(q).slice(0, 120)); wa.target = '_blank'; wa.rel = 'noopener noreferrer'; fb.appendChild(wa); }
         });
         fb.appendChild(b);
@@ -884,7 +884,7 @@
     var st = mk('style'); st.textContent = css; document.head.appendChild(st);
 
     el.fab = mk('button'); el.fab.id = 'crbot-fab'; el.fab.type = 'button'; el.fab.setAttribute('aria-label', 'Open CircuitRun assistant'); el.fab.appendChild(robot('crb-live'));
-    el.tip = mk('div'); el.tip.id = 'crbot-tip'; el.tip.appendChild(document.createTextNode('Need a part or have a question? Ask me ⚡'));
+    el.tip = mk('div'); el.tip.id = 'crbot-tip'; el.tip.appendChild(document.createTextNode('Need a part or have a question? Ask me'));
     var tx = mk('button', '', '✕'); tx.type = 'button'; tx.setAttribute('aria-label', 'Dismiss'); el.tip.appendChild(tx);
     el.panel = mk('div'); el.panel.id = 'crbot-panel'; el.panel.setAttribute('role', 'dialog'); el.panel.setAttribute('aria-label', 'CircuitRun assistant');
     var head = mk('div'); head.id = 'crbot-head';
@@ -892,7 +892,7 @@
     var tt = mk('div', 't'); tt.appendChild(mk('b', '', 'Volty · CircuitRun assistant'));
     var sm = mk('small'); sm.appendChild(mk('span', 'crb-dot')); sm.appendChild(document.createTextNode('Parts · Kits · Delivery')); tt.appendChild(sm);
     head.appendChild(tt);
-    var clr = mk('button', '', '🗑'); clr.type = 'button'; clr.title = 'Clear chat'; clr.setAttribute('aria-label', 'Clear chat');
+    var clr = mk('button', '', ''); clr.type = 'button'; clr.title = 'Clear chat'; clr.setAttribute('aria-label', 'Clear chat');
     var cls = mk('button', '', '✕'); cls.type = 'button'; cls.setAttribute('aria-label', 'Close chat');
     head.appendChild(clr); head.appendChild(cls);
     el.msgs = mk('div'); el.msgs.id = 'crbot-msgs'; el.msgs.setAttribute('aria-live', 'polite');

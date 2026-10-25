@@ -54,6 +54,45 @@
   .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
   .tab-btn { background: none; border: none; color: var(--muted); padding: 10px 16px; font-size: 13px; font-weight: 700; border-bottom: 2px solid transparent; white-space: nowrap; }
   .tab-btn.active { color: var(--lime); border-bottom-color: var(--lime); }
+  /* ---- analytics dashboard ---- */
+  #tab-dashboard { --d-s1:#3987e5; --d-s2:#d95926; --d-s3:#199e70; --d-s4:#c98500; --d-s5:#d55181; --d-grid:#2c2c39; --d-other:#6b6a78; }
+  .db-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+  .db-chip { background:var(--bg-card); color:var(--muted); border:1px solid var(--line); padding:7px 14px; border-radius:999px; font-size:12px; font-weight:700; }
+  .db-chip.on { color:#12121A; background:var(--lime); border-color:var(--lime); }
+  .db-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+  .db-kpi { background:var(--bg-card); border:1px solid var(--line); border-radius:12px; padding:14px; min-width:0; }
+  .db-kpi .v { font-size:22px; font-weight:800; font-family:'Space Grotesk',sans-serif; overflow-wrap:anywhere; }
+  .db-kpi .l { font-size:11px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+  .db-kpi .n { font-size:11px; color:var(--muted); margin-top:4px; }
+  .db-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .db-card { background:var(--bg-card); border:1px solid var(--line); border-radius:12px; padding:14px; min-width:0; }
+  .db-card.wide { grid-column:1 / -1; }
+  .db-card h3 { font-size:13px; margin:0 0 2px; font-weight:800; }
+  .db-card .hint { font-size:11px; color:var(--muted); margin:0 0 10px; }
+  .db-head { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .db-tbtn { background:none; border:1px solid var(--line); color:var(--muted); border-radius:8px; font-size:11px; padding:3px 9px; flex-shrink:0; }
+  .db-tbl { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+  .db-tbl th, .db-tbl td { text-align:left; padding:5px 6px; border-bottom:1px solid var(--line); }
+  .db-tbl td:last-child, .db-tbl th:last-child { text-align:right; }
+  .db-svg { width:100%; height:auto; display:block; touch-action:pan-y; }
+  .db-svg text { fill:var(--muted); font-size:8px; font-family:'IBM Plex Mono',monospace; }
+  .db-bars .row { display:grid; grid-template-columns:minmax(70px,34%) 1fr auto; gap:8px; align-items:center; padding:3px 0; font-size:12px; }
+  .db-bars .nm { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .db-bars .trk { height:10px; background:rgba(255,255,255,.05); border-radius:5px; overflow:hidden; }
+  .db-bars .fill { height:100%; border-radius:0 4px 4px 0; background:var(--d-s1); }
+  .db-bars .row:hover .fill, .db-bars .row:focus .fill { filter:brightness(1.25); }
+  .db-bars .val { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); white-space:nowrap; }
+  .db-seg { display:flex; height:14px; gap:2px; border-radius:7px; overflow:hidden; margin:6px 0 10px; }
+  .db-seg > i { display:block; min-width:3px; }
+  .db-leg { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; }
+  .db-leg span { display:inline-flex; align-items:center; gap:6px; }
+  .db-leg b { width:12px; height:3px; border-radius:2px; display:inline-block; }
+  .db-leg em { font-style:normal; color:var(--text); font-family:'IBM Plex Mono',monospace; }
+  .db-empty { color:var(--muted); font-size:12px; padding:10px 0; }
+  #dbTip { position:fixed; z-index:99; pointer-events:none; background:#0d0d14; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:12px; max-width:220px; display:none; }
+  #dbTip .tv { font-weight:800; font-size:14px; }
+  #dbTip .tl { color:var(--muted); font-size:11px; }
+  @media (max-width:700px){ .db-svg text{font-size:14px;} .db-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} .db-grid{grid-template-columns:minmax(0,1fr);} }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
@@ -102,7 +141,7 @@
 <body>
 
 <div class="gate" id="gate">
-  <div style="font-size:28px;">🔐</div>
+  
   <h1 style="margin-top:8px;">Admin access</h1>
   <p class="sub">Owner-only dashboard</p>
   <input type="email" id="emailInput" placeholder="Admin email" autocomplete="username">
@@ -114,34 +153,32 @@
 <div class="wrap hidden" id="dashboard">
   <div class="topbar">
     <div>
-      <h1>⚡ CircuitRun Admin</h1>
+      <h1>CircuitRun Admin</h1>
       <p class="sub">Manage orders, catalog, project kits, and blog — all in one place.</p>
     </div>
     <button class="refresh-btn" id="refreshBtn">↻ Refresh</button>
-      <button class="btn-secondary" id="alertsBtn" onclick="toggleAlerts()">🔔 Enable alerts</button>
-      <button class="btn-secondary" onclick="runSystemCheck()">🩺 System check</button>
+      <button class="btn-secondary" id="alertsBtn" onclick="toggleAlerts()">Enable alerts</button>
+      <button class="btn-secondary" onclick="runSystemCheck()">System check</button>
       <button class="btn-secondary" onclick="adminLogout()">Sign out</button>
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="orders">📦 Orders</button>
-    <button class="tab-btn" data-tab="components">🔧 Components</button>
-    <button class="tab-btn" data-tab="projects">🚀 Projects</button>
-    <button class="tab-btn" data-tab="coupons">🎟️ Coupons</button>
-    <button class="tab-btn" data-tab="reviews">⭐ Reviews <span class="rv-badge hidden" id="rvPendingBadge"></span></button>
-    <button class="tab-btn" data-tab="blog">📰 Blog</button>
+    <button class="tab-btn active" data-tab="orders">Orders</button>
+    <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="components">Components</button>
+    <button class="tab-btn" data-tab="projects">Projects</button>
+    <button class="tab-btn" data-tab="coupons">Coupons</button>
+    <button class="tab-btn" data-tab="reviews">Reviews <span class="rv-badge hidden" id="rvPendingBadge"></span></button>
+    <button class="tab-btn" data-tab="blog">Blog</button>
   </div>
 
   <div class="tab-panel active" id="tab-orders">
     <div class="banner hidden" id="newOrdersBanner"><span id="newOrdersText"></span><button class="btn-secondary btn-small" id="markSeenBtn">✓ Mark all seen</button></div>
     <div class="stats" id="stats"></div>
     <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
-      <input id="orderSearchInput" placeholder="🔍 Search by order number, name, or phone..." style="flex:1; min-width:200px;">
-      <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">🔄 Returns only</button>
-      <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">⬇️ Export CSV…</button>
-      <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); text-transform:none; white-space:nowrap;">
-        <input type="checkbox" id="notifyToggle" checked style="width:auto;"> 🔔 Notify on status change
-      </label>
+      <input id="orderSearchInput" placeholder="Search by order number, name, or phone..." style="flex:1; min-width:200px;">
+      <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">Returns only</button>
+      <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">Export CSV…</button>
     </div>
     <div class="tbl-scroll"><table>
       <thead>
@@ -152,15 +189,28 @@
     <div id="emptyState" class="empty hidden">No orders yet.</div>
 
     <div style="margin-top:40px; border:1px solid var(--pink); border-radius:14px; padding:18px 20px; background:rgba(255,95,168,0.05);">
-      <h2 style="color:var(--pink); font-size:14px; margin:0 0 6px;">⚠️ Danger zone</h2>
+      <h2 style="color:var(--pink); font-size:14px; margin:0 0 6px;">Danger zone</h2>
       <p class="sub" style="margin-bottom:14px;">Permanently deletes every row in the <b>orders</b> table — order history, invoices, everything. This does <b>not</b> touch components, project kits, blog posts, or customer profiles. This cannot be undone.</p>
       <label style="display:block;">Type <span class="mono" style="color:var(--pink);">DELETE ORDERS</span> to confirm</label>
       <input id="deleteOrdersConfirmInput" placeholder="DELETE ORDERS" style="margin:8px 0 12px; max-width:280px;">
       <br>
-      <button class="btn-danger" id="deleteAllOrdersBtn" style="padding:10px 20px; font-size:13px;" disabled>🗑️ Delete all orders</button>
+      <button class="btn-danger" id="deleteAllOrdersBtn" style="padding:10px 20px; font-size:13px;" disabled>Delete all orders</button>
       <p class="err hidden" id="deleteOrdersMsg" style="margin-top:10px;"></p>
     </div>
   </div>
+
+  <div class="tab-panel" id="tab-dashboard">
+    <div class="db-filters" id="dbFilters" role="group" aria-label="Date range">
+      <button class="db-chip" data-r="7">7 days</button>
+      <button class="db-chip on" data-r="30">30 days</button>
+      <button class="db-chip" data-r="90">90 days</button>
+      <button class="db-chip" data-r="0">All time</button>
+      <span class="sub" id="dbRangeNote" style="margin:0 0 0 6px;"></span>
+    </div>
+    <div class="db-kpis" id="dbKpis"></div>
+    <div class="db-grid" id="dbGrid"></div>
+  </div>
+  <div id="dbTip" role="tooltip"></div>
 
   <div class="tab-panel" id="tab-components">
     <div class="topbar" style="margin-bottom:0;">
@@ -318,7 +368,7 @@
     </div>
     <div class="field hidden" id="cpCatWrap"><label>Pick categories</label><div class="pick-list" id="cpCatList"></div></div>
     <div class="field hidden" id="cpItemWrap"><label>Pick components</label>
-      <input id="cpItemSearch" placeholder="🔍 Search components..." style="margin-bottom:6px;">
+      <input id="cpItemSearch" placeholder="Search components..." style="margin-bottom:6px;">
       <div class="pick-list" id="cpItemList"></div>
     </div>
     <div class="field-row">
@@ -342,7 +392,7 @@
 
 <div class="modal-overlay" id="exportModal">
   <div class="modal">
-    <h3>⬇️ Export orders to CSV</h3>
+    <h3>Export orders to CSV</h3>
     <p class="sub" style="margin-bottom:12px;">Choose which orders to download. Orders are numbered <b>#1 = oldest</b>, so a bigger number is a newer order.</p>
     <div class="seg">
       <button type="button" id="exModeDate" class="on">By date</button>
@@ -384,8 +434,8 @@
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
       <h3 style="margin:0;" id="invModalTitle">Invoice</h3>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn-secondary btn-small" id="invCopyBtn">📋 Copy customer link</button>
-        <button class="add-btn btn-small" id="invPrintBtn" style="padding:6px 14px;">🖨️ Print / PDF</button>
+        <button class="btn-secondary btn-small" id="invCopyBtn">Copy customer link</button>
+        <button class="add-btn btn-small" id="invPrintBtn" style="padding:6px 14px;">Print / PDF</button>
         <button class="btn-secondary btn-small" id="invCloseBtn">✕ Close</button>
       </div>
     </div>
@@ -450,6 +500,7 @@ function loadAll(){
   loadBlog();
   loadCoupons();
   loadReviewsAdmin();
+  loadDashboardReviews();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -482,7 +533,7 @@ function updateNewBanner(){
   const fresh = ordersCache.filter(o => new Date(o.created_at).getTime() > seen);
   const banner = document.getElementById('newOrdersBanner');
   banner.classList.toggle('hidden', fresh.length === 0);
-  document.getElementById('newOrdersText').textContent = `🔔 ${fresh.length} new order${fresh.length === 1 ? '' : 's'} since you last checked`;
+  document.getElementById('newOrdersText').textContent = `${fresh.length} new order${fresh.length === 1 ? '' : 's'} since you last checked`;
   document.title = (fresh.length ? `(${fresh.length}) ` : '') + 'CircuitRun Admin';
 }
 document.getElementById('markSeenBtn').addEventListener('click', () => {
@@ -529,6 +580,7 @@ async function loadOrders(silent){
   `;
 
   updateNewBanner();
+  if(typeof renderDashboard === 'function') renderDashboard();
   if(!silent || changed) applyOrderFilters(document.getElementById('orderSearchInput').value.trim().toLowerCase());
 }
 
@@ -553,26 +605,27 @@ function renderOrdersTable(data){
 
   body.innerHTML = data.map(o => `
     <tr style="${o.return_requested ? 'background:rgba(255,95,168,0.06);' : ''}">
-      <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${o.order_code} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${o.order_code}')">🧾 Invoice</button></td>
+      <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${o.order_code} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${o.order_code}')">Invoice</button></td>
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
-      <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">📍 ${o.delivery_location || 'not specified'}</span></td>
+      <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">${o.delivery_location || 'not specified'}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
-      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(o.subtotal)}</s> ${money(netOf(o))}<br><span style="color:var(--lime); font-size:11px;">🎟️ ${o.coupon_code || 'coupon'} −${money(o.discount)}</span>` : money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${o.payment_ref}</span><br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${o.order_code}', this.checked)"> ${o.payment_verified?'✅ Verified in bank':'Verify in bank app'}</label>` : ''}</td>
+      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(o.subtotal)}</s> ${money(netOf(o))}<br><span style="color:var(--lime); font-size:11px;">${o.coupon_code || 'coupon'} −${money(o.discount)}</span>` : money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${o.payment_ref}</span><br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${o.order_code}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
       <td>
-        ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${o.order_code}')">✅ Accept order</button><br>` : ''}
+        ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${o.order_code}')">Accept order</button><br>` : ''}
         <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
           <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
           <option value="Packed" ${o.status==='Packed'?'selected':''}>Packed</option>
           <option value="Out for Delivery" ${o.status==='Out for Delivery'?'selected':''}>Out for Delivery</option>
           <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
         </select>
+        <br><button class="btn-secondary btn-small" style="margin-top:6px; color:var(--pink); border-color:var(--pink);" onclick="deleteOneOrder('${o.order_code}')">Delete order</button>
       </td>
       <td style="max-width:170px;">
         ${o.return_requested
-          ? `<span class="badge" style="background:rgba(255,95,168,0.15); color:var(--pink);">${o.return_type === 'replace' ? '🔁 Replace' : '↩️ Return'}</span>
+          ? `<span class="badge" style="background:rgba(255,95,168,0.15); color:var(--pink);">${o.return_type === 'replace' ? 'Replace' : 'Return'}</span>
              <div style="font-size:11px; color:var(--muted); margin:6px 0;">${o.return_reason || ''}</div>
              <div style="font-size:10px; color:var(--muted); margin-bottom:6px;">${o.return_requested_at ? new Date(o.return_requested_at).toLocaleString() : ''}</div>
-             <button class="btn-secondary btn-small" onclick="markReturnHandled('${o.order_code}')">✅ Mark handled</button>`
+             <button class="btn-secondary btn-small" onclick="markReturnHandled('${o.order_code}')">Mark handled</button>`
           : `<span style="color:var(--muted); font-size:12px;">—</span>`
         }
       </td>
@@ -716,9 +769,9 @@ exEl('invPrintBtn').addEventListener('click', () => {
 });
 exEl('invCopyBtn').addEventListener('click', async () => {
   const url = new URL(`invoice.html?order=${encodeURIComponent(invCode)}`, window.location.href).href;
-  try { await navigator.clipboard.writeText(url); exEl('invCopyBtn').textContent = '✅ Copied'; }
+  try { await navigator.clipboard.writeText(url); exEl('invCopyBtn').textContent = 'Copied'; }
   catch(e){ prompt('Copy this link:', url); }
-  setTimeout(() => { exEl('invCopyBtn').textContent = '📋 Copy customer link'; }, 1800);
+  setTimeout(() => { exEl('invCopyBtn').textContent = 'Copy customer link'; }, 1800);
 });
 
 async function markReturnHandled(orderCode){
@@ -914,17 +967,17 @@ deleteAllOrdersBtn.addEventListener('click', async () => {
     const { error } = await db.from('orders').delete().gte('created_at', '1970-01-01');
     if(error) throw error;
 
-    msgEl.textContent = '✅ All orders deleted.';
+    msgEl.textContent = 'All orders deleted.';
     msgEl.style.color = 'var(--lime)';
     msgEl.classList.remove('hidden');
     deleteOrdersConfirmInput.value = '';
     loadOrders();
   } catch(err) {
-    msgEl.textContent = '❌ Failed: ' + (err.message || err);
+    msgEl.textContent = 'Failed: ' + (err.message || err);
     msgEl.style.color = 'var(--pink)';
     msgEl.classList.remove('hidden');
   } finally {
-    deleteAllOrdersBtn.textContent = '🗑️ Delete all orders';
+    deleteAllOrdersBtn.textContent = 'Delete all orders';
     deleteAllOrdersBtn.disabled = true;
   }
 });
@@ -957,20 +1010,11 @@ document.getElementById('orderSearchInput').addEventListener('input', (e) => {
   applyOrderFilters(e.target.value.trim().toLowerCase());
 });
 
-const STATUS_MESSAGES = {
-  'Confirmed': (o) => `Hey ${o.customer_name}! 👋 Your CircuitRun order #${o.order_code} is confirmed ✅. We'll update you as it moves along.`,
-  'Packed': (o) => `📦 Update on order #${o.order_code}: it's been packed and is ready for the batch run!`,
-  'Out for Delivery': (o) => `🚲 Your CircuitRun order #${o.order_code} is out for delivery — it should reach you soon!`,
-  'Delivered': (o) => `✅ Order #${o.order_code} has been delivered. Thanks for ordering with CircuitRun! If anything's wrong with it, you can request a return/replace from "My Orders" on the site within 7 days.`
-};
 
 async function updateOrderStatus(orderCode, newStatus){
-  const notifyEnabled = document.getElementById('notifyToggle').checked;
-  const notifyWindow = notifyEnabled ? window.open('', '_blank') : null;
-
+  // Customers see the new status in "My Orders" and on their invoice; nothing is sent to WhatsApp.
   try {
-    const payload = { status: newStatus };
-    payload.acknowledged = true;
+    const payload = { status: newStatus, acknowledged: true };
     if(newStatus === 'Delivered') payload.delivered_at = new Date().toISOString();
     let { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
     if(error && /acknowledged/.test(error.message || '')){   // notifications.sql not run yet
@@ -978,21 +1022,23 @@ async function updateOrderStatus(orderCode, newStatus){
       ({ error } = await db.from('orders').update(payload).eq('order_code', orderCode));
     }
     if(error) throw error;
-
-    const order = ordersCache.find(o => o.order_code === orderCode);
-    if(notifyWindow){
-      if(order && order.customer_phone && STATUS_MESSAGES[newStatus]){
-        const msg = STATUS_MESSAGES[newStatus](order);
-        notifyWindow.location.href = `https://wa.me/91${order.customer_phone}?text=${encodeURIComponent(msg)}`;
-      } else {
-        notifyWindow.close();
-      }
-    }
     loadOrders();
   } catch(err) {
-    if(notifyWindow) notifyWindow.close();
     alert('Status update failed: ' + (err.message || err));
+    loadOrders();
   }
+}
+
+async function deleteOneOrder(orderCode){
+  const o = ordersCache.find(x => x.order_code === orderCode);
+  const label = o ? `#${o.order_code} (${o.customer_name}, ${money(netOf(o))})` : `#${orderCode}`;
+  if(!confirm(`Delete order ${label}?\n\nThis removes it permanently, including its invoice and any review link. It cannot be undone.`)) return;
+  const { error } = await db.from('orders').delete().eq('order_code', orderCode);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  // a review for a deleted order would be orphaned; remove it too (ignore if none or not allowed)
+  try { await db.from('reviews').delete().eq('order_code', orderCode); } catch(e){}
+  loadOrders();
+  if(typeof loadReviewsAdmin === 'function') loadReviewsAdmin();
 }
 
 let componentsCache = [];
@@ -1371,7 +1417,7 @@ async function runSystemCheck(){
   const dlg = document.getElementById('sysDlg'), out = document.getElementById('sysOut');
   out.textContent = 'Running…'; dlg.showModal();
   const rows = [];
-  const add = (ok, label, hint) => rows.push(`${ok?'✅':'❌'} ${label}${!ok&&hint?`<div style="color:var(--muted); font-size:12px; margin-left:22px;">${hint}</div>`:''}`);
+  const add = (ok, label, hint) => rows.push(`<b style="color:${ok?'var(--lime)':'var(--pink)'}">${ok?'OK':'FAIL'}</b> ${label}${!ok&&hint?`<div style="color:var(--muted); font-size:12px; margin-left:0;">${hint}</div>`:''}`);
   const probe = async (label, fn, hint) => { try{ const r = await fn(); add(!r.error, label, hint + (r.error?' ('+r.error.message+')':'')); }catch(e){ add(false,label,hint+' ('+e.message+')'); } };
   const { data: sess } = await db.auth.getSession();
   add(!!(sess && sess.session), 'Signed in as admin' + (sess && sess.session && sess.session.user ? ' ('+sess.session.user.email+')' : ''), 'Sign out and sign in again.');
@@ -1394,9 +1440,9 @@ const pushSupported = () => ('serviceWorker' in navigator) && ('PushManager' in 
 async function currentPushSub(){ try{ const reg = await navigator.serviceWorker.getRegistration(); return reg ? await reg.pushManager.getSubscription() : null; }catch(e){ return null; } }
 async function refreshAlertsBtn(){
   const b = document.getElementById('alertsBtn'); if(!b) return;
-  if(!pushSupported()){ b.textContent = '🔔 Alerts not supported here'; b.disabled = true; return; }
+  if(!pushSupported()){ b.textContent = 'Alerts not supported here'; b.disabled = true; return; }
   const sub = await currentPushSub();
-  b.textContent = (sub && Notification.permission === 'granted') ? '🔔 Alerts ON (tap to turn off)' : '🔔 Enable alerts';
+  b.textContent = (sub && Notification.permission === 'granted') ? 'Alerts ON (tap to turn off)' : 'Enable alerts';
 }
 async function toggleAlerts(){
   if(!pushSupported()){ alert('This browser cannot do push alerts. On iPhone, add the admin page to the Home Screen first (iOS 16.4 or newer).'); return; }
@@ -1419,6 +1465,246 @@ async function toggleAlerts(){
 }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 refreshAlertsBtn();
+
+// ================= ANALYTICS DASHBOARD =================
+let dbRange = 30;
+let dbReviews = [];
+const dbOpenTables = new Set();
+const DB_COLORS = ['var(--d-s1)','var(--d-s2)','var(--d-s3)','var(--d-s4)','var(--d-s5)'];
+const dbEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dbDay = (d) => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0'); };
+const dbInr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+
+function dbCount(list, keyFn, valFn){
+  const m = new Map();
+  list.forEach(o => { const k = keyFn(o); if(k === null || k === undefined || k === '') return; const e = m.get(k) || { label:k, orders:0, value:0 }; e.orders++; e.value += valFn ? valFn(o) : 1; m.set(k, e); });
+  return [...m.values()];
+}
+
+function dbTipShow(ev, value, label){
+  const t = document.getElementById('dbTip');
+  t.innerHTML = '<div class="tv"></div><div class="tl"></div>';
+  t.firstChild.textContent = value; t.lastChild.textContent = label;
+  t.style.display = 'block';
+  const r = t.getBoundingClientRect();
+  let x = (ev.clientX || 0) + 14, y = (ev.clientY || 0) - r.height - 10;
+  if(x + r.width > window.innerWidth - 6) x = window.innerWidth - r.width - 6;
+  if(x < 6) x = 6;
+  if(y < 6) y = (ev.clientY || 0) + 18;
+  t.style.left = x + 'px'; t.style.top = y + 'px';
+}
+function dbTipHide(){ document.getElementById('dbTip').style.display = 'none'; }
+function dbTipFocus(el){ const r = el.getBoundingClientRect(); dbTipShow({clientX: r.left + r.width/2, clientY: r.top}, el.dataset.v, el.dataset.l); }
+
+function dbCard(id, title, hint, bodyHtml, rows, wide){
+  const open = dbOpenTables.has(id);
+  const tbl = `<table class="db-tbl"><thead><tr><th>${dbEsc(rows.cols[0])}</th>${rows.cols.slice(1).map(c=>`<th>${dbEsc(c)}</th>`).join('')}</tr></thead><tbody>${rows.data.map(r=>`<tr>${r.map(c=>`<td>${dbEsc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  return `<section class="db-card${wide?' wide':''}" data-id="${id}"><div class="db-head"><div><h3>${dbEsc(title)}</h3><p class="hint">${dbEsc(hint)}</p></div><button class="db-tbtn" data-t="${id}" aria-pressed="${open}">${open?'Chart':'Table'}</button></div>${open ? (rows.data.length ? tbl : '<div class="db-empty">No data in this range.</div>') : bodyHtml}</section>`;
+}
+
+// ranked horizontal bars (compare magnitude) - one hue
+function dbBars(rows, fmt, unitLabel){
+  if(!rows.length) return '<div class="db-empty">No data in this range.</div>';
+  const max = Math.max(...rows.map(r => r.v), 1);
+  return '<div class="db-bars">' + rows.map(r => `<div class="row" tabindex="0" data-v="${dbEsc(fmt(r.v))}" data-l="${dbEsc(r.label + (r.sub ? ' · ' + r.sub : ''))}"><div class="nm" title="${dbEsc(r.label)}">${dbEsc(r.label)}</div><div class="trk"><div class="fill" style="width:${r.v ? Math.max(2, r.v/max*100) : 0}%"></div></div><div class="val">${dbEsc(fmt(r.v))}</div></div>`).join('') + '</div>';
+}
+
+// part-to-whole single segmented bar + legend with counts
+function dbParts(rows, total){
+  if(!rows.length || !total) return '<div class="db-empty">No data in this range.</div>';
+  return `<div class="db-seg" role="img" aria-label="share breakdown">${rows.map((r,i)=>`<i style="flex:${r.v};background:${r.color || DB_COLORS[i % DB_COLORS.length]}" tabindex="0" data-v="${r.v} (${Math.round(r.v/total*100)}%)" data-l="${dbEsc(r.label)}"></i>`).join('')}</div>` +
+    `<div class="db-leg">${rows.map((r,i)=>`<span><b style="background:${r.color || DB_COLORS[i % DB_COLORS.length]}"></b>${dbEsc(r.label)} <em>${r.v}</em></span>`).join('')}</div>`;
+}
+
+// columns (fixed categories like weekday / hour)
+function dbCols(rows, fmt){
+  const W = 600, H = 170, padL = 34, padB = 22, padT = 8;
+  const max = Math.max(...rows.map(r => r.v), 1);
+  const iw = W - padL - 6, ih = H - padB - padT, bw = iw / rows.length;
+  let g = '';
+  [0, .5, 1].forEach(f => { const y = padT + ih - ih*f; g += `<line x1="${padL}" x2="${W-6}" y1="${y}" y2="${y}" stroke="var(--d-grid)" stroke-width="1"/><text x="${padL-6}" y="${y+3}" text-anchor="end">${Math.round(max*f)}</text>`; });
+  rows.forEach((r, i) => {
+    const h = r.v / max * ih, x = padL + i*bw + bw*0.18, w = bw*0.64;
+    g += `<rect x="${x}" y="${padT+ih-h}" width="${w}" height="${Math.max(h,0)}" rx="3" fill="var(--d-s1)" class="dbm" tabindex="0" data-v="${dbEsc(fmt(r.v))}" data-l="${dbEsc(r.label)}"/>`;
+    if(r.show !== false) g += `<text x="${x+w/2}" y="${H-6}" text-anchor="middle">${dbEsc(r.label)}</text>`;
+  });
+  return `<svg class="db-svg" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
+}
+
+// line chart over time with crosshair
+function dbLine(points, fmt, color, id){
+  if(points.length < 2) return '<div class="db-empty">Need at least two days of data.</div>';
+  const W = 600, H = 190, padL = 40, padB = 24, padT = 10, padR = 8;
+  const max = Math.max(...points.map(p => p.v), 1);
+  const iw = W - padL - padR, ih = H - padB - padT, n = points.length;
+  const X = i => padL + (n === 1 ? 0 : i/(n-1)*iw), Y = v => padT + ih - v/max*ih;
+  let g = '';
+  [0, .5, 1].forEach(f => { const y = padT + ih - ih*f; g += `<line x1="${padL}" x2="${W-padR}" y1="${y}" y2="${y}" stroke="var(--d-grid)"/><text x="${padL-6}" y="${y+3}" text-anchor="end">${dbEsc(fmt(max*f).replace(/^₹/,'₹'))}</text>`; });
+  const step = Math.max(1, Math.ceil(n / 6));
+  points.forEach((p, i) => { if(i % step === 0 || i === n-1) g += `<text x="${X(i)}" y="${H-6}" text-anchor="${i===0?'start':(i===n-1?'end':'middle')}">${dbEsc(p.short)}</text>`; });
+  const d = points.map((p,i) => (i?'L':'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
+  g += `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  g += `<line class="dbx" x1="0" x2="0" y1="${padT}" y2="${padT+ih}" stroke="var(--muted)" stroke-width="1" style="display:none"/><circle class="dbdot" r="4" fill="${color}" stroke="var(--bg-card)" stroke-width="2" style="display:none"/>`;
+  g += `<rect class="dbhit" x="${padL}" y="0" width="${iw}" height="${H}" fill="transparent" tabindex="0" data-line="${id}"/>`;
+  return `<svg class="db-svg dbline" id="svg-${id}" viewBox="0 0 ${W} ${H}" role="img" data-pts="${dbEsc(JSON.stringify(points.map(p=>[p.v,p.full])))}" data-fmt="${fmt === dbInr ? 'inr' : 'n'}" data-geo="${padL},${iw},${padT},${ih},${max}">${g}</svg>`;
+}
+
+function dbBindInteractions(root){
+  root.querySelectorAll('[data-v]').forEach(el => {
+    el.addEventListener('pointermove', ev => dbTipShow(ev, el.dataset.v, el.dataset.l));
+    el.addEventListener('pointerdown', ev => dbTipShow(ev, el.dataset.v, el.dataset.l));
+    el.addEventListener('pointerleave', dbTipHide);
+    el.addEventListener('focus', () => dbTipFocus(el));
+    el.addEventListener('blur', dbTipHide);
+  });
+  root.querySelectorAll('svg.dbline').forEach(svg => {
+    const pts = JSON.parse(svg.dataset.pts), geo = svg.dataset.geo.split(',').map(Number), inr = svg.dataset.fmt === 'inr';
+    const [padL, iw, padT, ih, max] = geo, n = pts.length;
+    const hit = svg.querySelector('.dbhit'), xl = svg.querySelector('.dbx'), dot = svg.querySelector('.dbdot');
+    const show = (clientX) => {
+      const r = svg.getBoundingClientRect(), vx = (clientX - r.left) / r.width * 600;
+      let i = Math.round((vx - padL) / iw * (n-1)); i = Math.max(0, Math.min(n-1, i));
+      const x = padL + i/(n-1)*iw, y = padT + ih - pts[i][0]/max*ih;
+      xl.setAttribute('x1', x); xl.setAttribute('x2', x); xl.style.display = '';
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.style.display = '';
+      dbTipShow({clientX: r.left + x/600*r.width, clientY: r.top + y/190*r.height}, inr ? dbInr(pts[i][0]) : String(pts[i][0]), pts[i][1]);
+    };
+    hit.addEventListener('pointermove', ev => show(ev.clientX));
+    hit.addEventListener('pointerdown', ev => show(ev.clientX));
+    hit.addEventListener('pointerleave', () => { xl.style.display = 'none'; dot.style.display = 'none'; dbTipHide(); });
+  });
+}
+
+function renderDashboard(){
+  const grid = document.getElementById('dbGrid'), kpis = document.getElementById('dbKpis');
+  if(!grid) return;
+  const all = ordersCache || [];
+  const now = Date.now();
+  const startMs = dbRange ? now - dbRange*86400000 : 0;
+  const list = all.filter(o => new Date(o.created_at).getTime() >= startMs);
+  document.querySelectorAll('#dbFilters .db-chip').forEach(b => b.classList.toggle('on', Number(b.dataset.r) === dbRange));
+  document.getElementById('dbRangeNote').textContent = `${list.length} of ${all.length} orders`;
+
+  // ---- customers (first order ever decides new vs returning) ----
+  const firstSeen = new Map();
+  [...all].sort((a,b) => new Date(a.created_at) - new Date(b.created_at)).forEach(o => { if(!firstSeen.has(o.customer_phone)) firstSeen.set(o.customer_phone, new Date(o.created_at).getTime()); });
+  const ordersPerPhoneAll = new Map(); all.forEach(o => ordersPerPhoneAll.set(o.customer_phone, (ordersPerPhoneAll.get(o.customer_phone)||0)+1));
+  const phonesInRange = new Set(list.map(o => o.customer_phone));
+  const newCust = [...phonesInRange].filter(p => firstSeen.get(p) >= startMs).length;
+  const retCust = phonesInRange.size - newCust;
+  const repeatAllTime = [...ordersPerPhoneAll.values()].filter(c => c > 1).length;
+  const repeatRate = ordersPerPhoneAll.size ? Math.round(repeatAllTime / ordersPerPhoneAll.size * 100) : 0;
+
+  // ---- money ----
+  const revenue = list.reduce((s,o) => s + netOf(o), 0);
+  const aov = list.length ? revenue / list.length : 0;
+  const advance = list.reduce((s,o) => s + (o.advance||0), 0);
+  const cod = list.reduce((s,o) => s + (o.cod||0), 0);
+  const discount = list.reduce((s,o) => s + (o.discount||0), 0);
+  const couponOrders = list.filter(o => o.coupon_code).length;
+  const delivered = list.filter(o => o.status === 'Delivered');
+  const deliveredRev = delivered.reduce((s,o) => s + netOf(o), 0);
+  const returns = list.filter(o => o.return_requested).length;
+  const units = list.reduce((s,o) => s + (o.items||[]).reduce((a,i) => a + (Number(i.qty)||0), 0), 0);
+  const withUtr = list.filter(o => o.payment_ref);
+  const verified = withUtr.filter(o => o.payment_verified).length;
+  const rvApproved = dbReviews.filter(r => r.status === 'approved');
+  const rvAvg = rvApproved.length ? (rvApproved.reduce((s,r) => s + r.rating, 0) / rvApproved.length) : 0;
+  const pct = (a,b) => b ? Math.round(a/b*100) + '%' : '0%';
+
+  const K = (v,l,n) => `<div class="db-kpi"><div class="v">${dbEsc(v)}</div><div class="l">${dbEsc(l)}</div>${n?`<div class="n">${dbEsc(n)}</div>`:''}</div>`;
+  kpis.innerHTML = [
+    K(dbInr(revenue), 'Sales (after discounts)', `${list.length} orders`),
+    K(String(list.length), 'Orders', `${units} items sold`),
+    K(dbInr(aov), 'Average order value', ''),
+    K(String(phonesInRange.size), 'Customers ordering', `${newCust} new · ${retCust} returning`),
+    K(dbInr(advance), 'Advance collected (UPI)', `${withUtr.length} with UTR · ${verified} verified`),
+    K(dbInr(cod), 'COD to collect', ''),
+    K(dbInr(deliveredRev), 'Delivered sales', `${delivered.length} delivered (${pct(delivered.length, list.length)})`),
+    K(dbInr(discount), 'Discounts given', `${couponOrders} coupon orders (${pct(couponOrders, list.length)})`),
+    K(String(ordersPerPhoneAll.size), 'All-time customers', `${repeatAllTime} repeat (${repeatRate}%)`),
+    K(pct(returns, list.length), 'Return requests', `${returns} of ${list.length}`),
+    K(pct(verified, withUtr.length), 'Payments verified', `${verified} of ${withUtr.length}`),
+    K(rvApproved.length ? rvAvg.toFixed(1) + ' / 5' : '-', 'Customer rating', `${rvApproved.length} approved reviews`)
+  ].join('');
+
+  // ---- time series ----
+  let from = dbRange ? new Date(startMs) : (all.length ? new Date(Math.min(...all.map(o => new Date(o.created_at).getTime()))) : new Date());
+  from.setHours(0,0,0,0);
+  const days = [];
+  for(let d = new Date(from); d <= new Date(); d.setDate(d.getDate()+1)) days.push(dbDay(d));
+  const perDay = new Map(days.map(k => [k, { n:0, rev:0 }]));
+  list.forEach(o => { const e = perDay.get(dbDay(o.created_at)); if(e){ e.n++; e.rev += netOf(o); } });
+  const fmtShort = (k) => new Date(k + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+  const salesPts = days.map(k => ({ v: perDay.get(k).rev, short: fmtShort(k), full: fmtShort(k) }));
+  const ordPts = days.map(k => ({ v: perDay.get(k).n, short: fmtShort(k), full: fmtShort(k) }));
+  const dayRows = (key) => ({ cols:['Day', key === 'rev' ? 'Sales' : 'Orders'], data: days.filter(k => perDay.get(k).n).map(k => [fmtShort(k), key === 'rev' ? dbInr(perDay.get(k).rev) : perDay.get(k).n]) });
+
+  // ---- weekday / hour ----
+  const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(l => ({ label:l, v:0 }));
+  const hr = Array.from({length:24}, (_, h) => ({ label: String(h), v:0, show: h % 3 === 0 }));
+  list.forEach(o => { const d = new Date(o.created_at); wd[d.getDay()].v++; hr[d.getHours()].v++; });
+
+  // ---- products & categories ----
+  const catOf = new Map((componentsCache || []).map(c => [String(c.name).toLowerCase(), c.category]));
+  const prod = new Map(), cat = new Map();
+  list.forEach(o => (o.items || []).forEach(i => {
+    const q = Number(i.qty) || 0, rev = q * (Number(i.price) || 0);
+    const p = prod.get(i.name) || { label:i.name, q:0, rev:0 }; p.q += q; p.rev += rev; prod.set(i.name, p);
+    const c = catOf.get(String(i.name).toLowerCase()) || 'Other / projects';
+    const e = cat.get(c) || { label:c, q:0, rev:0 }; e.q += q; e.rev += rev; cat.set(c, e);
+  }));
+  const topQty = [...prod.values()].sort((a,b) => b.q - a.q).slice(0, 8);
+  const topRev = [...prod.values()].sort((a,b) => b.rev - a.rev).slice(0, 8);
+  const catRows = [...cat.values()].sort((a,b) => b.rev - a.rev).slice(0, 8);
+
+  // ---- status, batch, people ----
+  const STAT = ['Confirmed','Packed','Out for Delivery','Delivered'];
+  const stCount = dbCount(list, o => o.status || 'Confirmed');
+  const stRows = [...STAT.map(s => stCount.find(x => x.label === s)).filter(Boolean), ...stCount.filter(x => !STAT.includes(x.label))].map((x, i) => ({ label:x.label, v:x.orders, color: DB_COLORS[i % DB_COLORS.length] }));
+  const batchRows = dbCount(list, o => o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) + '' : '', netOf).sort((a,b) => b.value - a.value).slice(0, 8);
+  const topList = (keyFn, n) => dbCount(list, keyFn, netOf).sort((a,b) => b.orders - a.orders || b.value - a.value).slice(0, n || 8);
+  const colRows = topList(o => (o.customer_college || '').trim());
+  const depRows = topList(o => (o.customer_department || '').trim());
+  const yrRows = topList(o => (o.customer_year || '').trim());
+  const locRows = topList(o => (o.delivery_location || '').trim());
+  const custMap = new Map(); list.forEach(o => { const e = custMap.get(o.customer_phone) || { label:o.customer_name || o.customer_phone, orders:0, value:0 }; e.orders++; e.value += netOf(o); custMap.set(o.customer_phone, e); });
+  const topCust = [...custMap.values()].sort((a,b) => b.value - a.value).slice(0, 8);
+  const cpn = dbCount(list.filter(o => o.coupon_code), o => o.coupon_code, o => o.discount || 0).sort((a,b) => b.orders - a.orders).slice(0, 8);
+  const rvDist = [5,4,3,2,1].map(s => ({ label: s + ' star', v: rvApproved.filter(r => r.rating === s).length }));
+
+  const ordRows = (rows) => ({ cols:['Name','Orders','Sales'], data: rows.map(r => [r.label, r.orders, dbInr(r.value)]) });
+  const barOrd = (rows) => dbBars(rows.map(r => ({ label:r.label, v:r.orders, sub: dbInr(r.value) })), v => v + (v === 1 ? ' order' : ' orders'));
+  const split = (arr) => ({ cols:['Name','Value'], data: arr.map(r => [r.label, r.v]) });
+
+  grid.innerHTML = [
+    dbCard('sales', 'Sales per day', 'Order value after discounts', dbLine(salesPts, dbInr, 'var(--d-s1)', 'sales'), dayRows('rev'), true),
+    dbCard('orders', 'Orders per day', 'Number of orders placed', dbLine(ordPts, v => String(Math.round(v)), 'var(--d-s3)', 'orders'), dayRows('n'), true),
+    dbCard('status', 'Order status', 'Where the orders in this range stand', dbParts(stRows, list.length), split(stRows)),
+    dbCard('newret', 'New vs returning customers', 'First order ever inside this range or earlier', dbParts([{label:'New', v:newCust, color:DB_COLORS[0]}, {label:'Returning', v:retCust, color:DB_COLORS[1]}].filter(x => x.v), phonesInRange.size), { cols:['Type','Customers'], data:[['New', newCust], ['Returning', retCust]] }),
+    dbCard('topq', 'Top products by units', 'Quantity sold', dbBars(topQty.map(p => ({ label:p.label, v:p.q, sub: dbInr(p.rev) })), v => v + ' pcs'), { cols:['Product','Units','Sales'], data: topQty.map(p => [p.label, p.q, dbInr(p.rev)]) }),
+    dbCard('topr', 'Top products by sales', 'Item value before coupon discounts', dbBars(topRev.map(p => ({ label:p.label, v:p.rev, sub: p.q + ' pcs' })), dbInr), { cols:['Product','Sales','Units'], data: topRev.map(p => [p.label, dbInr(p.rev), p.q]) }),
+    dbCard('cat', 'Sales by category', 'Items not found in Components count as Other / projects', dbBars(catRows.map(c => ({ label:c.label, v:c.rev, sub: c.q + ' pcs' })), dbInr), { cols:['Category','Sales','Units'], data: catRows.map(c => [c.label, dbInr(c.rev), c.q]) }),
+    dbCard('batch', 'Delivery batches', 'Orders per delivery date', barOrd(batchRows), ordRows(batchRows)),
+    dbCard('dow', 'Orders by weekday', 'Which days customers order', dbCols(wd, v => String(v)), { cols:['Day','Orders'], data: wd.map(r => [r.label, r.v]) }),
+    dbCard('hour', 'Orders by hour', 'Hour of day, 24h clock', dbCols(hr, v => String(v)), { cols:['Hour','Orders'], data: hr.map(r => [r.label + ':00', r.v]) }),
+    dbCard('college', 'Colleges', 'Orders by customer college', barOrd(colRows), ordRows(colRows)),
+    dbCard('dept', 'Departments', 'Orders by department', barOrd(depRows), ordRows(depRows)),
+    dbCard('year', 'Year of study', 'Orders by year', barOrd(yrRows), ordRows(yrRows)),
+    dbCard('loc', 'Delivery locations', 'Where orders are delivered', barOrd(locRows), ordRows(locRows)),
+    dbCard('cust', 'Top customers', 'By sales in this range', dbBars(topCust.map(c => ({ label:c.label, v:c.value, sub:c.orders + ' orders' })), dbInr), ordRows(topCust)),
+    dbCard('cpn', 'Coupons used', 'Orders per coupon (discount in brackets)', dbBars(cpn.map(c => ({ label:c.label, v:c.orders, sub: dbInr(c.value) + ' off' })), v => v + (v === 1 ? ' order' : ' orders')), { cols:['Coupon','Orders','Discount'], data: cpn.map(c => [c.label, c.orders, dbInr(c.value)]) }),
+    dbCard('rv', 'Review ratings', 'Approved reviews only (all time)', dbBars(rvDist.map(r => ({ label:r.label, v:r.v })), v => String(v)), { cols:['Rating','Reviews'], data: rvDist.map(r => [r.label, r.v]) })
+  ].join('');
+  dbBindInteractions(grid);
+}
+
+async function loadDashboardReviews(){
+  try { const { data, error } = await db.from('reviews').select('rating,status'); dbReviews = error ? [] : (data || []); } catch(e){ dbReviews = []; }
+  renderDashboard();
+}
+document.getElementById('dbFilters').addEventListener('click', e => { const b = e.target.closest('.db-chip'); if(!b) return; dbRange = Number(b.dataset.r); renderDashboard(); });
+document.getElementById('dbGrid').addEventListener('click', e => { const b = e.target.closest('.db-tbtn'); if(!b) return; const id = b.dataset.t; dbOpenTables.has(id) ? dbOpenTables.delete(id) : dbOpenTables.add(id); renderDashboard(); });
 </script>
 </body>
 </html>

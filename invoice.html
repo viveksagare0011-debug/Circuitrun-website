@@ -68,13 +68,13 @@
 <div class="wrap">
   <div class="topbar">
     <a href="index.html" class="back-link">← Back to CircuitRun</a>
-    <button class="print-btn" id="printBtn">🖨️ Print / Save as PDF</button>
+    <button class="print-btn" id="printBtn">Print / Save as PDF</button>
   </div>
 
   <div id="invoiceLoading" style="text-align:center; padding:60px 0; color:var(--muted);">Loading invoice...</div>
 
   <div id="invoiceNotFound" class="empty hidden">
-    <div style="font-size:36px; margin-bottom:10px;">🧾</div>
+    <div style="font-size:36px; margin-bottom:10px;"></div>
     <h2 style="margin:0 0 8px;">Invoice not found</h2>
     <p>Check the link, or contact us on WhatsApp if you think this is a mistake.</p>
   </div>
@@ -164,8 +164,8 @@ async function loadInvoice(){
       ${data.customer_college || ''}${data.customer_department ? ' · ' + data.customer_department : ''}
     `;
     document.getElementById('invDelivery').innerHTML = `
-      📍 ${data.delivery_location || 'Not specified'}<br>
-      ${data.batch_date ? '📅 Batch run: ' + new Date(data.batch_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }) : ''}
+      ${data.delivery_location || 'Not specified'}<br>
+      ${data.batch_date ? 'Batch run: ' + new Date(data.batch_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }) : ''}
     `;
 
     const items = data.items || [];
