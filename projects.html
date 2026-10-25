@@ -874,11 +874,21 @@ if(savedUser){
 
 const savedCart = localStorage.getItem('circuitrun_cart');
 if(savedCart){
-  try { state.cart = JSON.parse(savedCart); } catch(e) {}
+  try {
+    const c = JSON.parse(savedCart), clean = {};
+    if(c && typeof c === 'object' && !Array.isArray(c)) Object.keys(c).forEach(k => { const q = Math.floor(Number(c[k])); if(q > 0) clean[k] = Math.min(q, 99); });
+    state.cart = clean;
+  } catch(e) {}
 }
 function saveCart(){
   localStorage.setItem('circuitrun_cart', JSON.stringify(state.cart));
 }
+
+// text from the database is escaped before it is placed into HTML
+function crEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function crAttr(s){ return crEsc(s); }
+function crCode(s){ return String(s == null ? '' : s).replace(/[^A-Za-z0-9_-]/g, ''); }
+function crNum(n){ n = Number(n); return isFinite(n) ? n : 0; }
 
 async function loadUserOrders(phone){
   try {
@@ -886,11 +896,11 @@ async function loadUserOrders(phone){
     const { data, error } = await db.rpc('my_orders', { p_phone: phone });
     if(!error && data){
       state.orders = data.map(o => ({
-        id: o.order_code, items: o.items, subtotal: o.subtotal,
-        discount: o.discount || 0, couponCode: o.coupon_code || null,
-        advance: o.advance, cod: o.cod, status: o.status,
+        id: crCode(o.order_code), items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: crEsc(i && i.name), qty: crNum(i && i.qty), price: crNum(i && i.price) })), subtotal: crNum(o.subtotal),
+        discount: crNum(o.discount), couponCode: o.coupon_code ? crEsc(o.coupon_code) : null,
+        advance: crNum(o.advance), cod: crNum(o.cod), status: crEsc(o.status),
         createdAt: o.created_at, deliveredAt: o.delivered_at,
-        returnRequested: o.return_requested, returnType: o.return_type,
+        returnRequested: o.return_requested, returnType: crEsc(o.return_type),
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
       updateOrdersCount();
@@ -1066,7 +1076,7 @@ function renderCatalog(){
     const delay = Math.min(idx, 10) * 30;
     return `<div class="card cr-stagger" style="animation-delay:${delay}ms">
       <div>
-        <div class="card-icon ${ic.cls}">${item.image ? `<img src="${item.image}" alt="${item.name}">` : ic.icon}</div>
+        <div class="card-icon ${ic.cls}">${item.image ? `<img src="${crAttr(item.image)}" alt="${crAttr(item.name)}">` : ic.icon}</div>
         <div class="card-top">
           <div class="card-name">${item.name}</div>
           <span class="tag ${item.src}">${item.src === 'batch' ? 'Batch trip' : 'Quick local'}</span>
@@ -1106,7 +1116,12 @@ function changeQty(id, delta){
 }
 
 function cartItems(){
-  return Object.entries(state.cart).map(([id, qty]) => ({...CATALOG.find(c => c.id === id), qty}));
+  // only real catalog items, quantity always a whole number from 1 to 99
+  return Object.entries(state.cart).map(([id, qty]) => {
+    const it = CATALOG.find(c => c.id === id); if(!it) return null;
+    const q = Math.min(99, Math.floor(Number(qty)) || 0);
+    return q > 0 ? {...it, qty:q} : null;
+  }).filter(Boolean);
 }
 
 function updateCartCount(){
@@ -1519,11 +1534,11 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
     const { data, error } = await db.rpc('my_orders', { p_phone: phone });
     if(!error && data){
       state.orders = data.map(o => ({
-        id: o.order_code, items: o.items, subtotal: o.subtotal,
-        discount: o.discount || 0, couponCode: o.coupon_code || null,
-        advance: o.advance, cod: o.cod, status: o.status,
+        id: crCode(o.order_code), items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: crEsc(i && i.name), qty: crNum(i && i.qty), price: crNum(i && i.price) })), subtotal: crNum(o.subtotal),
+        discount: crNum(o.discount), couponCode: o.coupon_code ? crEsc(o.coupon_code) : null,
+        advance: crNum(o.advance), cod: crNum(o.cod), status: crEsc(o.status),
         createdAt: o.created_at, deliveredAt: o.delivered_at,
-        returnRequested: o.return_requested, returnType: o.return_type,
+        returnRequested: o.return_requested, returnType: crEsc(o.return_type),
         batchLabel: o.batch_date ? formatBatchDate(new Date(o.batch_date + 'T00:00:00')) : null
       }));
       updateOrdersCount();

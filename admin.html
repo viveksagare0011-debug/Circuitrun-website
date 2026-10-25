@@ -549,7 +549,7 @@ async function loadOrders(silent){
 
   const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
   if(error){
-    if(!silent) body.innerHTML = `<tr><td colspan="7" style="color:var(--pink);">Failed to load: ${error.message}</td></tr>`;
+    if(!silent) body.innerHTML = `<tr><td colspan="7" style="color:var(--pink);">Failed to load: ${escH(error.message)}</td></tr>`;
     return;
   }
 
@@ -591,6 +591,13 @@ function startPolling(){
   pollTimer = setInterval(() => { if(!document.hidden) loadOrders(true); }, 30000);
 }
 
+// escape any customer-supplied text before it goes into HTML
+const escH = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// order codes are used inside onclick handlers: keep only safe characters
+const safeCode = (s) => String(s == null ? '' : s).replace(/[^A-Za-z0-9_-]/g, '');
+const safePhone = (s) => String(s == null ? '' : s).replace(/[^0-9]/g, '');
+const num = (n) => (Number.isFinite(Number(n)) ? Number(n) : 0);
+
 function renderOrdersTable(data){
   const body = document.getElementById('ordersBody');
   const empty = document.getElementById('emptyState');
@@ -605,27 +612,27 @@ function renderOrdersTable(data){
 
   body.innerHTML = data.map(o => `
     <tr style="${o.return_requested ? 'background:rgba(255,95,168,0.06);' : ''}">
-      <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${o.order_code} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${o.order_code}')">Invoice</button></td>
+      <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${escH(o.order_code)} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${safeCode(o.order_code)}')">Invoice</button></td>
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
-      <td>${o.customer_name}<br><a class="wa" href="https://wa.me/91${o.customer_phone}" target="_blank">${o.customer_phone}</a><br><span style="color:var(--muted); font-size:11px;">${o.customer_year || ''} · ${o.customer_college || ''} · ${o.customer_department || ''}</span><br><span style="color:var(--cyan); font-size:11px;">${o.delivery_location || 'not specified'}</span></td>
-      <td class="items-cell">${(o.items||[]).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
-      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(o.subtotal)}</s> ${money(netOf(o))}<br><span style="color:var(--lime); font-size:11px;">${o.coupon_code || 'coupon'} −${money(o.discount)}</span>` : money(o.subtotal)}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(o.advance)} · COD: ${money(o.cod)}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${o.payment_ref}</span><br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${o.order_code}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
+      <td>${escH(o.customer_name)}<br><a class="wa" href="https://wa.me/91${safePhone(o.customer_phone)}" target="_blank" rel="noopener">${escH(o.customer_phone)}</a><br><span style="color:var(--muted); font-size:11px;">${escH(o.customer_year)} · ${escH(o.customer_college)} · ${escH(o.customer_department)}</span><br><span style="color:var(--cyan); font-size:11px;">${escH(o.delivery_location || 'not specified')}</span></td>
+      <td class="items-cell">${(o.items||[]).map(i => `${escH(i.name)} ×${num(i.qty)}`).join(', ')}</td>
+      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(num(o.subtotal))}</s> ${money(num(netOf(o)))}<br><span style="color:var(--lime); font-size:11px;">${escH(o.coupon_code || 'coupon')} −${money(num(o.discount))}</span>` : money(num(o.subtotal))}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(num(o.advance))} · COD: ${money(num(o.cod))}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${escH(o.payment_ref)}</span><br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${safeCode(o.order_code)}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
       <td>
-        ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${o.order_code}')">Accept order</button><br>` : ''}
-        <select onchange="updateOrderStatus('${o.order_code}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
+        ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${safeCode(o.order_code)}')">Accept order</button><br>` : ''}
+        <select onchange="updateOrderStatus('${safeCode(o.order_code)}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
           <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
           <option value="Packed" ${o.status==='Packed'?'selected':''}>Packed</option>
           <option value="Out for Delivery" ${o.status==='Out for Delivery'?'selected':''}>Out for Delivery</option>
           <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
         </select>
-        <br><button class="btn-secondary btn-small" style="margin-top:6px; color:var(--pink); border-color:var(--pink);" onclick="deleteOneOrder('${o.order_code}')">Delete order</button>
+        <br><button class="btn-secondary btn-small" style="margin-top:6px; color:var(--pink); border-color:var(--pink);" onclick="deleteOneOrder('${safeCode(o.order_code)}')">Delete order</button>
       </td>
       <td style="max-width:170px;">
         ${o.return_requested
           ? `<span class="badge" style="background:rgba(255,95,168,0.15); color:var(--pink);">${o.return_type === 'replace' ? 'Replace' : 'Return'}</span>
-             <div style="font-size:11px; color:var(--muted); margin:6px 0;">${o.return_reason || ''}</div>
+             <div style="font-size:11px; color:var(--muted); margin:6px 0;">${escH(o.return_reason)}</div>
              <div style="font-size:10px; color:var(--muted); margin-bottom:6px;">${o.return_requested_at ? new Date(o.return_requested_at).toLocaleString() : ''}</div>
-             <button class="btn-secondary btn-small" onclick="markReturnHandled('${o.order_code}')">Mark handled</button>`
+             <button class="btn-secondary btn-small" onclick="markReturnHandled('${safeCode(o.order_code)}')">Mark handled</button>`
           : `<span style="color:var(--muted); font-size:12px;">—</span>`
         }
       </td>
@@ -635,7 +642,10 @@ function renderOrdersTable(data){
 
 function csvEscape(val){
   if(val === null || val === undefined) return '';
-  const s = String(val).replace(/"/g, '""');
+  let s = String(val);
+  // stop spreadsheet apps from running a cell that starts like a formula (= + - @ tab CR)
+  if(typeof val === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  s = s.replace(/"/g, '""');
   return `"${s}"`;
 }
 

@@ -159,29 +159,29 @@ async function loadInvoice(){
     document.getElementById('invStatus').textContent = `Status: ${data.status}`;
 
     document.getElementById('invCustomer').innerHTML = `
-      ${data.customer_name}<br>
-      ${data.customer_phone}<br>
-      ${data.customer_college || ''}${data.customer_department ? ' · ' + data.customer_department : ''}
+      ${crEsc(data.customer_name)}<br>
+      ${crEsc(data.customer_phone)}<br>
+      ${crEsc(data.customer_college)}${data.customer_department ? ' · ' + crEsc(data.customer_department) : ''}
     `;
     document.getElementById('invDelivery').innerHTML = `
-      ${data.delivery_location || 'Not specified'}<br>
+      ${crEsc(data.delivery_location || 'Not specified')}<br>
       ${data.batch_date ? 'Batch run: ' + new Date(data.batch_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }) : ''}
     `;
 
     const items = data.items || [];
     document.getElementById('invItemsBody').innerHTML = items.map(i => `
       <tr>
-        <td>${i.name}</td>
-        <td class="num">${i.qty}</td>
-        <td class="num mono">${money(i.price)}</td>
-        <td class="num mono">${money(i.price * i.qty)}</td>
+        <td>${crEsc(i.name)}</td>
+        <td class="num">${crN(i.qty)}</td>
+        <td class="num mono">${money(crN(i.price))}</td>
+        <td class="num mono">${money(crN(i.price) * crN(i.qty))}</td>
       </tr>
     `).join('');
 
     document.getElementById('invTotals').innerHTML = `
       <div class="row"><span>Subtotal</span><span class="mono">${money(data.subtotal)}</span></div>
       ${data.discount > 0 ? `
-      <div class="row" style="color:var(--lime);"><span>Discount${data.coupon_code ? ' (' + data.coupon_code + ')' : ''}</span><span class="mono">− ${money(data.discount)}</span></div>
+      <div class="row" style="color:var(--lime);"><span>Discount${data.coupon_code ? ' (' + crEsc(data.coupon_code) + ')' : ''}</span><span class="mono">− ${money(data.discount)}</span></div>
       <div class="row" style="font-weight:700;"><span>Order total</span><span class="mono">${money(data.subtotal - data.discount)}</span></div>` : ''}
       <div class="row"><span>Advance paid (online)</span><span class="mono">${money(data.advance)}</span></div>
       <div class="row grand"><span>Balance due (COD)</span><span class="mono">${money(data.cod)}</span></div>
@@ -195,6 +195,8 @@ async function loadInvoice(){
   }
 }
 
+const crEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const crN = n => (Number.isFinite(Number(n)) ? Number(n) : 0);
 loadInvoice();
 </script>
 </body>
