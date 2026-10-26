@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Component — CircuitRun</title>
+<title>Catalog — CircuitRun</title>
 <link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
 <link rel="apple-touch-icon" href="brand/icon-180.png">
 <meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
@@ -294,17 +294,6 @@
   .profile-row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
   .profile-row span { color: var(--muted); }
   .profile-row b { font-weight: 600; text-align: right; }
-
-  .product-detail-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 44px; padding: 24px 0 60px; }
-  @media (max-width: 800px) { .product-detail-grid { grid-template-columns: 1fr; gap: 24px; padding-top: 12px; } }
-  .product-image-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 110px; overflow: hidden; }
-  .product-image-box img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
-  .product-back-link { color: var(--muted); font-size: 13px; text-decoration: none; display: inline-block; margin: 24px 0 4px; }
-  .product-back-link:hover { color: var(--lime); }
-  .product-price { font-size: 34px; font-weight: 800; color: var(--lime); margin: 14px 0 4px; }
-  .product-details-list { list-style: none; padding: 0; margin: 22px 0 0; border-top: 1px solid var(--line); }
-  .product-details-list li { font-size: 14px; color: var(--text); padding: 11px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; line-height: 1.5; }
-  .product-details-list li::before { content: "▸"; color: var(--lime); font-weight: 700; flex-shrink: 0; }
   .logo-img { height: 32px; width: auto; display: block; flex-shrink: 0; }
   .social-link { color: var(--muted); text-decoration: none; }
   .social-link:hover { color: var(--lime); }
@@ -410,30 +399,45 @@
 </div>
 
 <div class="wrap">
-  <a href="catalog.html" class="product-back-link">← Back to catalog</a>
+  <section style="padding: 40px 0 8px;">
+    <span class="eyebrow">Full catalog</span>
+    <h1 style="font-size: 30px; margin: 10px 0;">Every component, in one place</h1>
+    <p class="sub" style="max-width:560px;">Search, filter, and sort through everything we source — or check out a ready-made <a href="projects.html" style="color: var(--cyan); text-decoration: underline;">project kit</a> instead.</p>
+  </section>
 
-  <div id="productLoading" style="padding:60px 0; text-align:center; color:var(--muted);">Loading component...</div>
-
-  <div id="productNotFound" class="hidden" style="padding:60px 0; text-align:center;">
-    <div style="font-size:40px; margin-bottom:12px;"></div>
-    <h2 style="margin:0 0 8px;">Component not found</h2>
-    <p class="sub">It may have been removed, or the link is incorrect.</p>
-    <a href="catalog.html" class="btn-primary" style="text-decoration:none; display:inline-block;">Browse the catalog →</a>
-  </div>
-
-  <div id="productContent" class="hidden">
-    <div class="product-detail-grid">
-      <div class="product-image-box" id="productImageBox"></div>
-      <div>
-        <span class="tag" id="productTag"></span>
-        <h1 id="productName" style="font-size:28px; margin:10px 0 6px;"></h1>
-        <p class="sub" id="productSpec" style="font-size:15px; margin-bottom:0;"></p>
-        <div class="product-price mono" id="productPrice"></div>
-        <div id="productQtyArea" style="margin:18px 0 6px; max-width:280px;"></div>
-        <ul class="product-details-list" id="productDetailsList"></ul>
-      </div>
+  <section id="catalog">
+    <div class="section-title cr-reveal">
+      <h2>The catalog</h2>
+      <span class="count" id="itemCount"></span>
     </div>
-  </div>
+    <div class="catalog-toolbar">
+      <div class="chips" id="chipsRow"></div>
+      <select id="sortSelect" aria-label="Sort components" class="sort-select">
+        <option value="default">Sort: Default</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="name">Name: A to Z</option>
+      </select>
+    </div>
+    <div class="grid" id="catalogGrid"></div>
+  </section>
+
+  <section class="trust-cards">
+    <div class="trust-card"><h3>Cash on delivery</h3><p>Pay a small amount online to lock the order, rest in cash when it lands in your hand.</p></div>
+    <div class="trust-card"><h3>Fixed batch runs</h3><p>Lamington Road runs happen every Tue & Fri — order before cutoff to make the trip.</p></div>
+    <div class="trust-card"><h3>Delivered on campus</h3><p>Hostel, department, canteen — wherever. No city trips for one IC ever again.</p></div>
+  </section>
+
+  <footer>
+    <div>
+      <div class="logo disp">CircuitRun</div>
+      <p>Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</p>
+    </div>
+    <div style="display:flex; gap:14px; font-size:12px;">
+      <a href="about.html" style="color:var(--muted); text-decoration:none;">About Us</a>
+      <a href="policy.html" style="color:var(--muted); text-decoration:none;">Terms & Policy</a> · <a class="social-link" href="https://www.instagram.com/circuitrun.in" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </footer>
 </div>
 
 <!-- cart drawer -->
@@ -1149,7 +1153,9 @@ function renderCatalog(){
       </div>
     </div>`;
   }).join('');
-  grid.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => openComponentModal(el.dataset.view)));
+  grid.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => {
+    window.location.href = `product.html?id=${encodeURIComponent(el.dataset.view)}`;
+  }));
   grid.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.add;
     if(!state.user){ pendingAddId = id; document.getElementById('loginOverlay').classList.add('show'); return; }
@@ -1168,9 +1174,6 @@ function changeQty(id, delta){
   renderCatalog();
   renderCartDrawer();
   updateCartCount();
-  if(typeof renderProductQty === 'function' && document.getElementById('productQtyArea')){
-    renderProductQty(id);
-  }
   if(delta > 0){
     const item = CATALOG.find(c => c.id === id);
     if(item) showToast(`Added ${item.name} to cart`);
@@ -1929,71 +1932,11 @@ if(qParam && document.getElementById('searchInput')){
 
 renderMarquee();
 renderChips();
-
-function renderProductPage(){
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const item = CATALOG.find(c => c.id === id);
-
-  document.getElementById('productLoading').classList.add('hidden');
-
-  if(!item){
-    document.getElementById('productNotFound').classList.remove('hidden');
-    return;
-  }
-
-  const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
-  document.title = `${item.name} — CircuitRun`;
-
-  document.getElementById('productImageBox').innerHTML = item.image
-    ? `<img src="${crAttr(item.image)}" alt="${crAttr(item.name)}">`
-    : `<span class="${ic.cls}" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${ic.icon}</span>`;
-
-  const tagEl = document.getElementById('productTag');
-  tagEl.textContent = item.src === 'batch' ? 'Batch trip' : 'Quick local';
-  tagEl.className = 'tag ' + item.src;
-
-  document.getElementById('productName').textContent = item.name;
-  document.getElementById('productSpec').textContent = item.spec;
-  document.getElementById('productPrice').textContent = money(item.price);
-
-  const detailsList = document.getElementById('productDetailsList');
-  if(item.details && item.details.trim()){
-    detailsList.innerHTML = item.details.split('\n').filter(Boolean).map(line => `<li>${line}</li>`).join('');
-  } else {
-    detailsList.innerHTML = '';
-  }
-
-  renderProductQty(item.id);
-  document.getElementById('productContent').classList.remove('hidden');
-}
-
-function renderProductQty(id){
-  const qty = state.cart[id] || 0;
-  const area = document.getElementById('productQtyArea');
-  if(qty === 0){
-    area.innerHTML = `<button class="btn-primary" style="width:100%;" id="productAddBtn">+ Add to cart</button>`;
-    document.getElementById('productAddBtn').addEventListener('click', () => {
-      if(!state.user){ pendingAddId = id; document.getElementById('loginOverlay').classList.add('show'); return; }
-      changeQty(id, 1);
-      renderProductQty(id);
-    });
-  } else {
-    area.innerHTML = `
-      <div class="qty-box" style="justify-content:center; padding:10px;">
-        <button data-p-dec>–</button><span style="margin:0 16px; font-weight:700; font-size:15px;">${qty}</span><button data-p-inc>+</button>
-      </div>`;
-    area.querySelector('[data-p-inc]').addEventListener('click', () => { changeQty(id, 1); renderProductQty(id); });
-    area.querySelector('[data-p-dec]').addEventListener('click', () => { changeQty(id, -1); renderProductQty(id); });
-  }
-}
-
 (async () => {
   await loadCatalogFromDB();
   renderProjects();
   renderBlog();
   renderCatalog();
-  renderProductPage();
   renderCartDrawer();
   updateCartCount();
   updateOrdersCount();
