@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#12121A">
@@ -180,7 +181,7 @@
       <button class="btn-secondary btn-small" id="returnsOnlyBtn" style="white-space:nowrap;">Returns only</button>
       <button class="btn-secondary btn-small" id="exportCsvBtn" style="white-space:nowrap;">Export CSV…</button>
     </div>
-    <div class="tbl-scroll"><table>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
       <thead>
         <tr><th>Order</th><th>Batch</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th><th>Return</th></tr>
       </thead>
@@ -237,7 +238,7 @@
       <button class="add-btn" id="addCouponBtn">+ New coupon</button>
     </div>
     <p class="err hidden" id="couponsSetupMsg"></p>
-    <div class="tbl-scroll"><table>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
       <thead><tr><th>Code</th><th>Discount</th><th>Applies to</th><th>Rules</th><th>Status</th><th></th></tr></thead>
       <tbody id="couponsBody"></tbody>
     </table></div>
@@ -252,7 +253,7 @@
       </div>
     </div>
     <p class="err hidden" id="reviewsSetupMsg"></p>
-    <div class="tbl-scroll"><table>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
       <thead><tr><th>Order</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Status</th><th></th></tr></thead>
       <tbody id="reviewsBody"></tbody>
     </table></div>
@@ -285,7 +286,7 @@
     </div>
     <div class="field"><label>Photo (optional)</label><input id="compImage" type="file" accept="image/*"></div>
     <div class="field" id="compImagePreviewWrap" style="display:none;">
-      <img id="compImagePreview" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px;">
+      <img id="compImagePreview" alt="" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px;">
     </div>
     <div class="field"><label>Detailed specifications (one point per line)</label><textarea id="compDetails" rows="6" placeholder="e.g.&#10;Microcontroller: ATmega328P, 8-bit AVR&#10;Operating Voltage: 5V | Input Voltage: 7–12V"></textarea></div>
     <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="compActive" checked style="width:auto;"> Visible on site</label></div>
@@ -599,6 +600,8 @@ const safePhone = (s) => String(s == null ? '' : s).replace(/[^0-9]/g, '');
 const num = (n) => (Number.isFinite(Number(n)) ? Number(n) : 0);
 
 function renderOrdersTable(data){
+  const utrCounts = {};
+  ordersCache.forEach(x => { if(x.payment_ref) utrCounts[x.payment_ref] = (utrCounts[x.payment_ref] || 0) + 1; });
   const body = document.getElementById('ordersBody');
   const empty = document.getElementById('emptyState');
 
@@ -616,7 +619,7 @@ function renderOrdersTable(data){
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
       <td>${escH(o.customer_name)}<br><a class="wa" href="https://wa.me/91${safePhone(o.customer_phone)}" target="_blank" rel="noopener">${escH(o.customer_phone)}</a><br><span style="color:var(--muted); font-size:11px;">${escH(o.customer_year)} · ${escH(o.customer_college)} · ${escH(o.customer_department)}</span><br><span style="color:var(--cyan); font-size:11px;">${escH(o.delivery_location || 'not specified')}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${escH(i.name)} ×${num(i.qty)}`).join(', ')}</td>
-      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(num(o.subtotal))}</s> ${money(num(netOf(o)))}<br><span style="color:var(--lime); font-size:11px;">${escH(o.coupon_code || 'coupon')} −${money(num(o.discount))}</span>` : money(num(o.subtotal))}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(num(o.advance))} · COD: ${money(num(o.cod))}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${escH(o.payment_ref)}</span><br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${safeCode(o.order_code)}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
+      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(num(o.subtotal))}</s> ${money(num(netOf(o)))}<br><span style="color:var(--lime); font-size:11px;">${escH(o.coupon_code || 'coupon')} −${money(num(o.discount))}</span>` : money(num(o.subtotal))}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(num(o.advance))} · COD: ${money(num(o.cod))}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${escH(o.payment_ref)}</span>${utrCounts[o.payment_ref] > 1 ? `<br><span style="color:var(--pink); font-size:11px; font-weight:700;">Same UTR on ${utrCounts[o.payment_ref]} orders - check the bank app</span>` : ''}<br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${safeCode(o.order_code)}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
       <td>
         ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${safeCode(o.order_code)}')">Accept order</button><br>` : ''}
         <select onchange="updateOrderStatus('${safeCode(o.order_code)}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
@@ -684,7 +687,7 @@ function downloadOrdersCsv(list){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `circuitrun-orders-${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = `circuitrun-orders-${ymd(new Date())}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -816,7 +819,7 @@ async function loadCoupons(){
   msg.classList.add('hidden');
   couponsCache = data;
   document.getElementById('couponsEmpty').classList.toggle('hidden', data.length > 0);
-  const today = new Date().toISOString().slice(0,10);
+  const today = ymd(new Date());
   body.innerHTML = data.map(c => {
     const expired = c.expires_at && c.expires_at < today;
     const full = c.max_uses != null && c.used_count >= c.max_uses;
@@ -923,6 +926,8 @@ document.getElementById('cpSaveBtn').addEventListener('click', async () => {
   const scope = document.getElementById('cpScope').value;
   if(!/^[A-Z0-9_-]{3,20}$/.test(code)) return fail('Code must be 3–20 characters: letters, numbers, - or _ (no spaces).');
   if(isNaN(value) || value < 1) return fail('Enter a discount value of at least 1.');
+  const expiryVal = document.getElementById('cpExpiry').value;
+  if(expiryVal && expiryVal < ymd(new Date()) && !id) return fail('Expiry date is in the past. Pick today or a later date, or leave it empty.');
   if(type === 'percent' && value > 100) return fail('Percent discount cannot be more than 100.');
   let targets = [];
   if(scope === 'category'){ targets = currentPicks().cats; if(!targets.length) return fail('Pick at least one category.'); }
@@ -1024,8 +1029,12 @@ document.getElementById('orderSearchInput').addEventListener('input', (e) => {
 async function updateOrderStatus(orderCode, newStatus){
   // Customers see the new status in "My Orders" and on their invoice; nothing is sent to WhatsApp.
   try {
+    const prev = ordersCache.find(x => x.order_code === orderCode);
+    const rank = { 'Confirmed': 0, 'Packed': 1, 'Out for Delivery': 2, 'Delivered': 3 };
+    if(prev && rank[newStatus] < rank[prev.status] && !confirm(`Move #${orderCode} backwards from ${prev.status} to ${newStatus}?\n\nThe customer will see the earlier status again.`)){ loadOrders(); return; }
     const payload = { status: newStatus, acknowledged: true };
-    if(newStatus === 'Delivered') payload.delivered_at = new Date().toISOString();
+    // keep the first delivery time: setting Delivered again must not restart the 7-day return window
+    if(newStatus === 'Delivered' && !(prev && prev.delivered_at)) payload.delivered_at = new Date().toISOString();
     let { error } = await db.from('orders').update(payload).eq('order_code', orderCode);
     if(error && /acknowledged/.test(error.message || '')){   // notifications.sql not run yet
       delete payload.acknowledged;
@@ -1068,7 +1077,7 @@ async function loadComponents(){
 
   grid.innerHTML = data.map(c => `
     <div class="cms-card">
-      <div class="cms-thumb">${c.image_url ? `<img src="${c.image_url}" alt="${c.name}">` : '🔧'}</div>
+      <div class="cms-thumb">${c.image_url ? `<img src="${escH(c.image_url)}" alt="${escH(c.name)}">` : '🔧'}</div>
       <div class="cms-name">${c.name} ${!c.active ? '<span class="inactive-tag">Hidden</span>' : ''}</div>
       <div class="cms-meta">${c.category} · ${money(c.price)} · ${c.source === 'batch' ? 'Batch trip' : 'Quick local'}</div>
       <div class="cms-actions">
@@ -1129,7 +1138,8 @@ document.getElementById('compSaveBtn').addEventListener('click', async () => {
   const id = document.getElementById('compId').value;
   const name = document.getElementById('compName').value.trim();
   const spec = document.getElementById('compSpec').value.trim();
-  const price = parseInt(document.getElementById('compPrice').value, 10);
+  const priceRaw = document.getElementById('compPrice').value.trim();
+  const price = Number(priceRaw);
   const source = document.getElementById('compSource').value;
   const category = document.getElementById('compCategory').value;
   const details = document.getElementById('compDetails').value.trim();
@@ -1137,8 +1147,13 @@ document.getElementById('compSaveBtn').addEventListener('click', async () => {
   const errEl = document.getElementById('compError');
   const fileInput = document.getElementById('compImage');
 
-  if(!name || !price){
+  if(!name || !priceRaw){
     errEl.textContent = 'Name and price are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if(!Number.isInteger(price) || price < 1 || price > 100000){
+    errEl.textContent = 'Price must be a whole number of rupees from 1 to 100000 (no decimals, no minus).';
     errEl.classList.remove('hidden');
     return;
   }

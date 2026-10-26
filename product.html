@@ -308,6 +308,8 @@
   .logo-img { height: 32px; width: auto; display: block; flex-shrink: 0; }
   .social-link { color: var(--muted); text-decoration: none; }
   .social-link:hover { color: var(--lime); }
+  #sidebarCloseBtn, #cartCloseBtn, #ordersRefreshBtn, #ordersCloseBtn { min-width: 40px; min-height: 40px; }
+  .product-back-link { display: inline-block; padding: 8px 0; }
 </style>
 </head>
 <body>
@@ -323,8 +325,8 @@
       <input id="searchInput" placeholder="Arduino, sensors, jumper wires..." autocomplete="off">
       <div class="search-suggest hidden" id="searchSuggest"></div>
     </div>
-    <button class="cart-btn" id="ordersOpenBtn" style="background:var(--bg-card); color:var(--text); border:1px solid var(--line);"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg> <span class="btn-label">My Orders</span><span class="cart-count hidden" id="ordersCount">0</span></button>
-    <button class="cart-btn" id="cartOpenBtn"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12.2a1 1 0 0 0 1 .8h9.4a1 1 0 0 0 1-.8L20.5 8H6"/></svg> <span class="btn-label">Cart</span><span class="cart-count hidden" id="cartCount">0</span></button>
+    <button class="cart-btn" id="ordersOpenBtn" aria-label="My Orders" title="My Orders" style="background:var(--bg-card); color:var(--text); border:1px solid var(--line);"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg> <span class="btn-label">My Orders</span><span class="cart-count hidden" id="ordersCount">0</span></button>
+    <button class="cart-btn" id="cartOpenBtn" aria-label="Open cart" title="Cart"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12.2a1 1 0 0 0 1 .8h9.4a1 1 0 0 0 1-.8L20.5 8H6"/></svg> <span class="btn-label">Cart</span><span class="cart-count hidden" id="cartCount">0</span></button>
   </div>
 </header>
 
@@ -502,6 +504,7 @@
       <input id="coUtr" inputmode="numeric" maxlength="12" placeholder="Shown in your UPI app after paying">
     </div>
     <p id="utrError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Enter the 12-digit UTR from your payment receipt.</p>
+    <p id="saveError" class="hidden" role="alert" style="color:var(--pink); font-size:13px; margin:0 0 10px;"></p>
 
     <button class="btn-primary" style="width:100%; margin-bottom:8px;" id="confirmPayBtn">I've paid — confirm order</button>
     <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted);" id="cancelCheckoutBtn">Cancel</button>
@@ -878,7 +881,7 @@ let pendingProjectId = null;
 
 const savedUser = localStorage.getItem('circuitrun_user');
 if(savedUser){
-  try { state.user = JSON.parse(savedUser); } catch(e) {}
+  try { state.user = JSON.parse(savedUser); if(state.user && state.user.phone) state.user.phone = String(state.user.phone).replace(/[\s-]/g, ''); } catch(e) {}
 }
 
 const savedCart = localStorage.getItem('circuitrun_cart');
@@ -892,6 +895,12 @@ if(savedCart){
 function saveCart(){
   localStorage.setItem('circuitrun_cart', JSON.stringify(state.cart));
 }
+
+let pendingOrderCode = null;
+// 8 random characters (no look-alike letters): about a trillion codes, so they cannot be walked through
+function crNewOrderCode(){ var al = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ', a = new Uint8Array(8), s = ''; (window.crypto || window.msCrypto).getRandomValues(a); for(var i = 0; i < 8; i++) s += al[a[i] % 32]; return 'CR' + s; }
+// local calendar date (toISOString would shift it a day early in India)
+function crLocalYmd(d){ var p = function(n){ return String(n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
 
 // text from the database is escaped before it is placed into HTML
 function crEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -1152,7 +1161,8 @@ function renderCatalog(){
 
 function changeQty(id, delta){
   const cur = state.cart[id] || 0;
-  const next = Math.max(0, cur + delta);
+  const next = Math.min(99, Math.max(0, cur + delta));
+  if(cur + delta > 99) showToast('Maximum 99 of one item per order. Message us for bulk orders.');
   if(next === 0) delete state.cart[id]; else state.cart[id] = next;
   saveCart();
   renderCatalog();
@@ -1302,11 +1312,12 @@ document.getElementById('profileCancelBtn').addEventListener('click', showProfil
 
 document.getElementById('profileSaveBtn').addEventListener('click', async () => {
   const name = document.getElementById('peName').value.trim();
-  const phone = document.getElementById('pePhone').value.trim();
+  const phone = document.getElementById('pePhone').value.replace(/[\s-]/g, '');
   const year = document.getElementById('peYear').value;
   const college = document.getElementById('peCollege').value.trim();
   const department = document.getElementById('peDept').value.trim();
   if(!name || !phone || !college || !department) return;
+  if(!isValidIndianPhone(phone)){ showToast('Enter a valid 10-digit mobile number.'); return; }
   state.user = { name, phone, year, college, department };
   localStorage.setItem('circuitrun_user', JSON.stringify(state.user));
   updateSidebarProfile();
@@ -1430,6 +1441,7 @@ document.getElementById('coUtr').addEventListener('input', (e) => {
   }
 });
 
+document.getElementById('checkoutBtn').addEventListener('click', () => { pendingOrderCode = null; });
 document.getElementById('checkoutBtn').addEventListener('click', () => {
   if(!state.user){ closeDrawer(); document.getElementById('loginOverlay').classList.add('show'); return; }
   closeDrawer();
@@ -1485,7 +1497,9 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   const t = totalsWithCoupon();
   const usedCoupon = (t.discount > 0 && state.coupon) ? state.coupon : null;
   const items = cartItems();
-  const orderCode = "CR" + Date.now().toString().slice(-6);
+  const reusedCode = !!pendingOrderCode;
+  let orderCode = pendingOrderCode || crNewOrderCode();
+  pendingOrderCode = orderCode;
   const assignedBatch = getAssignedBatch();
   const batchLabel = formatBatchDate(assignedBatch);
   const order = {
@@ -1494,10 +1508,8 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
     discount: t.discount, couponCode: usedCoupon ? usedCoupon.code : null,
     status: "Confirmed", time: new Date().toLocaleString(), deliveryLocation, batchLabel
   };
-  state.orders.push(order);
-  updateOrdersCount();
-
-  // save order to the database
+  // the order is added to My Orders only after the database confirms it was saved
+  let saveError = null;
   try {
     if(!db) throw new Error('database not available');
     const orderRow = {
@@ -1508,7 +1520,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
       customer_college: state.user.college,
       customer_department: state.user.department,
       delivery_location: deliveryLocation,
-      batch_date: assignedBatch ? assignedBatch.toISOString().slice(0,10) : null,
+      batch_date: assignedBatch ? crLocalYmd(assignedBatch) : null,
       items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
       subtotal: t.subtotal,
       advance: t.advance,
@@ -1523,12 +1535,35 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
       delete orderRow.payment_ref; orderRow.delivery_location = deliveryLocation + ' [UTR ' + utr + ']';
       ({ error } = await db.from('orders').insert(orderRow));
     }
-    if(error) console.error('order save error:', error.message || JSON.stringify(error));
+    // same code seen again after a failed attempt: the first attempt actually saved, so this is a success
+    if(error && reusedCode && /duplicate key|unique/i.test(error.message || '')) error = null;
+    let regen = 0;
+    while(error && regen < 3 && /duplicate key|unique/i.test(error.message || '')){
+      regen++; orderCode = crNewOrderCode(); pendingOrderCode = orderCode; orderRow.order_code = orderCode; order.id = orderCode;
+      ({ error } = await db.from('orders').insert(orderRow));
+    }
+    if(error){ saveError = error; console.error('order save error:', error.message || JSON.stringify(error)); }
     else if(usedCoupon){ db.rpc('redeem_coupon', { p_code: usedCoupon.code }).then(({error:e2}) => { if(e2) console.error('coupon count error:', e2.message || e2); }); }
   } catch(err) {
+    saveError = err;
     console.error('order save failed:', err.message || err);
   }
 
+  if(saveError){
+    // nothing was saved: do NOT show "confirmed"; keep the cart and let the customer try again
+    const se = document.getElementById('saveError');
+    const em = String((saveError && saveError.message) || '');
+    se.textContent = /item_or_price_changed/.test(em)
+      ? 'A price or product has changed since you added it, so the order is NOT confirmed yet. Please refresh the page, check your cart and order again. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.'
+      : 'We could not save your order, so it is NOT confirmed yet. Your cart is safe. Check your internet and tap the button again. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.';
+    se.classList.remove('hidden');
+    btn.disabled = false; btn.style.opacity = '1'; btn.textContent = "I've paid — confirm order";
+    return;
+  }
+  pendingOrderCode = null;
+  state.orders.push(order);
+  updateOrdersCount();
+  document.getElementById('saveError').classList.add('hidden');
   checkoutOverlay.classList.remove('show');
   document.getElementById('successMsg').textContent = `Order #${order.id} is confirmed for the ${order.batchLabel} run. Pay ${money(t.cod)} in cash at delivery.`;
   document.getElementById('viewInvoiceBtn').href = `invoice.html?order=${order.id}`;
@@ -1549,7 +1584,7 @@ document.getElementById('backToCatalogBtn').addEventListener('click', () => {
 // login
 document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
   const name = document.getElementById('loginName').value.trim();
-  const phone = document.getElementById('loginPhone').value.trim();
+  const phone = document.getElementById('loginPhone').value.replace(/[\s-]/g, '');
   const year = document.getElementById('loginYear').value;
   const college = document.getElementById('loginCollege').value.trim();
   const department = document.getElementById('loginDept').value.trim();
