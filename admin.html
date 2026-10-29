@@ -284,7 +284,7 @@
     <div class="field"><label>Category</label>
       <select id="compCategory"></select>
     </div>
-    <div class="field"><label>Photo (optional)</label><input id="compImage" type="file" accept="image/*"></div>
+    <div class="field"><label>Photo (optional)</label><input id="compImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
     <div class="field" id="compImagePreviewWrap" style="display:none;">
       <img id="compImagePreview" alt="" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px;">
     </div>
@@ -1125,10 +1125,20 @@ async function deleteComponent(id, name){
   loadComponents();
 }
 
+// only real photo types, 5 MB at most (the bucket enforces the same rule on the server)
+const IMG_TYPES = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'image/gif':'gif' };
+const IMG_MAX_BYTES = 5 * 1024 * 1024;
+function checkImageFile(file){
+  if(!IMG_TYPES[file.type]) return 'Only JPG, PNG, WEBP or GIF photos are allowed.';
+  if(file.size > IMG_MAX_BYTES) return 'This photo is too large. The maximum is 5 MB.';
+  return '';
+}
 async function uploadComponentImage(file){
-  const ext = file.name.split('.').pop();
+  const bad = checkImageFile(file);
+  if(bad) throw new Error(bad);
+  const ext = IMG_TYPES[file.type];   // from the real type, never from the file name
   const path = `comp_${Date.now()}_${Math.round(Math.random()*10000)}.${ext}`;
-  const { error } = await db.storage.from('component-images').upload(path, file);
+  const { error } = await db.storage.from('component-images').upload(path, file, { contentType: file.type });
   if(error) throw error;
   const { data } = db.storage.from('component-images').getPublicUrl(path);
   return data.publicUrl;
