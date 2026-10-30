@@ -434,7 +434,7 @@
     <div id="loginForm" class="login-form-body">
       <div class="field-group">
         <label>Your name</label>
-        <input id="loginName" required placeholder="e.g. Rohan Sharma">
+        <input id="loginName" maxlength="80" required placeholder="e.g. Rohan Sharma">
       </div>
       <div class="field-group">
         <label>WhatsApp number</label>
@@ -452,11 +452,11 @@
       </div>
       <div class="field-group">
         <label>College name</label>
-        <input id="loginCollege" required placeholder="e.g. Terna Engineering College">
+        <input id="loginCollege" maxlength="120" required placeholder="e.g. Terna Engineering College">
       </div>
       <div class="field-group">
         <label>Department</label>
-        <input id="loginDept" required placeholder="e.g. ECE / Computer / Mechanical">
+        <input id="loginDept" maxlength="120" required placeholder="e.g. ECE / Computer / Mechanical">
       </div>
       <p id="loginError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please fill in all fields.</p>
       <button type="button" id="loginSubmitBtn" class="btn-primary" style="width:100%;">Login & start ordering</button>
@@ -645,7 +645,7 @@
     <div class="field-group">
       <label>Have a coupon?</label>
       <div style="display:flex; gap:8px;">
-        <input id="coCouponInput" placeholder="Enter code" autocomplete="off" style="text-transform:uppercase; flex:1; min-width:0;">
+        <input id="coCouponInput" maxlength="30" placeholder="Enter code" autocomplete="off" style="text-transform:uppercase; flex:1; min-width:0;">
         <button type="button" class="btn-outline" id="coCouponApplyBtn" style="white-space:nowrap; padding:0 16px;">Apply</button>
       </div>
       <p id="coCouponMsg" class="hidden" style="font-size:12px; margin:6px 0 0;"></p>
@@ -653,7 +653,7 @@
 
     <div class="field-group">
       <label>Delivery location on campus</label>
-      <input id="coDeliveryLocation" required placeholder="e.g. Hostel Block A, Room 204 / ECE Dept staffroom">
+      <input id="coDeliveryLocation" maxlength="300" required placeholder="e.g. Hostel Block A, Room 204 / ECE Dept staffroom">
     </div>
     <p id="deliveryError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please tell us where to deliver this.</p>
 
@@ -697,7 +697,7 @@
         <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted); margin-top:8px;" id="profileCloseBtn">Close</button>
       </div>
       <div id="profileEdit" class="hidden">
-        <div class="field-group"><label>Name</label><input id="peName"></div>
+        <div class="field-group"><label>Name</label><input id="peName" maxlength="80"></div>
         <div class="field-group"><label>WhatsApp number</label><input id="pePhone"></div>
         <div class="field-group">
           <label>Year of study</label>
@@ -705,8 +705,8 @@
             <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
           </select>
         </div>
-        <div class="field-group"><label>College name</label><input id="peCollege"></div>
-        <div class="field-group"><label>Department</label><input id="peDept"></div>
+        <div class="field-group"><label>College name</label><input id="peCollege" maxlength="120"></div>
+        <div class="field-group"><label>Department</label><input id="peDept" maxlength="120"></div>
         <button class="btn-primary" style="width:100%;" id="profileSaveBtn">Save changes</button>
         <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted); margin-top:8px;" id="profileCancelBtn">Cancel</button>
       </div>
@@ -1098,6 +1098,39 @@ function saveCart(){
   localStorage.setItem('circuitrun_cart', JSON.stringify(state.cart));
 }
 
+// ---- unreliable internet: time limit + retry with waiting time for saving an order ----
+// (tests can shrink these numbers by setting window.CR_NET before the page loads)
+const CR_NET = Object.assign({ timeoutMs: 12000, retries: 3, backoffMs: [1000, 2500, 5000] }, window.CR_NET || {});
+const CR_LIMITS = { name: 80, college: 120, department: 120, location: 300 };   // same limits the database enforces
+function crWithTimeout(p, ms){
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('timeout')), ms);
+    Promise.resolve(p).then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
+}
+// true when the network or server hiccuped (worth retrying); false when the database itself refused the order
+function crIsNetworkError(err){
+  const m = String((err && err.message) || err || '');
+  return /timeout|failed to fetch|networkerror|network request failed|load failed|fetch|bad gateway|gateway|service unavailable|too many requests|econn|socket|offline/i.test(m);
+}
+// Saves the order and retries network errors. The same order code is used every time, so if an earlier attempt
+// did reach the database, the retry gets "duplicate key" and that is counted as saved (never a second order).
+async function crSaveOrder(row, reused, onRetry){
+  let attempt = 0;
+  for(;;){
+    let error = null;
+    try {
+      const r = await crWithTimeout(db.from('orders').insert(row), CR_NET.timeoutMs);
+      error = (r && r.error) || null;
+    } catch(e){ error = e || new Error('failed'); }
+    if(!error) return { error: null };
+    if((attempt > 0 || reused) && /duplicate key|unique/i.test(error.message || '')) return { error: null };
+    if(!crIsNetworkError(error) || attempt >= CR_NET.retries) return { error };
+    attempt++;
+    if(onRetry) onRetry(attempt, CR_NET.retries);
+    await new Promise(r => setTimeout(r, CR_NET.backoffMs[Math.min(attempt - 1, CR_NET.backoffMs.length - 1)]));
+  }
+}
 let pendingOrderCode = null;
 // 8 random characters (no look-alike letters): about a trillion codes, so they cannot be walked through
 function crNewOrderCode(){ var al = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ', a = new Uint8Array(8), s = ''; (window.crypto || window.msCrypto).getRandomValues(a); for(var i = 0; i < 8; i++) s += al[a[i] % 32]; return 'CR' + s; }
@@ -1526,6 +1559,7 @@ document.getElementById('profileSaveBtn').addEventListener('click', async () => 
   const college = document.getElementById('peCollege').value.trim();
   const department = document.getElementById('peDept').value.trim();
   if(!name || !phone || !college || !department) return;
+  if(name.length > CR_LIMITS.name || college.length > CR_LIMITS.college || department.length > CR_LIMITS.department){ showToast('Name can be up to 80 characters; college and department up to 120.'); return; }
   if(!isValidIndianPhone(phone)){ showToast('Enter a valid 10-digit mobile number.'); return; }
   state.user = { name, phone, year, college, department };
   localStorage.setItem('circuitrun_user', JSON.stringify(state.user));
@@ -1693,6 +1727,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
     document.getElementById('deliveryError').classList.remove('hidden');
     return;
   }
+  if(deliveryLocation.length > CR_LIMITS.location){ showToast('Delivery location can be at most ' + CR_LIMITS.location + ' characters.'); return; }
   document.getElementById('deliveryError').classList.add('hidden');
   state.lastDeliveryLocation = deliveryLocation;
   const utr = (document.getElementById('coUtr').value || '').trim();
@@ -1739,18 +1774,17 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
     // coupon columns are only sent when a coupon was used, so normal orders keep working
     if(usedCoupon){ orderRow.discount = t.discount; orderRow.coupon_code = usedCoupon.code; }
     orderRow.payment_ref = utr;
-    let { error } = await db.from('orders').insert(orderRow);
+    const onRetry = (n, max) => { btn.textContent = 'Slow connection, retrying (' + n + '/' + max + ')...'; };
+    let { error } = await crSaveOrder(orderRow, reusedCode, onRetry);
     if(error && /payment_ref|payment_verified/.test(error.message || '')){
       // payments.sql not run yet: never lose the order, keep the UTR in the delivery note instead
       delete orderRow.payment_ref; orderRow.delivery_location = deliveryLocation + ' [UTR ' + utr + ']';
-      ({ error } = await db.from('orders').insert(orderRow));
+      ({ error } = await crSaveOrder(orderRow, reusedCode, onRetry));
     }
-    // same code seen again after a failed attempt: the first attempt actually saved, so this is a success
-    if(error && reusedCode && /duplicate key|unique/i.test(error.message || '')) error = null;
     let regen = 0;
     while(error && regen < 3 && /duplicate key|unique/i.test(error.message || '')){
       regen++; orderCode = crNewOrderCode(); pendingOrderCode = orderCode; orderRow.order_code = orderCode; order.id = orderCode;
-      ({ error } = await db.from('orders').insert(orderRow));
+      ({ error } = await crSaveOrder(orderRow, false, onRetry));
     }
     if(error){ saveError = error; console.error('order save error:', error.message || JSON.stringify(error)); }
     else if(usedCoupon){ db.rpc('redeem_coupon', { p_code: usedCoupon.code }).then(({error:e2}) => { if(e2) console.error('coupon count error:', e2.message || e2); }); }
@@ -1765,7 +1799,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
     const em = String((saveError && saveError.message) || '');
     se.textContent = /item_or_price_changed/.test(em)
       ? 'A price or product has changed since you added it, so the order is NOT confirmed yet. Please refresh the page, check your cart and order again. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.'
-      : 'We could not save your order, so it is NOT confirmed yet. Your cart is safe. Check your internet and tap the button again. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.';
+      : 'We could not save your order, so it is NOT confirmed yet. Your cart is safe. Check your internet and tap the button again; tapping again will not create a second order. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.';
     se.classList.remove('hidden');
     btn.disabled = false; btn.style.opacity = '1'; btn.textContent = "I've paid — confirm order";
     return;
@@ -1801,6 +1835,11 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   const loginErrorEl = document.getElementById('loginError');
   if(!name || !phone || !year || !college || !department){
     loginErrorEl.textContent = 'Please fill in all fields.';
+    loginErrorEl.classList.remove('hidden');
+    return;
+  }
+  if(name.length > CR_LIMITS.name || college.length > CR_LIMITS.college || department.length > CR_LIMITS.department){
+    loginErrorEl.textContent = 'Name can be up to ' + CR_LIMITS.name + ' characters; college and department up to ' + CR_LIMITS.college + '.';
     loginErrorEl.classList.remove('hidden');
     return;
   }
