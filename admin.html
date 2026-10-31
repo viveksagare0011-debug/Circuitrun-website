@@ -137,6 +137,43 @@
   .modal.wide { max-width: 800px; }
   .toggle-btn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
   .toggle-btn.on { border-color: var(--lime); color: var(--lime); }
+
+  /* ---- phase 3: customers, payments, content, reports ---- */
+  .p3-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0; }
+  .p3-bar input, .p3-bar select { width: auto; min-width: 150px; }
+  .p3-note { color: var(--muted); font-size: 12px; margin: 6px 0 12px; line-height: 1.5; }
+  .cname { font-weight: 700; }
+  .cdetail { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .tag-ok { background: rgba(198,255,61,0.15); color: var(--lime); }
+  .tag-bad { background: rgba(255,95,168,0.15); color: var(--pink); }
+  .tag-warn { background: rgba(255,200,61,0.15); color: #FFC83D; }
+  .tag-info { background: rgba(77,232,255,0.12); color: var(--cyan); }
+  .tag { display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; margin: 0 4px 3px 0; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .stat-grid .stat { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat-grid .num { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 800; }
+  .stat-grid .label { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .p3-section { margin-top: 26px; }
+  .wa-box textarea { width: 100%; min-height: 64px; }
+  .wa-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  a.wa-link { text-decoration: none; color: var(--text); background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 12px; }
+  .ann-preview { border-radius: 10px; padding: 9px 14px; font-size: 13px; margin-bottom: 12px; border: 1px solid var(--line); background: var(--bg-card); }
+  .ann-preview.offer { border-color: var(--lime); color: var(--lime); }
+  .ann-preview.warning { border-color: var(--pink); color: var(--pink); }
+  .rp-table td, .rp-table th { white-space: nowrap; }
+  .rp-foot td { font-weight: 800; border-top: 1px solid var(--line); }
+  input.rf-ref { width: 150px; padding: 6px 8px; font-size: 12px; }
+  input.cat-new { width: 190px; padding: 6px 8px; font-size: 12px; }
+  #printSheet { display: none; }
+  @media print {
+    body > *:not(#printSheet) { display: none !important; }
+    #printSheet { display: block !important; color: #000; background: #fff; padding: 16px; font-family: Arial, sans-serif; }
+    #printSheet h1 { font-size: 20px; margin: 0 0 4px; color: #000; }
+    #printSheet p { font-size: 12px; margin: 0 0 12px; color: #333; }
+    #printSheet table { border-collapse: collapse; width: 100%; font-size: 12px; }
+    #printSheet th, #printSheet td { border: 1px solid #999; padding: 5px 8px; text-align: left; color: #000; }
+    #printSheet th { background: #eee; }
+  }
 </style>
 </head>
 <body>
@@ -171,6 +208,10 @@
     <button class="tab-btn" data-tab="coupons">Coupons</button>
     <button class="tab-btn" data-tab="reviews">Reviews <span class="rv-badge hidden" id="rvPendingBadge"></span></button>
     <button class="tab-btn" data-tab="blog">Blog</button>
+    <button class="tab-btn" data-tab="customers">Customers</button>
+    <button class="tab-btn" data-tab="payments">Payments</button>
+    <button class="tab-btn" data-tab="content">Content</button>
+    <button class="tab-btn" data-tab="reports">Reports</button>
   </div>
 
   <div class="tab-panel active" id="tab-orders">
@@ -269,6 +310,209 @@
   </div>
 </div>
 
+  <!-- ===== phase 3 panels ===== -->
+  <div class="tab-panel" id="tab-customers">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Customers</h2>
+        <p class="sub" style="margin-top:4px;">Everyone who has placed an order, grouped by phone number. Mark people you have verified, block people who should not order again, and keep private notes.</p>
+      </div>
+      <button class="btn-secondary" id="custCsvBtn">Download CSV</button>
+    </div>
+    <p class="err hidden" id="custSetupMsg"></p>
+    <div class="p3-bar">
+      <input id="custSearch" placeholder="Search name, phone or college..." style="flex:1; min-width:200px;">
+      <select id="custFilter" aria-label="Filter customers">
+        <option value="all">All customers</option><option value="verified">Verified</option><option value="unverified">Not verified</option>
+        <option value="blocked">Blocked</option><option value="optin">OK to message</option>
+      </select>
+    </div>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+      <thead><tr><th>Customer</th><th>Phone</th><th>Orders</th><th>Order value</th><th>Last order</th><th>Status</th><th></th></tr></thead>
+      <tbody id="custBody"></tbody>
+    </table></div>
+    <div id="custEmpty" class="empty hidden">No customers match.</div>
+
+    <div class="p3-section wa-box">
+      <h2>Message customers on WhatsApp</h2>
+      <p class="p3-note">Only customers you have marked <b>OK to message</b> (they agreed) and who are not blocked appear here. WhatsApp opens one chat at a time with your message ready; you press send yourself. Use <code>{name}</code> for the customer's name. Do not send the same message to hundreds of people: WhatsApp may block your number.</p>
+      <textarea id="waMsg" maxlength="500" aria-label="Message">Hi {name}, </textarea>
+      <div id="waList" class="wa-links"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-payments">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Payments &amp; refunds</h2>
+        <p class="sub" style="margin-top:4px;">Customers pay the 20% advance by UPI and the rest in cash on delivery. Check each UTR in your bank app, then mark it verified or failed. Refunds are recorded here after you pay them back.</p>
+      </div>
+    </div>
+    <p class="err hidden" id="paySetupMsg"></p>
+    <div class="stat-grid" id="payStats"></div>
+    <p class="p3-note">"Money received" = verified advances + cash collected on delivered orders − refunds already paid. Failed and unverified advances are not counted.</p>
+    <div class="p3-bar">
+      <select id="payFilter" aria-label="Filter payments">
+        <option value="all">All orders</option><option value="pending">Advance not verified</option><option value="verified">Verified</option>
+        <option value="failed">Failed</option><option value="duplicate">Same UTR on several orders</option>
+      </select>
+    </div>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+      <thead><tr><th>Order</th><th>Customer</th><th>UTR</th><th>Advance</th><th>Cash on delivery</th><th>Payment</th><th></th></tr></thead>
+      <tbody id="payBody"></tbody>
+    </table></div>
+    <div id="payEmpty" class="empty hidden">No orders match.</div>
+
+    <div class="p3-section">
+      <h2>Refunds</h2>
+      <p class="p3-note">Start a refund with the "Refund" button on an order above. A refund stays <b>Pending</b> until you have paid the customer; then enter the UPI reference and press Mark paid. Refunds cannot be deleted, so the record stays correct.</p>
+      <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+        <thead><tr><th>Date</th><th>Order</th><th>Amount</th><th>Reason</th><th>Method</th><th>Status</th><th></th></tr></thead>
+        <tbody id="refundBody"></tbody>
+      </table></div>
+      <div id="refundEmpty" class="empty hidden">No refunds recorded.</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-content">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Website content</h2>
+        <p class="sub" style="margin-top:4px;">Announcements show at the top of the website. Components, kits and blog posts have their own tabs.</p>
+      </div>
+      <button class="add-btn" id="addAnnBtn">+ New announcement</button>
+    </div>
+    <p class="err hidden" id="annSetupMsg"></p>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+      <thead><tr><th>Message</th><th>Link</th><th>Style</th><th>Dates</th><th>Status</th><th></th></tr></thead>
+      <tbody id="annBody"></tbody>
+    </table></div>
+    <div id="annEmpty" class="empty hidden">No announcements yet. Click "+ New announcement" to add one, for example a delivery notice or an offer.</div>
+
+    <div class="p3-section">
+      <h2>Categories</h2>
+      <p class="p3-note">Categories come from your components. Renaming changes every component in the category; renaming to a name that already exists merges the two. To add a brand new category, choose "New category" when you add a component.</p>
+      <p class="err hidden" id="catMsg" role="alert"></p>
+      <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+        <thead><tr><th>Category</th><th>Components</th><th>Rename or merge</th></tr></thead>
+        <tbody id="catBody"></tbody>
+      </table></div>
+    </div>
+    <div class="p3-section">
+      <h2>Listings and pages</h2>
+      <div class="p3-bar">
+        <button class="btn-secondary" data-goto="components">Components</button>
+        <button class="btn-secondary" data-goto="projects">Project kits</button>
+        <button class="btn-secondary" data-goto="blog">Blog posts</button>
+        <button class="btn-secondary" data-goto="coupons">Coupons</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-reports">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Reports</h2>
+        <p class="sub" style="margin-top:4px;">Pick a report and a date range. Download it as a spreadsheet (CSV) or print it / save it as a PDF.</p>
+      </div>
+    </div>
+    <div class="p3-bar">
+      <select id="rpType" aria-label="Report">
+        <option value="sales-summary">Sales summary</option><option value="sales-by-day">Sales by day</option>
+        <option value="sales-by-category">Sales by category</option><option value="top-items">Top items</option>
+        <option value="coupons">Coupons used</option><option value="customers">Customers</option>
+        <option value="payments">Payments</option><option value="refunds">Refunds</option>
+      </select>
+      <label for="rpFrom" style="margin:0;">From</label><input id="rpFrom" type="date">
+      <label for="rpTo" style="margin:0;">To</label><input id="rpTo" type="date">
+      <button class="add-btn" id="rpRunBtn">Show report</button>
+    </div>
+    <p class="err hidden" id="rpError" role="alert"></p>
+    <h2 id="rpTitle"></h2>
+    <p class="p3-note" id="rpNote"></p>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table class="rp-table" id="rpTable"></table></div>
+    <div id="rpEmpty" class="empty hidden">No data for this date range.</div>
+    <div class="p3-bar">
+      <button class="btn-secondary" id="rpCsvBtn">Download CSV</button>
+      <button class="btn-secondary" id="rpPdfBtn">Print / Save as PDF</button>
+    </div>
+  </div>
+
+
+<!-- ===== phase 3 dialogs ===== -->
+<div class="modal-overlay" id="custModal">
+  <div class="modal" role="dialog" aria-labelledby="custModalTitle">
+    <h3 id="custModalTitle">Manage customer</h3>
+    <p class="p3-note" id="custModalWho"></p>
+    <div class="field"><label><input type="checkbox" id="custVerified" style="width:auto;"> Verified (you have confirmed this person is genuine)</label></div>
+    <div class="field"><label><input type="checkbox" id="custBlocked" style="width:auto;"> Blocked (cannot place new orders)</label></div>
+    <div class="field"><label for="custReason">Reason for blocking</label><input id="custReason" placeholder="Required when blocked (up to 200 characters)"></div>
+    <div class="field"><label for="custNote">Private note</label><textarea id="custNote" rows="3" placeholder="Only you can see this (up to 500 characters)"></textarea></div>
+    <div class="field"><label><input type="checkbox" id="custMarketing" style="width:auto;"> OK to message (they agreed to receive offers on WhatsApp)</label></div>
+    <p class="err hidden" id="custError" role="alert"></p>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button class="add-btn" id="custSaveBtn">Save</button>
+      <button class="btn-secondary" id="custCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="payFailModal">
+  <div class="modal" role="dialog" aria-labelledby="payFailTitle">
+    <h3 id="payFailTitle">Mark payment as failed</h3>
+    <p class="p3-note" id="payFailWho"></p>
+    <div class="field"><label for="payFailReason">What went wrong?</label><input id="payFailReason" placeholder="e.g. UTR not found in the bank app (up to 200 characters)"></div>
+    <p class="err hidden" id="payFailError" role="alert"></p>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button class="add-btn" id="payFailSaveBtn">Mark failed</button>
+      <button class="btn-secondary" id="payFailCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="refundModal">
+  <div class="modal" role="dialog" aria-labelledby="rfTitle">
+    <h3 id="rfTitle">Record a refund</h3>
+    <p class="p3-note" id="rfRemain"></p>
+    <div class="field-row">
+      <div class="field"><label for="rfOrder">Order</label><input id="rfOrder" readonly></div>
+      <div class="field"><label for="rfAmount">Amount (₹, whole rupees)</label><input id="rfAmount" inputmode="numeric" autocomplete="off"></div>
+    </div>
+    <div class="field"><label for="rfReason">Reason</label><input id="rfReason" placeholder="e.g. item arrived broken (up to 200 characters)"></div>
+    <div class="field"><label for="rfMethod">Paid back by</label><select id="rfMethod"><option>UPI</option><option>Cash</option><option>Other</option></select></div>
+    <p class="err hidden" id="rfError" role="alert"></p>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button class="add-btn" id="rfSaveBtn">Save refund</button>
+      <button class="btn-secondary" id="rfCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="annModal">
+  <div class="modal" role="dialog" aria-labelledby="annTitle">
+    <h3 id="annTitle">New announcement</h3>
+    <input type="hidden" id="annId">
+    <div class="ann-preview" id="annPreview" aria-live="polite">Your message appears here</div>
+    <div class="field"><label for="annMsg">Message (up to 200 characters)</label><input id="annMsg" placeholder="e.g. Free delivery this Friday"></div>
+    <div class="field"><label for="annLink">Link (optional)</label><input id="annLink" placeholder="https://... or catalog.html"></div>
+    <div class="field-row">
+      <div class="field"><label for="annStyle">Style</label><select id="annStyle"><option value="info">Information</option><option value="offer">Offer</option><option value="warning">Warning</option></select></div>
+      <div class="field"><label><input type="checkbox" id="annActive" checked style="width:auto;"> Active</label></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="annStart">Show from (optional)</label><input id="annStart" type="date"></div>
+      <div class="field"><label for="annEnd">Show until (optional)</label><input id="annEnd" type="date"></div>
+    </div>
+    <p class="err hidden" id="annError" role="alert"></p>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button class="add-btn" id="annSaveBtn">Save</button>
+      <button class="btn-secondary" id="annCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="printSheet" aria-hidden="true"></div>
+
 <div class="modal-overlay" id="componentModal">
   <div class="modal">
     <h3 id="componentModalTitle">Add component</h3>
@@ -283,6 +527,7 @@
     </div>
     <div class="field"><label>Category</label>
       <select id="compCategory"></select>
+      <input id="compNewCat" class="hidden" placeholder="New category name (up to 40 characters)" aria-label="New category name" style="margin-top:6px;">
     </div>
     <div class="field"><label>Photo (optional)</label><input id="compImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
     <div class="field" id="compImagePreviewWrap" style="display:none;">
@@ -502,6 +747,9 @@ function loadAll(){
   loadCoupons();
   loadReviewsAdmin();
   loadDashboardReviews();
+  loadCustomersTab();
+  loadRefunds();
+  loadAnnouncements();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -582,6 +830,7 @@ async function loadOrders(silent){
 
   updateNewBanner();
   if(typeof renderDashboard === 'function') renderDashboard();
+  if(typeof onOrdersLoaded === 'function') onOrdersLoaded();
   if(!silent || changed) applyOrderFilters(document.getElementById('orderSearchInput').value.trim().toLowerCase());
 }
 
@@ -1062,8 +1311,10 @@ async function deleteOneOrder(orderCode){
 
 let componentsCache = [];
 
-function populateCategorySelect(){
-  document.getElementById('compCategory').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+function populateCategorySelect(selected){
+  const list = (typeof categoryList === 'function' ? categoryList() : CATEGORIES.slice());
+  if(selected && !list.includes(selected)) list.push(selected);
+  document.getElementById('compCategory').innerHTML = list.map(c => `<option value="${escH(c)}">${escH(c)}</option>`).join('') + '<option value="__new__">+ New category...</option>';
 }
 populateCategorySelect();
 
@@ -1073,13 +1324,15 @@ async function loadComponents(){
   const { data, error } = await db.from('components').select('*').order('category').order('name');
   if(error){ grid.innerHTML = `<p style="color:var(--pink);">Failed to load: ${error.message}</p>`; return; }
   componentsCache = data;
+  populateCategorySelect();
+  if(typeof renderCategories === 'function') renderCategories();
   if(data.length === 0){ grid.innerHTML = `<p style="color:var(--muted);">No components yet. Click "+ Add component" to create your first one.</p>`; return; }
 
   grid.innerHTML = data.map(c => `
     <div class="cms-card">
       <div class="cms-thumb">${c.image_url ? `<img src="${escH(c.image_url)}" alt="${escH(c.name)}">` : '🔧'}</div>
-      <div class="cms-name">${c.name} ${!c.active ? '<span class="inactive-tag">Hidden</span>' : ''}</div>
-      <div class="cms-meta">${c.category} · ${money(c.price)} · ${c.source === 'batch' ? 'Batch trip' : 'Quick local'}</div>
+      <div class="cms-name">${escH(c.name)} ${!c.active ? '<span class="inactive-tag">Hidden</span>' : ''}</div>
+      <div class="cms-meta">${escH(c.category)} · ${money(c.price)} · ${c.source === 'batch' ? 'Batch trip' : 'Quick local'}</div>
       <div class="cms-actions">
         <button class="btn-secondary btn-small" onclick="editComponent('${c.id}')">Edit</button>
         <button class="btn-danger btn-small" onclick="deleteComponent('${c.id}', '${c.name.replace(/'/g,"\\'")}')">Delete</button>
@@ -1098,7 +1351,9 @@ function openComponentModal(comp){
   document.getElementById('compSpec').value = comp ? comp.spec : '';
   document.getElementById('compPrice').value = comp ? comp.price : '';
   document.getElementById('compSource').value = comp ? comp.source : 'local';
-  document.getElementById('compCategory').value = comp ? comp.category : CATEGORIES[0];
+  populateCategorySelect(comp ? comp.category : null);
+  document.getElementById('compCategory').value = comp ? comp.category : document.getElementById('compCategory').options[0].value;
+  document.getElementById('compNewCat').value = ''; document.getElementById('compNewCat').classList.add('hidden');
   document.getElementById('compDetails').value = comp ? (comp.details || '') : '';
   document.getElementById('compActive').checked = comp ? comp.active : true;
   document.getElementById('compImage').value = '';
@@ -1151,12 +1406,14 @@ document.getElementById('compSaveBtn').addEventListener('click', async () => {
   const priceRaw = document.getElementById('compPrice').value.trim();
   const price = Number(priceRaw);
   const source = document.getElementById('compSource').value;
-  const category = document.getElementById('compCategory').value;
+  let category = document.getElementById('compCategory').value;
+  if(category === '__new__') category = document.getElementById('compNewCat').value.trim();
   const details = document.getElementById('compDetails').value.trim();
   const active = document.getElementById('compActive').checked;
   const errEl = document.getElementById('compError');
   const fileInput = document.getElementById('compImage');
 
+  if(!category || category.length > 40){ errEl.textContent = !category ? 'Please type the new category name.' : 'A category name can be at most 40 characters.'; errEl.classList.remove('hidden'); return; }
   if(!name || !priceRaw){
     errEl.textContent = 'Name and price are required.';
     errEl.classList.remove('hidden');
@@ -1740,6 +1997,417 @@ async function loadDashboardReviews(){
 }
 document.getElementById('dbFilters').addEventListener('click', e => { const b = e.target.closest('.db-chip'); if(!b) return; dbRange = Number(b.dataset.r); renderDashboard(); });
 document.getElementById('dbGrid').addEventListener('click', e => { const b = e.target.closest('.db-tbtn'); if(!b) return; const id = b.dataset.t; dbOpenTables.has(id) ? dbOpenTables.delete(id) : dbOpenTables.add(id); renderDashboard(); });
+
+// ================= PHASE 3: customers, payments & refunds, content, reports =================
+const P3 = { reason: 200, note: 500, category: 40, ann: 200, refundReason: 200, failReason: 200 };
+const ANN_LINK_OK = /^(https:\/\/\S+|[a-z0-9_-]+\.html([?#]\S*)?)$/;   // same rule as the database
+const $id = (id) => document.getElementById(id);
+const showErr = (id, msg) => { const e = $id(id); e.textContent = msg; e.classList.remove('hidden'); };
+const hideErr = (id) => { const e = $id(id); e.textContent = ''; e.classList.add('hidden'); };
+const inr = (n) => '₹' + Math.round(num(n)).toLocaleString('en-IN');
+const dayOf = (iso) => ymd(new Date(iso));
+function missingTable(err){ return err && /does not exist|relation|schema cache|could not find/i.test(err.message || ''); }
+function setupHint(id, err, what){
+  const e = $id(id); if(!e) return;
+  if(err){ e.textContent = missingTable(err) ? `${what} needs the latest database update: run security_phase3.sql once in Supabase (SQL Editor).` : `Could not load ${what}: ${err.message}`; e.classList.remove('hidden'); }
+  else e.classList.add('hidden');
+}
+
+// download any table as a spreadsheet file
+function crDownloadCsv(filename, rows){
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => {
+  const t = document.querySelector('.tab-btn[data-tab="' + b.dataset.goto + '"]'); if(t) t.click();
+}));
+
+let customersCache = [], refundsCache = [], announcementsCache = [];
+function onOrdersLoaded(){ renderCustomers(); renderPayments(); renderRefunds(); }
+
+// ------------------------------------------------ customers ------------------------------------------------
+async function loadCustomersTab(){
+  const { data, error } = await db.from('customers').select('*');
+  customersCache = error ? [] : (data || []);
+  setupHint('custSetupMsg', error && missingTable(error) || (error && /blocked|verified|column/i.test(error.message || '')) ? error : null, 'customer marks');
+  renderCustomers();
+}
+function buildCustomerList(orders){
+  const by = new Map();
+  for(const o of (orders || ordersCache)){
+    const p = safePhone(o.customer_phone); if(!p) continue;
+    let r = by.get(p);
+    if(!r){ r = { phone: p, name: o.customer_name, college: o.customer_college, dept: o.customer_department, year: o.customer_year, orders: 0, value: 0, last: '', verified: false, blocked: false, reason: '', note: '', marketing: false, hasRow: false }; by.set(p, r); }
+    r.orders++; r.value += netOf(o);
+    if(!r.last || o.created_at > r.last){ r.last = o.created_at; r.name = o.customer_name; r.college = o.customer_college; r.dept = o.customer_department; r.year = o.customer_year; }
+  }
+  for(const c of customersCache){
+    const p = safePhone(c.phone); if(!p) continue;
+    let r = by.get(p);
+    if(!r){ if(orders) continue; r = { phone: p, name: c.name, college: c.college, dept: c.department, year: c.year, orders: 0, value: 0, last: '', verified: false, blocked: false, reason: '', note: '', marketing: false, hasRow: false }; by.set(p, r); }
+    r.hasRow = true; r.verified = !!c.verified; r.blocked = !!c.blocked; r.reason = c.blocked_reason || ''; r.note = c.admin_note || ''; r.marketing = !!c.marketing_ok;
+  }
+  return [...by.values()].sort((a, b) => (b.last || '').localeCompare(a.last || ''));
+}
+function customerChips(r){
+  return (r.verified ? '<span class="tag tag-ok">Verified</span>' : '') + (r.blocked ? '<span class="tag tag-bad">Blocked</span>' : '') +
+    (r.marketing ? '<span class="tag tag-info">OK to message</span>' : '') + (r.note ? '<span class="tag tag-warn" title="Has a private note">Note</span>' : '');
+}
+function renderCustomers(){
+  const body = $id('custBody'); if(!body) return;
+  const q = $id('custSearch').value.trim().toLowerCase(), f = $id('custFilter').value;
+  const list = buildCustomerList().filter(r => {
+    if(q && !(String(r.name).toLowerCase().includes(q) || r.phone.includes(q.replace(/\D/g, '') || '\u0000') || String(r.college || '').toLowerCase().includes(q))) return false;
+    if(f === 'verified') return r.verified; if(f === 'unverified') return !r.verified;
+    if(f === 'blocked') return r.blocked; if(f === 'optin') return r.marketing;
+    return true;
+  });
+  body.innerHTML = list.map(r => `<tr data-phone="${safePhone(r.phone)}">
+    <td><span class="cname">${escH(r.name)}</span><div class="cdetail">${escH([r.college, r.dept, r.year].filter(Boolean).join(' · '))}</div>${r.blocked && r.reason ? `<div class="cdetail" style="color:var(--pink);">Blocked: ${escH(r.reason)}</div>` : ''}</td>
+    <td class="mono">${safePhone(r.phone)}</td><td>${r.orders}</td><td class="mono">${inr(r.value)}</td>
+    <td>${r.last ? escH(new Date(r.last).toLocaleDateString('en-IN')) : '—'}</td><td>${customerChips(r)}</td>
+    <td><button class="btn-secondary btn-small" data-act="manage">Manage</button> <button class="btn-secondary btn-small" data-act="orders">Orders</button></td></tr>`).join('');
+  $id('custEmpty').classList.toggle('hidden', list.length > 0);
+  renderWaList();
+}
+let custEditing = null;
+function openCustomer(phone){
+  const r = buildCustomerList().find(x => x.phone === phone); if(!r) return;
+  custEditing = r;
+  $id('custModalWho').textContent = `${r.name} · ${r.phone} · ${r.orders} order(s)`;
+  $id('custVerified').checked = r.verified; $id('custBlocked').checked = r.blocked;
+  $id('custReason').value = r.reason; $id('custNote').value = r.note; $id('custMarketing').checked = r.marketing;
+  hideErr('custError'); $id('custModal').classList.add('show');
+}
+async function saveCustomer(){
+  const r = custEditing; if(!r) return;
+  const verified = $id('custVerified').checked, blocked = $id('custBlocked').checked, marketing = $id('custMarketing').checked;
+  const reason = $id('custReason').value.trim(), note = $id('custNote').value.trim();
+  if(blocked && !reason) return showErr('custError', 'Please write a reason for blocking this customer.');
+  if(reason.length > P3.reason) return showErr('custError', `The reason can be at most ${P3.reason} characters (now ${reason.length}).`);
+  if(note.length > P3.note) return showErr('custError', `The note can be at most ${P3.note} characters (now ${note.length}).`);
+  hideErr('custError');
+  const flags = { verified, blocked, blocked_reason: blocked ? reason : null, admin_note: note || null, marketing_ok: marketing };
+  let error;
+  if(r.hasRow) ({ error } = await db.from('customers').update(flags).eq('phone', r.phone));
+  else ({ error } = await db.from('customers').insert({ name: r.name || 'Customer', phone: r.phone, year: r.year || '-', college: r.college || null, department: r.dept || null, ...flags }));
+  if(error) return showErr('custError', 'Could not save: ' + error.message);
+  $id('custModal').classList.remove('show');
+  await loadCustomersTab();
+}
+$id('custSaveBtn').addEventListener('click', saveCustomer);
+$id('custCancelBtn').addEventListener('click', () => $id('custModal').classList.remove('show'));
+$id('custBody').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); const tr = e.target.closest('tr[data-phone]'); if(!b || !tr) return;
+  if(b.dataset.act === 'manage') openCustomer(tr.dataset.phone);
+  if(b.dataset.act === 'orders'){ $id('orderSearchInput').value = tr.dataset.phone; document.querySelector('.tab-btn[data-tab="orders"]').click(); applyOrderFilters(tr.dataset.phone); }
+});
+$id('custSearch').addEventListener('input', renderCustomers);
+$id('custFilter').addEventListener('change', renderCustomers);
+$id('custCsvBtn').addEventListener('click', () => {
+  const head = ['Name', 'Phone', 'College', 'Department', 'Year', 'Orders', 'Order value', 'Last order', 'Verified', 'Blocked', 'Block reason', 'OK to message', 'Private note'];
+  const rows = buildCustomerList().map(r => [r.name, r.phone, r.college || '', r.dept || '', r.year || '', r.orders, r.value, r.last ? dayOf(r.last) : '', r.verified ? 'Yes' : 'No', r.blocked ? 'Yes' : 'No', r.reason, r.marketing ? 'Yes' : 'No', r.note]);
+  crDownloadCsv(`circuitrun-customers-${ymd(new Date())}.csv`, [head, ...rows]);
+});
+// WhatsApp: one link per customer who agreed, never blocked people; the admin presses send
+function renderWaList(){
+  const box = $id('waList'); if(!box) return;
+  const msg = $id('waMsg').value;
+  const list = buildCustomerList().filter(r => r.marketing && !r.blocked && /^\d{10}$/.test(r.phone));
+  if(!list.length){ box.innerHTML = '<span class="p3-note">No customers have agreed to messages yet. Tick "OK to message" when you manage a customer who said yes.</span>'; return; }
+  box.innerHTML = list.map(r => `<a class="wa-link" target="_blank" rel="noopener noreferrer" href="https://wa.me/91${r.phone}?text=${encodeURIComponent(msg.replace(/\{name\}/g, r.name))}">${escH(r.name)}</a>`).join('');
+}
+$id('waMsg').addEventListener('input', renderWaList);
+
+// ------------------------------------------------ payments ------------------------------------------------
+function payInfo(){
+  const utrCount = new Map();
+  ordersCache.forEach(o => { if(o.payment_ref) utrCount.set(o.payment_ref, (utrCount.get(o.payment_ref) || 0) + 1); });
+  return o => {
+    const failed = !!o.payment_failed_reason;
+    const state = failed ? 'failed' : (o.payment_verified ? 'verified' : 'pending');
+    return { state, dup: o.payment_ref ? utrCount.get(o.payment_ref) : 0 };
+  };
+}
+function renderPayments(){
+  const body = $id('payBody'); if(!body) return;
+  const info = payInfo(); let advV = 0, advP = 0, advF = 0, codTo = 0, codDone = 0;
+  ordersCache.forEach(o => {
+    const s = info(o).state; const a = num(o.advance);
+    if(s === 'verified') advV += a; else if(s === 'failed') advF += a; else advP += a;
+    if(o.status === 'Delivered') codDone += num(o.cod); else codTo += num(o.cod);
+  });
+  const refPaid = refundsCache.filter(r => r.status === 'Paid').reduce((s, r) => s + num(r.amount), 0);
+  const refPend = refundsCache.filter(r => r.status !== 'Paid').reduce((s, r) => s + num(r.amount), 0);
+  const K = (k, v, label) => `<div class="stat" data-k="${k}"><div class="num">${money(Math.round(v))}</div><div class="label">${label}</div></div>`;
+  $id('payStats').innerHTML = K('advVerified', advV, 'Advance verified') + K('advPending', advP, 'Advance not verified yet') + K('advFailed', advF, 'Advance marked failed') +
+    K('codToCollect', codTo, 'Cash still to collect (not delivered)') + K('codCollected', codDone, 'Cash collected (delivered orders)') +
+    K('refundsPaid', refPaid, 'Refunds paid') + K('refundsPending', refPend, 'Refunds pending') + K('netReceived', advV + codDone - refPaid, 'Money received');
+  const f = $id('payFilter').value;
+  const list = ordersCache.filter(o => { const i = info(o); if(f === 'pending') return i.state === 'pending'; if(f === 'verified') return i.state === 'verified'; if(f === 'failed') return i.state === 'failed'; if(f === 'duplicate') return i.dup > 1; return true; });
+  body.innerHTML = list.map(o => { const i = info(o), code = safeCode(o.order_code);
+    const chip = i.state === 'verified' ? '<span class="tag tag-ok">Verified</span>' : i.state === 'failed' ? `<span class="tag tag-bad">Failed</span><div class="cdetail">${escH(o.payment_failed_reason)}</div>` : '<span class="tag tag-warn">Not verified</span>';
+    return `<tr data-code="${code}"><td class="mono">${code}</td><td><span class="cname">${escH(o.customer_name)}</span><div class="cdetail">${safePhone(o.customer_phone)}</div></td>
+      <td class="mono">${escH(o.payment_ref || '—')}${i.dup > 1 ? `<div class="tag tag-warn">Same UTR on ${i.dup} orders</div>` : ''}</td>
+      <td class="mono">${money(num(o.advance))}</td><td class="mono">${money(num(o.cod))}${o.status === 'Delivered' ? ' <span class="tag tag-ok">collected</span>' : ''}</td><td>${chip}</td>
+      <td>${i.state !== 'verified' ? '<button class="btn-secondary btn-small" data-act="verify">Verify</button> ' : ''}${i.state !== 'failed' ? '<button class="btn-secondary btn-small" data-act="fail">Failed</button> ' : ''}${i.state !== 'pending' ? '<button class="btn-secondary btn-small" data-act="clear">Reset</button> ' : ''}<button class="btn-secondary btn-small" data-act="refund">Refund</button></td></tr>`; }).join('');
+  $id('payEmpty').classList.toggle('hidden', list.length > 0);
+}
+$id('payFilter').addEventListener('change', renderPayments);
+let payFailCode = null;
+async function setPayment(code, patch){
+  const { error } = await db.from('orders').update(patch).eq('order_code', code);
+  if(error){ showErr('paySetupMsg', 'Could not save: ' + error.message + (missingTable(error) || /payment_failed_reason/.test(error.message) ? ' (run security_phase3.sql once in Supabase)' : '')); return false; }
+  hideErr('paySetupMsg'); await loadOrders(true); return true;
+}
+$id('payBody').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); const tr = e.target.closest('tr[data-code]'); if(!b || !tr) return;
+  const code = tr.dataset.code, act = b.dataset.act;
+  if(act === 'verify') setPayment(code, { payment_verified: true, payment_failed_reason: null });
+  if(act === 'clear') setPayment(code, { payment_verified: false, payment_failed_reason: null });
+  if(act === 'fail'){ payFailCode = code; $id('payFailWho').textContent = 'Order ' + code; $id('payFailReason').value = ''; hideErr('payFailError'); $id('payFailModal').classList.add('show'); }
+  if(act === 'refund') openRefund(code);
+});
+$id('payFailCancelBtn').addEventListener('click', () => $id('payFailModal').classList.remove('show'));
+$id('payFailSaveBtn').addEventListener('click', async () => {
+  const reason = $id('payFailReason').value.trim();
+  if(!reason) return showErr('payFailError', 'Please write what went wrong.');
+  if(reason.length > P3.failReason) return showErr('payFailError', `At most ${P3.failReason} characters (now ${reason.length}).`);
+  if(await setPayment(payFailCode, { payment_failed_reason: reason, payment_verified: false })) $id('payFailModal').classList.remove('show');
+});
+
+// refunds
+async function loadRefunds(){
+  const { data, error } = await db.from('refunds').select('*').order('id', { ascending: false });
+  refundsCache = error ? [] : (data || []);
+  setupHint('paySetupMsg', error, 'refunds');
+  renderRefunds(); renderPayments();
+}
+function refundedFor(code){ return refundsCache.filter(r => r.order_code === code).reduce((s, r) => s + num(r.amount), 0); }
+function renderRefunds(){
+  const body = $id('refundBody'); if(!body) return;
+  body.innerHTML = refundsCache.map(r => `<tr data-id="${escH(r.id)}"><td>${escH(dayOf(r.created_at))}</td><td class="mono">${safeCode(r.order_code)}</td><td class="mono">${money(num(r.amount))}</td>
+    <td>${escH(r.reason)}</td><td>${escH(r.method)}</td>
+    <td>${r.status === 'Paid' ? `<span class="tag tag-ok">Paid</span><div class="cdetail">${escH(r.reference || '')}${r.paid_at ? ' · ' + escH(dayOf(r.paid_at)) : ''}</div>` : '<span class="tag tag-warn">Pending</span>'}</td>
+    <td>${r.status === 'Paid' ? '' : '<input class="rf-ref" placeholder="UPI reference" maxlength="60" aria-label="UPI reference"> <button class="btn-secondary btn-small" data-act="paid">Mark paid</button>'}</td></tr>`).join('');
+  $id('refundEmpty').classList.toggle('hidden', refundsCache.length > 0);
+}
+$id('refundBody').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act="paid"]'); const tr = e.target.closest('tr[data-id]'); if(!b || !tr) return;
+  const ref = tr.querySelector('input.rf-ref').value.trim();
+  if(ref && !/^[A-Za-z0-9-]{4,60}$/.test(ref)){ showErr('paySetupMsg', 'The reference can only have letters, numbers and dashes (4 to 60 characters).'); return; }
+  const { error } = await db.from('refunds').update({ status: 'Paid', reference: ref || null, paid_at: new Date().toISOString() }).eq('id', tr.dataset.id);
+  if(error){ showErr('paySetupMsg', 'Could not save: ' + error.message); return; }
+  hideErr('paySetupMsg'); loadRefunds();
+});
+let refundCode = null;
+function openRefund(code){
+  const o = ordersCache.find(x => x.order_code === code); if(!o) return;
+  refundCode = code;
+  const left = netOf(o) - refundedFor(code);
+  $id('rfOrder').value = code; $id('rfAmount').value = ''; $id('rfReason').value = ''; $id('rfMethod').value = 'UPI';
+  $id('rfRemain').textContent = `The customer was charged ${money(netOf(o))}. Refunded so far: ${money(refundedFor(code))}. You can refund up to ${money(left)} more.`;
+  hideErr('rfError'); $id('refundModal').classList.add('show');
+}
+$id('rfCancelBtn').addEventListener('click', () => $id('refundModal').classList.remove('show'));
+$id('rfSaveBtn').addEventListener('click', async () => {
+  const o = ordersCache.find(x => x.order_code === refundCode); if(!o) return showErr('rfError', 'Order not found. Refresh the page.');
+  const raw = $id('rfAmount').value.trim(), reason = $id('rfReason').value.trim();
+  const left = netOf(o) - refundedFor(refundCode);
+  if(!/^\d{1,6}$/.test(raw) || Number(raw) < 1) return showErr('rfError', 'Enter the refund amount as a whole number of rupees, for example 100.');
+  const amount = Number(raw);
+  if(amount > left) return showErr('rfError', `You can refund at most ${money(left)} more for this order.`);
+  if(!reason) return showErr('rfError', 'Please write the reason for the refund.');
+  if(reason.length > P3.refundReason) return showErr('rfError', `The reason can be at most ${P3.refundReason} characters (now ${reason.length}).`);
+  hideErr('rfError');
+  const { error } = await db.from('refunds').insert({ order_code: refundCode, amount, reason, method: $id('rfMethod').value, status: 'Pending' });
+  if(error) return showErr('rfError', /refund_exceeds_order/.test(error.message) ? 'That is more than this order allows. Refresh and try again.' : 'Could not save: ' + error.message);
+  $id('refundModal').classList.remove('show'); loadRefunds();
+});
+
+// ------------------------------------------------ content: announcements ------------------------------------------------
+async function loadAnnouncements(){
+  const { data, error } = await db.from('announcements').select('*').order('sort').order('id');
+  announcementsCache = error ? [] : (data || []);
+  setupHint('annSetupMsg', error, 'announcements');
+  renderAnnouncements();
+}
+function annStatus(a){
+  const today = ymd(new Date());
+  if(!a.active) return ['Paused', 'tag-warn'];
+  if(a.ends_on && a.ends_on < today) return ['Ended', 'tag-bad'];
+  if(a.starts_on && a.starts_on > today) return ['Scheduled', 'tag-info'];
+  return ['Live', 'tag-ok'];
+}
+function renderAnnouncements(){
+  const body = $id('annBody'); if(!body) return;
+  body.innerHTML = announcementsCache.map(a => { const [st, cls] = annStatus(a);
+    return `<tr data-id="${escH(a.id)}"><td>${escH(a.message)}</td><td class="mono">${escH(a.link_url || '—')}</td><td>${escH(a.style)}</td>
+      <td>${escH([a.starts_on, a.ends_on].some(Boolean) ? (a.starts_on || '…') + ' → ' + (a.ends_on || '…') : 'always')}</td><td><span class="tag ${cls}">${st}</span></td>
+      <td><button class="btn-secondary btn-small" data-act="edit">Edit</button> <button class="btn-secondary btn-small" data-act="toggle">${a.active ? 'Pause' : 'Resume'}</button> <button class="btn-danger btn-small" data-act="delete">Delete</button></td></tr>`; }).join('');
+  $id('annEmpty').classList.toggle('hidden', announcementsCache.length > 0);
+}
+function annPreview(){
+  const p = $id('annPreview'); p.className = 'ann-preview ' + ($id('annStyle').value || 'info');
+  p.textContent = $id('annMsg').value.trim() || 'Your message appears here';
+}
+function openAnnouncement(a){
+  $id('annTitle').textContent = a ? 'Edit announcement' : 'New announcement';
+  $id('annId').value = a ? a.id : ''; $id('annMsg').value = a ? a.message : ''; $id('annLink').value = a && a.link_url ? a.link_url : '';
+  $id('annStyle').value = a ? a.style : 'info'; $id('annActive').checked = a ? !!a.active : true;
+  $id('annStart').value = a && a.starts_on ? a.starts_on : ''; $id('annEnd').value = a && a.ends_on ? a.ends_on : '';
+  hideErr('annError'); annPreview(); $id('annModal').classList.add('show');
+}
+$id('addAnnBtn').addEventListener('click', () => openAnnouncement(null));
+$id('annCancelBtn').addEventListener('click', () => $id('annModal').classList.remove('show'));
+['annMsg', 'annStyle'].forEach(i => $id(i).addEventListener('input', annPreview));
+$id('annSaveBtn').addEventListener('click', async () => {
+  const message = $id('annMsg').value.trim(), link = $id('annLink').value.trim(), start = $id('annStart').value, end = $id('annEnd').value;
+  if(!message) return showErr('annError', 'Please write the message.');
+  if(message.length > P3.ann) return showErr('annError', `The message can be at most ${P3.ann} characters (now ${message.length}).`);
+  if(link && !ANN_LINK_OK.test(link)) return showErr('annError', 'The link must start with https:// or be a page of this site such as catalog.html.');
+  if(start && end && end < start) return showErr('annError', 'The end date must not be before the start date.');
+  hideErr('annError');
+  const row = { message, link_url: link || null, style: $id('annStyle').value, active: $id('annActive').checked, starts_on: start || null, ends_on: end || null };
+  const id = $id('annId').value;
+  const { error } = id ? await db.from('announcements').update(row).eq('id', id) : await db.from('announcements').insert(row);
+  if(error) return showErr('annError', 'Could not save: ' + error.message);
+  $id('annModal').classList.remove('show'); loadAnnouncements();
+});
+$id('annBody').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act]'); const tr = e.target.closest('tr[data-id]'); if(!b || !tr) return;
+  const id = tr.dataset.id; const a = announcementsCache.find(x => String(x.id) === id); if(!a) return;
+  if(b.dataset.act === 'edit') return openAnnouncement(a);
+  if(b.dataset.act === 'toggle'){ await db.from('announcements').update({ active: !a.active }).eq('id', id); return loadAnnouncements(); }
+  if(b.dataset.act === 'delete'){ if(!confirm('Delete this announcement permanently?')) return; await db.from('announcements').delete().eq('id', id); loadAnnouncements(); }
+});
+
+// ------------------------------------------------ content: categories ------------------------------------------------
+function categoryCounts(){
+  const m = new Map();
+  (componentsCache || []).forEach(c => { if(!c.category) return; const r = m.get(c.category) || { n: 0, hidden: 0 }; r.n++; if(!c.active) r.hidden++; m.set(c.category, r); });
+  return m;
+}
+function categoryList(){
+  const m = categoryCounts(); const names = [...m.keys()];
+  const ordered = CATEGORIES.filter(c => m.has(c)).concat(names.filter(n => !CATEGORIES.includes(n)).sort());
+  return ordered.length ? ordered : CATEGORIES.slice();
+}
+function renderCategories(){
+  const body = $id('catBody'); if(!body) return;
+  const m = categoryCounts();
+  body.innerHTML = categoryList().filter(n => m.has(n)).map(n => { const r = m.get(n);
+    return `<tr data-cat="${escH(n)}"><td>${escH(n)}</td><td>${r.n}${r.hidden ? ` (${r.hidden} hidden)` : ''}</td>
+      <td><input class="cat-new" placeholder="New name" aria-label="New name for ${escH(n)}"> <button class="btn-secondary btn-small" data-act="rename">Rename / merge</button></td></tr>`; }).join('');
+}
+$id('catBody').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act="rename"]'); const tr = e.target.closest('tr[data-cat]'); if(!b || !tr) return;
+  const from = tr.dataset.cat, to = tr.querySelector('input.cat-new').value.trim(), m = categoryCounts(); hideErr('catMsg');
+  if(!to) return showErr('catMsg', 'Type the new name first.');
+  if(to.length > P3.category) return showErr('catMsg', `A category name can be at most ${P3.category} characters (now ${to.length}).`);
+  if(to === from) return showErr('catMsg', 'That is already its name.');
+  const n = m.get(from).n;
+  const ask = m.has(to) ? `Merge "${from}" into "${to}"? All ${n} component(s) move to "${to}" and "${from}" disappears.` : `Rename "${from}" to "${to}" for ${n} component(s)?`;
+  if(!confirm(ask)) return;
+  const { error } = await db.from('components').update({ category: to }).eq('category', from);
+  if(error) return showErr('catMsg', 'Could not save: ' + error.message);
+  await loadComponents();
+});
+$id('compCategory').addEventListener('change', () => {
+  const isNew = $id('compCategory').value === '__new__';
+  $id('compNewCat').classList.toggle('hidden', !isNew); if(isNew) $id('compNewCat').focus();
+});
+
+// ------------------------------------------------ reports ------------------------------------------------
+const RP_TITLES = { 'sales-summary': 'Sales summary', 'sales-by-day': 'Sales by day', 'sales-by-category': 'Sales by category', 'top-items': 'Top items',
+  coupons: 'Coupons used', customers: 'Customers', payments: 'Payments', refunds: 'Refunds' };
+let rpCurrent = null;
+function rpDefaults(){ const to = new Date(), from = new Date(); from.setDate(from.getDate() - 29); $id('rpFrom').value = ymd(from); $id('rpTo').value = ymd(to); }
+const inRange = (iso, from, to) => { const d = dayOf(iso); return d >= from && d <= to; };
+function buildReport(type, from, to){
+  const orders = ordersCache.filter(o => inRange(o.created_at, from, to));
+  const info = payInfo();
+  const catOf = new Map((componentsCache || []).map(c => [String(c.name).toLowerCase(), c.category]));
+  const sum = (a, f) => a.reduce((s, x) => s + num(f(x)), 0);
+  const money0 = (v) => ({ money: v });
+  if(type === 'sales-summary'){
+    const del = orders.filter(o => o.status === 'Delivered'), net = sum(orders, netOf);
+    const refPaid = refundsCache.filter(r => r.status === 'Paid' && inRange(r.paid_at || r.created_at, from, to));
+    return { head: ['Measure', 'Value'], rows: orders.length || refPaid.length ? [
+      ['Orders', orders.length], ['Order value (after discounts)', money0(net)], ['Discounts given', money0(sum(orders, o => o.discount))],
+      ['Advance (20%) paid', money0(sum(orders, o => o.advance))], ['Cash on delivery (balance)', money0(sum(orders, o => o.cod))],
+      ['Delivered orders', del.length], ['Delivered value', money0(sum(del, netOf))], ['Average order value', money0(orders.length ? Math.round(net / orders.length) : 0)],
+      ['Refunds paid', money0(sum(refPaid, r => r.amount))]] : [], note: 'Order value is after discounts. Every order counts, whatever its status.' };
+  }
+  if(type === 'sales-by-day'){
+    const by = new Map(); orders.forEach(o => { const d = dayOf(o.created_at); const r = by.get(d) || [0, 0, 0, 0]; r[0]++; r[1] += netOf(o); r[2] += num(o.advance); r[3] += num(o.cod); by.set(d, r); });
+    const days = [...by.keys()].sort(); const tot = days.reduce((t, d) => t.map((x, i) => x + by.get(d)[i]), [0, 0, 0, 0]);
+    return { head: ['Date', 'Orders', 'Order value', 'Advance', 'Cash on delivery'], rows: days.map(d => [d, by.get(d)[0], money0(by.get(d)[1]), money0(by.get(d)[2]), money0(by.get(d)[3])]),
+      foot: days.length ? ['Total', tot[0], money0(tot[1]), money0(tot[2]), money0(tot[3])] : null };
+  }
+  if(type === 'sales-by-category' || type === 'top-items'){
+    const by = new Map();
+    orders.forEach(o => (o.items || []).forEach(i => { const k = type === 'top-items' ? String(i.name) : (catOf.get(String(i.name).toLowerCase()) || 'Other / kits'); const r = by.get(k) || [0, 0]; r[0] += num(i.qty); r[1] += num(i.qty) * num(i.price); by.set(k, r); }));
+    const keys = [...by.keys()].sort((a, b) => by.get(b)[0] - by.get(a)[0] || by.get(b)[1] - by.get(a)[1] || a.localeCompare(b));
+    if(type === 'sales-by-category') keys.sort((a, b) => by.get(b)[1] - by.get(a)[1] || a.localeCompare(b));
+    const tot = keys.reduce((t, k) => [t[0] + by.get(k)[0], t[1] + by.get(k)[1]], [0, 0]);
+    return { head: [type === 'top-items' ? 'Item' : 'Category', type === 'top-items' ? 'Quantity' : 'Items sold', type === 'top-items' ? 'Sales' : 'Sales (before discounts)'],
+      rows: keys.map(k => [k, by.get(k)[0], money0(by.get(k)[1])]), foot: keys.length ? ['Total', tot[0], money0(tot[1])] : null, note: 'Sales are item price × quantity, before any coupon discount.' };
+  }
+  if(type === 'coupons'){
+    const by = new Map(); orders.filter(o => o.coupon_code).forEach(o => { const r = by.get(o.coupon_code) || [0, 0]; r[0]++; r[1] += num(o.discount); by.set(o.coupon_code, r); });
+    return { head: ['Coupon', 'Times used', 'Discount given'], rows: [...by.keys()].sort().map(k => [k, by.get(k)[0], money0(by.get(k)[1])]) };
+  }
+  if(type === 'customers'){
+    const list = buildCustomerList(orders);
+    return { head: ['Customer', 'Phone', 'Orders', 'Order value', 'Last order', 'Status'], rows: list.map(r => [r.name, r.phone, r.orders, money0(r.value), r.last ? dayOf(r.last) : '', [r.verified ? 'Verified' : '', r.blocked ? 'Blocked' : ''].filter(Boolean).join(', ') || '—']) };
+  }
+  if(type === 'payments'){
+    return { head: ['Order', 'Customer', 'UTR', 'Advance', 'Cash on delivery', 'Payment', 'Note'], rows: orders.map(o => { const i = info(o);
+      return [o.order_code, o.customer_name, o.payment_ref || '', money0(num(o.advance)), money0(num(o.cod)), i.state === 'verified' ? 'Verified' : i.state === 'failed' ? 'Failed' : 'Not verified',
+        [i.state === 'failed' ? o.payment_failed_reason : '', i.dup > 1 ? `Same UTR on ${i.dup} orders` : ''].filter(Boolean).join('; ')]; }) };
+  }
+  if(type === 'refunds'){
+    const list = refundsCache.filter(r => inRange(r.created_at, from, to));
+    return { head: ['Date', 'Order', 'Amount', 'Method', 'Status', 'Reference', 'Reason'], rows: list.map(r => [dayOf(r.created_at), r.order_code, money0(num(r.amount)), r.method, r.status, r.reference || '', r.reason]) };
+  }
+  return { head: [], rows: [] };
+}
+const rpCell = (v) => (v && typeof v === 'object' && 'money' in v) ? v.money : v;
+const rpShow = (v) => (v && typeof v === 'object' && 'money' in v) ? money(Math.round(v.money)) : v;
+function runReport(){
+  const type = $id('rpType').value, from = $id('rpFrom').value, to = $id('rpTo').value;
+  hideErr('rpError'); rpCurrent = null; $id('rpTable').innerHTML = ''; $id('rpTitle').textContent = ''; $id('rpNote').textContent = ''; $id('rpEmpty').classList.add('hidden');
+  if(!from || !to) return showErr('rpError', 'Choose both dates.');
+  if(from > to) return showErr('rpError', 'The "from" date must be before the "to" date.');
+  const rep = buildReport(type, from, to);
+  rpCurrent = { type, from, to, rep };
+  $id('rpTitle').textContent = `${RP_TITLES[type]}, ${from} to ${to}`; $id('rpNote').textContent = rep.note || '';
+  if(!rep.rows.length){ $id('rpEmpty').classList.remove('hidden'); return; }
+  const rows = rep.foot ? [...rep.rows, rep.foot] : rep.rows;
+  $id('rpTable').innerHTML = `<thead><tr>${rep.head.map(h => `<th>${escH(h)}</th>`).join('')}</tr></thead><tbody>` +
+    rep.rows.map(r => `<tr>${r.map(c => `<td>${escH(rpShow(c))}</td>`).join('')}</tr>`).join('') +
+    (rep.foot ? `<tr class="rp-foot">${rep.foot.map(c => `<td>${escH(rpShow(c))}</td>`).join('')}</tr>` : '') + '</tbody>';
+}
+$id('rpRunBtn').addEventListener('click', runReport);
+$id('rpType').addEventListener('change', runReport);
+$id('rpCsvBtn').addEventListener('click', () => {
+  if(!rpCurrent || !rpCurrent.rep.rows.length){ showErr('rpError', 'Show a report with data first.'); return; }
+  const { type, from, to, rep } = rpCurrent; const rows = rep.foot ? [...rep.rows, rep.foot] : rep.rows;
+  crDownloadCsv(`circuitrun-${type}-${from}_to_${to}.csv`, [rep.head, ...rows.map(r => r.map(rpCell))]);
+});
+$id('rpPdfBtn').addEventListener('click', () => {
+  if(!rpCurrent || !rpCurrent.rep.rows.length){ showErr('rpError', 'Show a report with data first.'); return; }
+  const { type, from, to, rep } = rpCurrent; const rows = rep.foot ? [...rep.rows, rep.foot] : rep.rows;
+  $id('printSheet').innerHTML = `<h1>CircuitRun: ${escH(RP_TITLES[type])}</h1><p>${escH(from)} to ${escH(to)} · printed ${escH(new Date().toLocaleString('en-IN'))}${rep.note ? '<br>' + escH(rep.note) : ''}</p>` +
+    `<table><thead><tr>${rep.head.map(h => `<th>${escH(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${escH(rpShow(c))}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  window.print();
+});
+rpDefaults();
 </script>
 </body>
 </html>

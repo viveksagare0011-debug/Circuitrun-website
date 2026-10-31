@@ -904,6 +904,12 @@ function crIsNetworkError(err){
 }
 // Saves the order and retries network errors. The same order code is used every time, so if an earlier attempt
 // did reach the database, the retry gets "duplicate key" and that is counted as saved (never a second order).
+function crKnownSaveError(em){
+  if(/blocked_customer/.test(em)) return 'We cannot take orders from this phone number right now. Please contact us on Instagram @circuitrun.in.';
+  if(/rate_limited/.test(em)) return 'Too many orders were placed from this number in a short time. Please try again later, or contact us on Instagram @circuitrun.in.';
+  if(/coupon_/.test(em)) return 'This coupon cannot be used (it may already be used or fully claimed). Remove the coupon and place the order again.';
+  return '';
+}
 async function crSaveOrder(row, reused, onRetry){
   let attempt = 0;
   for(;;){
@@ -1535,9 +1541,9 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
     // nothing was saved: do NOT show "confirmed"; keep the cart and let the customer try again
     const se = document.getElementById('saveError');
     const em = String((saveError && saveError.message) || '');
-    se.textContent = /item_or_price_changed/.test(em)
+    se.textContent = crKnownSaveError(em) || (/item_or_price_changed/.test(em)
       ? 'A price or product has changed since you added it, so the order is NOT confirmed yet. Please refresh the page, check your cart and order again. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.'
-      : 'We could not save your order, so it is NOT confirmed yet. Your cart is safe. Check your internet and tap the button again; tapping again will not create a second order. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.';
+      : 'We could not save your order, so it is NOT confirmed yet. Your cart is safe. Check your internet and tap the button again; tapping again will not create a second order. If you already paid, keep your UTR and message us on Instagram @circuitrun.in.');
     se.classList.remove('hidden');
     btn.disabled = false; btn.style.opacity = '1'; btn.textContent = "I've paid — confirm order";
     return;
@@ -1933,5 +1939,41 @@ renderChips();
 })();
 </script>
 <script src="chatbot.js" defer></script>
+
+<script>
+// Announcement bar: messages the owner writes in the admin panel (Content tab).
+(function(){
+  var CLOSED_KEY = 'cr_ann_closed';
+  var LINK_OK = /^(https:\/\/\S+|[a-z0-9_-]+\.html([?#]\S*)?)$/;
+  function closedList(){ try { return JSON.parse(localStorage.getItem(CLOSED_KEY) || '[]'); } catch(e){ return []; } }
+  function rememberClosed(id){ try { var l = closedList(); l.push(id); localStorage.setItem(CLOSED_KEY, JSON.stringify(l.slice(-50))); } catch(e){} }
+  function todayIST(){ return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); }
+  var css = document.createElement('style');
+  css.textContent = '#crAnnounce{position:relative;z-index:60}#crAnnounce .ann{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 40px 8px 14px;font-size:13px;line-height:1.4;text-align:center;background:#12202b;color:#4DE8FF;border-bottom:1px solid rgba(255,255,255,.12);position:relative}#crAnnounce .ann.offer{background:#1b2a10;color:#C6FF3D}#crAnnounce .ann.warning{background:#2c1420;color:#FF5FA8}#crAnnounce .ann a{color:inherit;text-decoration:underline;font-weight:700}#crAnnounce .ann-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:inherit;font-size:20px;line-height:1;cursor:pointer;padding:4px 8px}';
+  document.head.appendChild(css);
+  async function load(){
+    if(typeof db === 'undefined' || !db) return;
+    try {
+      var r = await db.from('announcements').select('*').eq('active', true).order('sort').order('id');
+      if(r.error || !r.data) return;
+      var today = todayIST(), closed = closedList().map(String);
+      var list = r.data.filter(function(a){ return a.active && (!a.starts_on || a.starts_on <= today) && (!a.ends_on || a.ends_on >= today) && closed.indexOf(String(a.id)) < 0; });
+      if(!list.length) return;
+      var box = document.getElementById('crAnnounce');
+      if(!box){ box = document.createElement('div'); box.id = 'crAnnounce'; document.body.insertBefore(box, document.body.firstChild); }
+      box.innerHTML = '';
+      list.forEach(function(a){
+        var d = document.createElement('div'); d.className = 'ann ' + (['offer','warning'].indexOf(a.style) >= 0 ? a.style : 'info');
+        var span = document.createElement('span'); span.textContent = a.message; d.appendChild(span);
+        if(a.link_url && LINK_OK.test(a.link_url)){ var l = document.createElement('a'); l.href = a.link_url; l.textContent = 'Open'; if(/^https:/.test(a.link_url)){ l.target = '_blank'; l.rel = 'noopener noreferrer'; } d.appendChild(l); }
+        var x = document.createElement('button'); x.type = 'button'; x.className = 'ann-x'; x.setAttribute('aria-label', 'Close announcement'); x.textContent = '×';
+        x.addEventListener('click', function(){ rememberClosed(a.id); d.remove(); });
+        d.appendChild(x); box.appendChild(d);
+      });
+    } catch(e){ console.error('announcements failed:', e.message || e); }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
+})();
+</script>
 </body>
 </html>
