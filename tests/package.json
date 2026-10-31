@@ -1,0 +1,15 @@
+{
+  "name": "circuitrun-tests",
+  "private": true,
+  "description": "Automated tests for the CircuitRun website (browser, SQL rules, concurrency)",
+  "scripts": {
+    "test": "node run-all.mjs",
+    "test:browser": "node browser.test.js",
+    "test:sql": "node sql-rules.test.mjs",
+    "test:concurrency": "node sql-concurrency.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "playwright": "^1.48.0"
+  }
+}
