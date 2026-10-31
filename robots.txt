@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /Circuitrun-website/admin.html
+Disallow: /Circuitrun-website/invoice.html
+Disallow: /Circuitrun-website/thank-you.html
+
+Sitemap: https://viveksagare0011-debug.github.io/Circuitrun-website/sitemap.xml

@@ -3,13 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Project Kits — CircuitRun</title>
+<title>Project Kits for Engineering Students | CircuitRun</title>
 <link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
 <link rel="apple-touch-icon" href="brand/icon-180.png">
-<meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
-<meta property="og:title" content="CircuitRun — components delivered to campus">
-<meta property="og:description" content="Order electronics & project components online, delivered to your campus. Built for engineering students in Navi Mumbai.">
+<meta name="description" content="Ready-made component kits for engineering mini-projects, with a parts list and manual. Delivered to your campus in Navi Mumbai.">
+<link rel="canonical" href="https://viveksagare0011-debug.github.io/Circuitrun-website/projects.html">
+<meta property="og:title" content="Project Kits for Engineering Students | CircuitRun">
+<meta property="og:description" content="Ready-made component kits for engineering mini-projects, with a parts list and manual. Delivered to your campus in Navi Mumbai.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
+<meta property="og:url" content="https://viveksagare0011-debug.github.io/Circuitrun-website/projects.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Project Kits for Engineering Students | CircuitRun">
+<meta name="twitter:description" content="Ready-made component kits for engineering mini-projects, with a parts list and manual. Delivered to your campus in Navi Mumbai.">
+<meta name="twitter:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -421,6 +428,7 @@
       <p>Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</p>
     </div>
     <div style="display:flex; gap:14px; font-size:12px;">
+      <a href="faq.html" style="color:var(--muted); text-decoration:none;">FAQ</a>
       <a href="about.html" style="color:var(--muted); text-decoration:none;">About Us</a>
       <a href="policy.html" style="color:var(--muted); text-decoration:none;">Terms & Policy</a>
     </div>
@@ -1860,6 +1868,7 @@ if(document.getElementById('requestSubmitBtn')){
 
     document.getElementById('requestFormComponent').classList.add('hidden');
     document.getElementById('requestSuccess').classList.remove('hidden');
+    setTimeout(() => { window.location.href = 'thank-you.html'; }, 900);
   });
 
   document.getElementById('projRequestSubmitBtn').addEventListener('click', () => {
@@ -1891,6 +1900,7 @@ if(document.getElementById('requestSubmitBtn')){
 
     document.getElementById('requestFormProject').classList.add('hidden');
     document.getElementById('requestSuccess').classList.remove('hidden');
+    setTimeout(() => { window.location.href = 'thank-you.html'; }, 900);
   });
 }
 
@@ -1975,5 +1985,6 @@ renderChips();
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
 })();
 </script>
+<script src="analytics.js"></script>
 </body>
 </html>

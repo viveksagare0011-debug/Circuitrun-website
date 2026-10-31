@@ -3,13 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Component — CircuitRun</title>
+<title>Component Details | CircuitRun</title>
 <link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
 <link rel="apple-touch-icon" href="brand/icon-180.png">
-<meta name="description" content="Order electronics & project components online and get them delivered straight to your campus in Nerul, Vashi & Belapur. No more trips to the city for one resistor.">
-<meta property="og:title" content="CircuitRun — components delivered to campus">
-<meta property="og:description" content="Order electronics & project components online, delivered to your campus. Built for engineering students in Navi Mumbai.">
+<meta name="description" content="See the specification and price of this electronics component, and order it for delivery to your campus in Navi Mumbai.">
+<link rel="canonical" href="https://viveksagare0011-debug.github.io/Circuitrun-website/product.html">
+<meta property="og:title" content="Component Details | CircuitRun">
+<meta property="og:description" content="See the specification and price of this electronics component, and order it for delivery to your campus in Navi Mumbai.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
+<meta property="og:url" content="https://viveksagare0011-debug.github.io/Circuitrun-website/product.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Component Details | CircuitRun">
+<meta name="twitter:description" content="See the specification and price of this electronics component, and order it for delivery to your campus in Navi Mumbai.">
+<meta name="twitter:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -918,6 +925,16 @@ function crKnownSaveError(em){
   if(/rate_limited/.test(em)) return 'Too many orders were placed from this number in a short time. Please try again later, or contact us on Instagram @circuitrun.in.';
   if(/coupon_/.test(em)) return 'This coupon cannot be used (it may already be used or fully claimed). Remove the coupon and place the order again.';
   return '';
+}
+function crSetPageMeta(title, desc, id, page){
+  var url = 'https://viveksagare0011-debug.github.io/Circuitrun-website/' + page + '?id=' + encodeURIComponent(id);
+  document.title = title;
+  var set = function(sel, attr, val){ var el = document.querySelector(sel); if(el) el.setAttribute(attr, val); };
+  desc = String(desc).replace(/\s+/g, ' ').trim().slice(0, 158);
+  set('meta[name="description"]', 'content', desc);
+  set('meta[property="og:title"]', 'content', title); set('meta[name="twitter:title"]', 'content', title);
+  set('meta[property="og:description"]', 'content', desc); set('meta[name="twitter:description"]', 'content', desc);
+  set('meta[property="og:url"]', 'content', url); set('link[rel="canonical"]', 'href', url);
 }
 async function crSaveOrder(row, reused, onRetry){
   let attempt = 0;
@@ -1912,6 +1929,7 @@ if(document.getElementById('requestSubmitBtn')){
 
     document.getElementById('requestFormComponent').classList.add('hidden');
     document.getElementById('requestSuccess').classList.remove('hidden');
+    setTimeout(() => { window.location.href = 'thank-you.html'; }, 900);
   });
 
   document.getElementById('projRequestSubmitBtn').addEventListener('click', () => {
@@ -1943,6 +1961,7 @@ if(document.getElementById('requestSubmitBtn')){
 
     document.getElementById('requestFormProject').classList.add('hidden');
     document.getElementById('requestSuccess').classList.remove('hidden');
+    setTimeout(() => { window.location.href = 'thank-you.html'; }, 900);
   });
 }
 
@@ -1988,7 +2007,7 @@ function renderProductPage(){
   }
 
   const ic = CAT_ICON[item.cat] || {icon:"🔧", cls:"icon-lime"};
-  document.title = `${item.name} — CircuitRun`;
+  crSetPageMeta(`${item.name} — ₹${item.price} | CircuitRun`, `${item.name}${item.spec ? ' (' + item.spec + ')' : ''} for ₹${item.price}. Order online for delivery to your campus in Navi Mumbai.`, item.id, 'product.html');
 
   document.getElementById('productImageBox').innerHTML = item.image
     ? `<img src="${crAttr(item.image)}" alt="${crAttr(item.name)}">`
@@ -2087,5 +2106,6 @@ function renderProductQty(id){
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
 })();
 </script>
+<script src="analytics.js"></script>
 </body>
 </html>

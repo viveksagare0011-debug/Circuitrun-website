@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank you | CircuitRun</title>
+<link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
+<link rel="apple-touch-icon" href="brand/icon-180.png">
+<meta name="description" content="Thanks for contacting CircuitRun.">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#12121A">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --bg: #12121A; --bg-card: #1C1C27; --line: #2C2C39;
+    --lime: #C6FF3D; --pink: #FF5FA8; --cyan: #4DE8FF;
+    --text: #F4F3F7; --muted: #9A98A8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.7; }
+  .disp { font-family: 'Space Grotesk', sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 30px 20px 70px; }
+
+  header { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 10px; margin-bottom: 10px; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; text-decoration: none; color: var(--text); }
+  .logo-badge { width: 30px; height: 30px; border-radius: 9px; background: var(--lime); display: flex; align-items: center; justify-content: center; font-size: 15px; transform: rotate(-6deg); }
+  .back-link { color: var(--muted); font-size: 13px; text-decoration: none; }
+  .back-link:hover { color: var(--lime); }
+
+  .eyebrow { display: inline-block; background: var(--pink); color: #12121A; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 999px; margin-bottom: 16px; transform: rotate(-2deg); }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 800; line-height: 1.2; margin: 0 0 20px; }
+  h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; margin: 36px 0 12px; }
+  p { color: var(--text); font-size: 15px; margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0; }
+  .stat-tile { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; }
+  .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: var(--lime); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+  .value-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+  .value-card .emoji { font-size: 22px; margin-bottom: 8px; }
+  .value-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 15px; margin: 0 0 6px; }
+  .value-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  .cta-box { background: linear-gradient(135deg, #1a1a26, #17171f); border: 1px solid var(--line); border-radius: 16px; padding: 26px; text-align: center; margin-top: 36px; }
+  .cta-box h2 { margin-top: 0; }
+  .btn-primary { background: var(--lime); color: #12121A; font-weight: 700; padding: 12px 24px; border-radius: 999px; font-size: 14px; text-decoration: none; display: inline-block; margin-top: 6px; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 50px; padding-top: 20px; font-size: 12px; color: var(--muted); text-align: center; }
+  footer a { color: var(--muted); text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: var(--lime); }
+  .logo-img { height: 32px; width: auto; display: block; flex-shrink: 0; }
+  .social-link { color: var(--muted); text-decoration: none; }
+  .social-link:hover { color: var(--lime); }
+
+  .faq-item { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 10px; }
+  .faq-item summary { cursor: pointer; padding: 14px 18px; font-weight: 700; font-size: 15px; list-style: none; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after { content: '+'; float: right; color: var(--lime); }
+  .faq-item[open] summary::after { content: '\2212'; }
+  .faq-item p { padding: 0 18px 14px; margin: 0; color: var(--muted); font-size: 14px; }
+  .center { text-align: center; }
+  .big { font-size: 64px; margin: 40px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="index.html" class="logo"><img class="logo-img" src="brand/logo-mark.png" alt="CircuitRun logo"> CircuitRun</a>
+    <a href="index.html" class="back-link">← Back to site</a>
+  </header>
+  <div class="center">
+    <div class="big" aria-hidden="true">✅</div>
+    <h1>Thank you!</h1>
+    <p class="muted">Your request is ready to send. WhatsApp should have opened in a new tab with your message filled in. <b>Press send there</b>, and we will reply on WhatsApp.</p>
+    <p class="muted">If WhatsApp did not open, message us on <a class="social-link" style="text-decoration:underline" href="https://www.instagram.com/circuitrun.in" target="_blank" rel="noopener">Instagram @circuitrun.in</a> instead.</p>
+    <p><a href="catalog.html" class="btn-primary">Browse the catalog</a> &nbsp; <a href="index.html" class="btn-primary" style="background:var(--bg-card);color:var(--text);border:1px solid var(--line)">Back to home</a></p>
+  </div>
+  <footer>
+    <div style="margin-bottom:10px;">CircuitRun · Serving Nerul, Vashi &amp; Belapur campuses · Navi Mumbai</div>
+    <a href="index.html">Home</a> · <a href="catalog.html">Catalog</a> · <a href="projects.html">Project Kits</a> · <a href="faq.html">FAQ</a> · <a href="about.html">About Us</a> · <a href="policy.html">Terms &amp; Policy</a> · <a class="social-link" href="https://www.instagram.com/circuitrun.in" target="_blank" rel="noopener">Instagram</a>
+  </footer>
+</div>
+<script src="analytics.js"></script>
+</body>
+</html>
