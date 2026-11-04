@@ -4,19 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project Kits for Engineering Students | CircuitRun</title>
-<link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
-<link rel="apple-touch-icon" href="brand/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/cr-icon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="brand/cr-icon-64.png">
+<link rel="apple-touch-icon" href="brand/cr-icon-180.png">
 <meta name="description" content="Ready-made component kits for engineering mini-projects, with a parts list and manual. Delivered to your campus in Navi Mumbai.">
 <link rel="canonical" href="https://viveksagare0011-debug.github.io/Circuitrun-website/projects.html">
 <meta property="og:title" content="Project Kits for Engineering Students | CircuitRun">
 <meta property="og:description" content="Ready-made component kits for engineering mini-projects, with a parts list and manual. Delivered to your campus in Navi Mumbai.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
+<meta property="og:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-circuitrun.png">
 <meta property="og:url" content="https://viveksagare0011-debug.github.io/Circuitrun-website/projects.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Project Kits for Engineering Students | CircuitRun">
 <meta name="twitter:description" content="Ready-made component kits for engineering mini-projects, with a parts list and manual. Delivered to your campus in Navi Mumbai.">
-<meta name="twitter:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-image.png">
+<meta name="twitter:image" content="https://viveksagare0011-debug.github.io/Circuitrun-website/brand/og-circuitrun.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -303,6 +304,26 @@
   #sidebarCloseBtn, #cartCloseBtn, #ordersRefreshBtn, #ordersCloseBtn { min-width: 40px; min-height: 40px; }
   .product-back-link { display: inline-block; padding: 8px 0; }
 </style>
+<style id="crFooterCss">
+.cr-footer { display: block; margin-top: 56px; padding: 40px 0 0; border-top: 1px solid var(--line, #2C2C39); text-align: left; font-size: 14px; color: var(--muted, #9A98A8); line-height: 1.6; }
+.cr-footer .cr-f-in { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.wrap .cr-footer .cr-f-in { padding: 0; }
+.cr-footer .cr-f-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
+.cr-footer .cr-f-brand p { margin: 12px 0 14px; max-width: 280px; font-size: 14px; color: var(--muted, #9A98A8); }
+.cr-footer .cr-f-logo img { height: 64px; width: auto; display: block; }
+.cr-footer h3 { margin: 0 0 12px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--text, #F4F3F7); }
+.cr-footer .cr-f-col { display: flex; flex-direction: column; gap: 8px; }
+.cr-footer a { color: var(--muted, #9A98A8); text-decoration: none; margin: 0; }
+.cr-footer a:hover, .cr-footer a:focus-visible { color: var(--lime, #C6FF3D); }
+.cr-footer .cr-f-social { display: flex; gap: 10px; }
+.cr-footer .cr-f-social a { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line, #2C2C39); display: inline-flex; align-items: center; justify-content: center; color: var(--text, #F4F3F7); }
+.cr-footer .cr-f-social a:hover { border-color: var(--lime, #C6FF3D); color: var(--lime, #C6FF3D); }
+.cr-footer .cr-f-mail { margin: 28px 0 0; padding-top: 18px; border-top: 1px solid var(--line, #2C2C39); font-size: 14px; color: var(--muted, #9A98A8); }
+.cr-footer .cr-f-mail a { color: var(--text, #F4F3F7); text-decoration: underline; overflow-wrap: anywhere; }
+.cr-footer .cr-f-bottom { margin-top: 18px; padding: 16px 0 88px; border-top: 1px solid var(--line, #2C2C39); font-size: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+@media (max-width: 760px) { .cr-footer .cr-f-grid { grid-template-columns: 1fr 1fr; gap: 28px 20px; } .cr-footer .cr-f-brand { grid-column: 1 / -1; } }
+@media (max-width: 420px) { .cr-footer .cr-f-grid { grid-template-columns: 1fr; } .cr-footer .cr-f-bottom { flex-direction: column; } }
+</style>
 </head>
 <body>
 
@@ -311,7 +332,7 @@
 <header>
   <div class="wrap headbar">
     <button id="sidebarOpenBtn" class="hamburger-btn" aria-label="Menu">☰</button>
-    <a href="index.html" style="text-decoration:none; color:inherit;"><div class="logo"><img class="logo-img" src="brand/logo-mark.png" alt="CircuitRun logo"> CircuitRun</div></a>
+    <a href="index.html" style="text-decoration:none; color:inherit;"><div class="logo"><img class="logo-img logo-full" src="brand/circuitrun-logo-sm.png" alt="CircuitRun" width="58" height="47" style="height:46px; width:auto; max-width:none; object-fit:contain;"></div></a>
     <div class="search-box">
       <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
       <input id="searchInput" placeholder="Arduino, sensors, jumper wires..." autocomplete="off">
@@ -326,7 +347,7 @@
 <div class="overlay" id="sidebarOverlay"></div>
 <div class="drawer drawer-left" id="sidebarDrawer">
   <div class="drawer-head">
-    <div class="logo" style="font-size:15px;"><img class="logo-img" style="height:26px;" src="brand/logo-mark.png" alt=""> CircuitRun</div>
+    <div class="logo" style="font-size:15px;"><img class="logo-img logo-full" src="brand/circuitrun-logo-sm.png" alt="CircuitRun" width="50" height="40" style="height:40px; width:auto; max-width:none; object-fit:contain;"></div>
     <button id="sidebarCloseBtn">✕</button>
   </div>
   <div class="sidebar-body">
@@ -335,9 +356,6 @@
     <a href="catalog.html" class="side-link" data-close-sidebar>Catalog</a>
     <a href="index.html#blog" class="side-link" data-close-sidebar>Blog</a>
     <a href="index.html#bulkRequest" class="side-link" data-close-sidebar>Request a part</a>
-    <a href="about.html" class="side-link" data-close-sidebar>About us</a>
-    <a href="policy.html" class="side-link" data-close-sidebar>Terms & policy</a>
-    <a href="https://www.instagram.com/circuitrun.in" class="side-link" target="_blank" rel="noopener" data-close-sidebar>Instagram</a>
     <div class="side-divider"></div>
     <button class="side-link side-btn" id="sideProfileBtn">My profile</button>
     <button class="side-link side-btn" id="sideOrdersBtn">My orders</button>
@@ -354,7 +372,7 @@
 <div class="modal-overlay" id="loginOverlay">
   <div class="modal login-modal">
     <div class="login-hero">
-      <div class="login-badge"><img src="brand/icon-64.png" alt="" style="width:34px;height:34px;object-fit:contain;transform:rotate(6deg);"></div>
+      <div class="login-badge"><img src="brand/cr-icon-64.png" alt="" style="width:34px;height:34px;object-fit:contain;transform:rotate(6deg);"></div>
       <h3>Welcome to CircuitRun</h3>
       <p class="desc">Login to order parts, request custom components, and track everything in one place.</p>
       <div class="login-perks">
@@ -387,8 +405,12 @@
         <input id="loginCollege" maxlength="120" required placeholder="e.g. Terna Engineering College">
       </div>
       <div class="field-group">
-        <label>Department</label>
-        <input id="loginDept" maxlength="120" required placeholder="e.g. ECE / Computer / Mechanical">
+        <label>College floor / department</label>
+        <input id="loginDept" maxlength="120" required placeholder="e.g. 3rd floor, ECE department">
+      </div>
+      <div class="field-group">
+        <label>Pincode</label>
+        <input id="loginPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" required placeholder="e.g. 400706">
       </div>
       <p id="loginError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please fill in all fields.</p>
       <button type="button" id="loginSubmitBtn" class="btn-primary" style="width:100%;">Login & start ordering</button>
@@ -422,18 +444,47 @@
     <div class="trust-card"><h3>Delivered on campus</h3><p>Hostel, department, canteen — wherever. No city trips for one IC ever again.</p></div>
   </section>
 
-  <footer>
-    <div>
-      <div class="logo disp">CircuitRun</div>
-      <p>Serving Nerul, Vashi & Belapur campuses · Navi Mumbai</p>
-    </div>
-    <div style="display:flex; gap:14px; font-size:12px;">
-      <a href="faq.html" style="color:var(--muted); text-decoration:none;">FAQ</a>
-      <a href="about.html" style="color:var(--muted); text-decoration:none;">About Us</a>
-      <a href="policy.html" style="color:var(--muted); text-decoration:none;">Terms & Policy</a>
-    </div>
-  </footer>
 </div>
+
+<!-- CR-FOOTER-START -->
+<footer class="cr-footer" id="crFooter">
+  <div class="cr-f-in">
+    <div class="cr-f-grid">
+      <div class="cr-f-brand">
+        <a class="cr-f-logo" href="index.html" aria-label="CircuitRun home"><img src="brand/circuitrun-logo-sm.png" alt="CircuitRun" width="80" height="64"></a>
+        <p>Electronics components, delivered to your campus.</p>
+        <div class="cr-f-social">
+          <a href="https://www.instagram.com/circuitrun.in" target="_blank" rel="noopener noreferrer" aria-label="CircuitRun on Instagram"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://x.com/circuitrun" target="_blank" rel="noopener noreferrer" aria-label="CircuitRun on X (Twitter)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        </div>
+      </div>
+      <nav class="cr-f-col" aria-label="Quick links">
+        <h3>Quick Links</h3>
+        <a href="index.html">Home</a>
+        <a href="catalog.html">Catalog</a>
+        <a href="projects.html">Project Kits</a>
+        <a href="about.html">About Us</a>
+      </nav>
+      <nav class="cr-f-col" aria-label="Support">
+        <h3>Support</h3>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Contact Us</a>
+        <a href="index.html#bulkRequest">Request a component</a>
+        <a href="mailto:circuitrun0411@gmail.com">Email us</a>
+      </nav>
+      <nav class="cr-f-col" aria-label="Legal">
+        <h3>Legal</h3>
+        <a href="policy.html#privacy">Privacy Policy</a>
+        <a href="policy.html">Terms &amp; Policy</a>
+        <a href="policy.html#refunds">Returns &amp; Refunds</a>
+      </nav>
+    </div>
+    <p class="cr-f-mail">For any queries, email us at <a href="mailto:circuitrun0411@gmail.com">circuitrun0411@gmail.com</a></p>
+    <div class="cr-f-bottom"><span>&copy; <span id="crYear">2026</span> CircuitRun. All rights reserved.</span><span>Serving Nerul, Vashi &amp; Belapur campuses · Navi Mumbai</span></div>
+  </div>
+</footer>
+<script>try{var y=document.getElementById('crYear');if(y)y.textContent=new Date().getFullYear();}catch(e){}</script>
+<!-- CR-FOOTER-END -->
 
 <!-- cart drawer -->
 <div class="overlay" id="overlay"></div>
@@ -490,6 +541,7 @@
       <input id="coDeliveryLocation" maxlength="300" required placeholder="e.g. Hostel Block A, Room 204 / ECE Dept staffroom">
     </div>
     <p id="deliveryError" class="hidden" style="color:var(--pink); font-size:12px; margin:-6px 0 12px;">Please tell us where to deliver this.</p>
+    <p id="coAreaMsg" class="hidden" role="alert" style="font-size:13px; line-height:1.5; margin:-2px 0 12px;"></p>
 
     <div class="box" style="text-align:center;">
       <p style="font-size:12px; color:var(--muted); margin:0 0 10px;">Scan with any UPI app to pay the advance</p>
@@ -514,7 +566,7 @@
 <div class="modal-overlay" id="profileModalOverlay">
   <div class="modal login-modal" style="max-width:400px;">
     <div class="login-hero">
-      <div class="login-badge"><img src="brand/icon-64.png" alt="" style="width:34px;height:34px;object-fit:contain;transform:rotate(6deg);"></div>
+      <div class="login-badge"><img src="brand/cr-icon-64.png" alt="" style="width:34px;height:34px;object-fit:contain;transform:rotate(6deg);"></div>
       <h3>My Profile</h3>
       <p class="desc">Your details, saved for faster checkout.</p>
     </div>
@@ -524,7 +576,8 @@
         <div class="profile-row"><span>WhatsApp</span><b id="pvPhone"></b></div>
         <div class="profile-row"><span>Year</span><b id="pvYear"></b></div>
         <div class="profile-row"><span>College</span><b id="pvCollege"></b></div>
-        <div class="profile-row"><span>Department</span><b id="pvDept"></b></div>
+        <div class="profile-row"><span>Floor / department</span><b id="pvDept"></b></div>
+        <div class="profile-row"><span>Pincode</span><b id="pvPincode"></b></div>
         <div class="profile-row"><span>Last delivery point</span><b id="pvDelivery"></b></div>
         <button class="btn-primary" style="width:100%; margin-top:14px;" id="profileEditBtn">Edit profile</button>
         <button class="btn-outline" style="width:100%; border-color:var(--pink); color:var(--pink); margin-top:8px;" id="profileLogoutBtn">Log out</button>
@@ -540,7 +593,8 @@
           </select>
         </div>
         <div class="field-group"><label>College name</label><input id="peCollege" maxlength="120"></div>
-        <div class="field-group"><label>Department</label><input id="peDept" maxlength="120"></div>
+        <div class="field-group"><label>College floor / department</label><input id="peDept" maxlength="120"></div>
+        <div class="field-group"><label>Pincode</label><input id="pePincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"></div>
         <button class="btn-primary" style="width:100%;" id="profileSaveBtn">Save changes</button>
         <button class="btn-outline" style="width:100%; background:none; border:none; color:var(--muted); margin-top:8px;" id="profileCancelBtn">Cancel</button>
       </div>
@@ -912,8 +966,39 @@ function crIsNetworkError(err){
 }
 // Saves the order and retries network errors. The same order code is used every time, so if an earlier attempt
 // did reach the database, the retry gets "duplicate key" and that is counted as saved (never a second order).
+// ---- delivery area (pincode) ----
+const CR_PIN_RE = /^[1-9][0-9]{5}$/;
+let crAreaOk = true;
+// {ok:true, area} = delivered here, {ok:false} = not (yet) served, {unknown:true} = could not check (the server still checks)
+async function crCheckPincode(pin){
+  if(!CR_PIN_RE.test(String(pin || ''))) return { ok: false };
+  if(!db) return { unknown: true };
+  try {
+    const { data, error } = await db.from('serviceable_pincodes').select('pincode,area').eq('pincode', pin).eq('active', true).limit(1);
+    if(error || !Array.isArray(data)) return { unknown: true };
+    return data.length ? { ok: true, area: data[0].area || '' } : { ok: false };
+  } catch(e){ return { unknown: true }; }
+}
+const crComingSoon = (pin) => 'Coming soon to your area. We do not deliver to pincode ' + pin + ' yet, so orders are paused for it. Message us on Instagram @circuitrun.in and we will tell you when we start.';
+async function crRefreshArea(){
+  const msg = document.getElementById('coAreaMsg'), btn = document.getElementById('confirmPayBtn');
+  const pin = String((state.user && state.user.pincode) || '');
+  msg.style.color = 'var(--muted)'; msg.textContent = 'Checking delivery to ' + pin + '...'; msg.classList.remove('hidden');
+  const r = await crCheckPincode(pin);
+  crAreaOk = r.ok !== false;
+  if(r.ok === false){ msg.style.color = 'var(--pink)'; msg.textContent = crComingSoon(pin); btn.disabled = true; btn.style.opacity = '0.5'; }
+  else { btn.disabled = false; btn.style.opacity = '1'; if(r.ok){ msg.style.color = 'var(--lime)'; msg.textContent = 'Delivering to pincode ' + pin + (r.area ? ' (' + r.area + ')' : '') + '.'; } else msg.classList.add('hidden'); }
+}
+function crAskPincode(){
+  closeDrawer(); showToast('Please add your pincode to continue.');
+  showProfileView(); profileModalOverlay.classList.add('show'); document.getElementById('profileEditBtn').click();
+  document.getElementById('pePincode').focus();
+}
+document.addEventListener('input', (e) => { if(e.target && (e.target.id === 'loginPincode' || e.target.id === 'pePincode')) e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
 function crKnownSaveError(em){
   if(/blocked_customer/.test(em)) return 'We cannot take orders from this phone number right now. Please contact us on Instagram @circuitrun.in.';
+  if(/pincode_not_serviceable/.test(em)) return crComingSoon(String((state.user && state.user.pincode) || ''));
+  if(/bad_pincode/.test(em)) return 'Please add a valid 6-digit pincode in your profile, then order again.';
   if(/rate_limited/.test(em)) return 'Too many orders were placed from this number in a short time. Please try again later, or contact us on Instagram @circuitrun.in.';
   if(/coupon_/.test(em)) return 'This coupon cannot be used (it may already be used or fully claimed). Remove the coupon and place the order again.';
   return '';
@@ -1289,6 +1374,7 @@ function showProfileView(){
   document.getElementById('pvYear').textContent = state.user.year;
   document.getElementById('pvCollege').textContent = state.user.college;
   document.getElementById('pvDept').textContent = state.user.department;
+  document.getElementById('pvPincode').textContent = state.user.pincode || 'Not added yet';
   document.getElementById('pvDelivery').textContent = state.lastDeliveryLocation || 'Not set yet';
   document.getElementById('profileView').classList.remove('hidden');
   document.getElementById('profileEdit').classList.add('hidden');
@@ -1300,6 +1386,7 @@ document.getElementById('profileEditBtn').addEventListener('click', () => {
   document.getElementById('peYear').value = state.user.year;
   document.getElementById('peCollege').value = state.user.college;
   document.getElementById('peDept').value = state.user.department;
+  document.getElementById('pePincode').value = state.user.pincode || '';
   document.getElementById('profileView').classList.add('hidden');
   document.getElementById('profileEdit').classList.remove('hidden');
 });
@@ -1311,16 +1398,18 @@ document.getElementById('profileSaveBtn').addEventListener('click', async () => 
   const year = document.getElementById('peYear').value;
   const college = document.getElementById('peCollege').value.trim();
   const department = document.getElementById('peDept').value.trim();
+  const pincode = document.getElementById('pePincode').value.trim();
   if(!name || !phone || !college || !department) return;
+  if(!CR_PIN_RE.test(pincode)){ showToast('Enter a valid 6-digit pincode.'); return; }
   if(name.length > CR_LIMITS.name || college.length > CR_LIMITS.college || department.length > CR_LIMITS.department){ showToast('Name can be up to 80 characters; college and department up to 120.'); return; }
   if(!isValidIndianPhone(phone)){ showToast('Enter a valid 10-digit mobile number.'); return; }
-  state.user = { name, phone, year, college, department };
+  state.user = { name, phone, year, college, department, pincode };
   localStorage.setItem('circuitrun_user', JSON.stringify(state.user));
   updateSidebarProfile();
   showProfileView();
 
   if(db){
-    db.rpc('upsert_customer', { p_name: name, p_phone: phone, p_year: year, p_college: college, p_department: department }).then(({error}) => {
+    db.rpc('upsert_customer', { p_name: name, p_phone: phone, p_year: year, p_college: college, p_department: department, p_pincode: pincode }).then(({error}) => {
       if(error) console.error('profile update error:', error.message || JSON.stringify(error));
     });
   }
@@ -1440,12 +1529,14 @@ document.getElementById('coUtr').addEventListener('input', (e) => {
 document.getElementById('checkoutBtn').addEventListener('click', () => { pendingOrderCode = null; });
 document.getElementById('checkoutBtn').addEventListener('click', () => {
   if(!state.user){ closeDrawer(); document.getElementById('loginOverlay').classList.add('show'); return; }
+  if(!CR_PIN_RE.test(String(state.user.pincode || ''))){ crAskPincode(); return; }
   closeDrawer();
   state.coupon = null; resetCouponUI();
   document.getElementById('coDeliveryLocation').value = state.lastDeliveryLocation || '';
   document.getElementById('deliveryError').classList.add('hidden');
   refreshCheckout();
   checkoutOverlay.classList.add('show');
+  crRefreshArea();
 });
 
 document.getElementById('coCouponApplyBtn').addEventListener('click', async () => {
@@ -1475,6 +1566,7 @@ const successOverlay = document.getElementById('successModalOverlay');
 document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   const btn = document.getElementById('confirmPayBtn');
   if(btn.disabled) return; // prevents a double-click from creating two orders
+  if(!crAreaOk){ showToast('Coming soon to your area: orders are paused for your pincode.'); return; }
   const deliveryLocation = document.getElementById('coDeliveryLocation').value.trim();
   if(!deliveryLocation){
     document.getElementById('deliveryError').classList.remove('hidden');
@@ -1517,6 +1609,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
       customer_college: state.user.college,
       customer_department: state.user.department,
       delivery_location: deliveryLocation,
+      delivery_pincode: state.user.pincode,
       batch_date: assignedBatch ? crLocalYmd(assignedBatch) : null,
       items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
       subtotal: t.subtotal,
@@ -1584,8 +1677,9 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
   const year = document.getElementById('loginYear').value;
   const college = document.getElementById('loginCollege').value.trim();
   const department = document.getElementById('loginDept').value.trim();
+  const pincode = document.getElementById('loginPincode').value.trim();
   const loginErrorEl = document.getElementById('loginError');
-  if(!name || !phone || !year || !college || !department){
+  if(!name || !phone || !year || !college || !department || !pincode){
     loginErrorEl.textContent = 'Please fill in all fields.';
     loginErrorEl.classList.remove('hidden');
     return;
@@ -1600,18 +1694,24 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
     loginErrorEl.classList.remove('hidden');
     return;
   }
+  if(!CR_PIN_RE.test(pincode)){
+    loginErrorEl.textContent = 'Enter a valid 6-digit pincode.';
+    loginErrorEl.classList.remove('hidden');
+    return;
+  }
   loginErrorEl.classList.add('hidden');
-  state.user = { name, phone, year, college, department };
+  state.user = { name, phone, year, college, department, pincode };
   localStorage.setItem('circuitrun_user', JSON.stringify(state.user));
   document.getElementById('loginOverlay').classList.remove('show');
   updateSidebarProfile();
+  crCheckPincode(pincode).then(r => { if(r.ok === false) showToast('Coming soon to your area: we do not deliver to ' + pincode + ' yet. You can still browse.'); });
   if(pendingAddId){ changeQty(pendingAddId, 1); pendingAddId = null; }
   if(pendingProjectId){ addProjectToCart(pendingProjectId); pendingProjectId = null; }
 
   // save/update customer profile (fire and forget) — upsert on phone
   // so logging in again updates the same profile instead of duplicating it
   if(db){
-    db.rpc('upsert_customer', { p_name: name, p_phone: phone, p_year: year, p_college: college, p_department: department }).then(({error}) => {
+    db.rpc('upsert_customer', { p_name: name, p_phone: phone, p_year: year, p_college: college, p_department: department, p_pincode: pincode }).then(({error}) => {
       if(error) console.error('customer save error:', error.message || JSON.stringify(error));
     });
   }

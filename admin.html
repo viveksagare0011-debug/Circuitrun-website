@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#12121A">
-<link rel="apple-touch-icon" href="brand/icon-180.png">
+<link rel="apple-touch-icon" href="brand/cr-icon-180.png">
 <title>CircuitRun — Admin</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
@@ -174,6 +174,10 @@
     #printSheet th, #printSheet td { border: 1px solid #999; padding: 5px 8px; text-align: left; color: #000; }
     #printSheet th { background: #eee; }
   }
+  .up-prev { margin: 4px 0 8px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-card); font-size: 13px; }
+  .up-prev img { display: block; max-width: 100%; max-height: 170px; border-radius: 8px; object-fit: contain; }
+  .up-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .up-row .p3-note { margin: 0; }
 </style>
 </head>
 <body>
@@ -212,6 +216,7 @@
     <button class="tab-btn" data-tab="payments">Payments</button>
     <button class="tab-btn" data-tab="content">Content</button>
     <button class="tab-btn" data-tab="reports">Reports</button>
+    <button class="tab-btn" data-tab="pincodes">Pincodes</button>
   </div>
 
   <div class="tab-panel active" id="tab-orders">
@@ -513,6 +518,28 @@
 
 <div id="printSheet" aria-hidden="true"></div>
 
+  <div class="tab-panel" id="tab-pincodes">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Serviceable pincodes</h2>
+        <p class="sub" style="margin-top:4px;">Customers can order only when the pincode in their profile is switched <b>On</b> here. Everyone else sees "Coming soon to your area" and cannot order. The database enforces this too, not only the website.</p>
+      </div>
+    </div>
+    <p class="err hidden" id="pinSetupMsg"></p>
+    <div class="p3-bar">
+      <input id="pinNew" inputmode="numeric" maxlength="6" placeholder="Pincode, e.g. 400706" aria-label="New pincode" autocomplete="off">
+      <input id="pinArea" maxlength="80" placeholder="Area name (optional)" aria-label="Area name" autocomplete="off" style="min-width:220px;">
+      <button class="add-btn" id="pinAddBtn">+ Add pincode</button>
+    </div>
+    <p class="err hidden" id="pinError" role="alert"></p>
+    <p class="p3-note" id="pinCount"></p>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+      <thead><tr><th>Pincode</th><th>Area</th><th>Delivery</th><th></th></tr></thead>
+      <tbody id="pinBody"></tbody>
+    </table></div>
+    <div id="pinEmpty" class="empty hidden">No pincodes yet. Add the pincodes you deliver to, or no one can order.</div>
+  </div>
+
 <div class="modal-overlay" id="componentModal">
   <div class="modal">
     <h3 id="componentModalTitle">Add component</h3>
@@ -559,6 +586,20 @@
       <button class="btn-secondary btn-small" id="addPartRowBtn" type="button">+ Add part</button>
     </div>
     <div class="field"><label>Build manual (step-by-step guide shown on the project page)</label><textarea id="projManual" rows="8" placeholder="e.g.&#10;1. Connect the ultrasonic sensor's VCC and GND to 5V and GND&#10;2. Connect TRIG to pin 9, ECHO to pin 10&#10;3. Upload the code and test..."></textarea></div>
+    <div class="field">
+      <label for="projImage">Project photo (JPG, PNG or WebP, up to 5 MB)</label>
+      <div id="projImgPrev" class="up-prev hidden"><img id="projImgPreview" alt="Preview of the project photo"></div>
+      <input id="projImage" type="file" accept="image/jpeg,image/png,image/webp">
+      <div class="up-row"><span class="p3-note" id="projImgInfo">No photo yet.</span><button type="button" class="btn-danger btn-small hidden" id="projImgRemove">Delete photo</button></div>
+      <p class="err hidden" id="projImgError" role="alert"></p>
+    </div>
+    <div class="field">
+      <label for="projPdf">Manual as PDF (up to 10 MB)</label>
+      <div id="projPdfPrev" class="up-prev hidden"><span id="projPdfName"></span> <a id="projPdfOpen" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Open to check</a></div>
+      <input id="projPdf" type="file" accept="application/pdf">
+      <div class="up-row"><span class="p3-note" id="projPdfInfo">No PDF yet.</span><button type="button" class="btn-danger btn-small hidden" id="projPdfRemove">Delete PDF</button></div>
+      <p class="err hidden" id="projPdfError" role="alert"></p>
+    </div>
     <div class="field"><label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px;"><input type="checkbox" id="projActive" checked style="width:auto;"> Visible on site</label></div>
     <p class="err hidden" id="projError"></p>
     <div style="display:flex; gap:10px; margin-top:16px;">
@@ -750,6 +791,7 @@ function loadAll(){
   loadCustomersTab();
   loadRefunds();
   loadAnnouncements();
+  loadPincodes();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -866,7 +908,7 @@ function renderOrdersTable(data){
     <tr style="${o.return_requested ? 'background:rgba(255,95,168,0.06);' : ''}">
       <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${escH(o.order_code)} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${safeCode(o.order_code)}')">Invoice</button></td>
       <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
-      <td>${escH(o.customer_name)}<br><a class="wa" href="https://wa.me/91${safePhone(o.customer_phone)}" target="_blank" rel="noopener">${escH(o.customer_phone)}</a><br><span style="color:var(--muted); font-size:11px;">${escH(o.customer_year)} · ${escH(o.customer_college)} · ${escH(o.customer_department)}</span><br><span style="color:var(--cyan); font-size:11px;">${escH(o.delivery_location || 'not specified')}</span></td>
+      <td>${escH(o.customer_name)}<br><a class="wa" href="https://wa.me/91${safePhone(o.customer_phone)}" target="_blank" rel="noopener">${escH(o.customer_phone)}</a><br><span style="color:var(--muted); font-size:11px;">${escH(o.customer_year)} · ${escH(o.customer_college)} · ${escH(o.customer_department)}</span><br><span style="color:var(--cyan); font-size:11px;">${escH(o.delivery_location || 'not specified')}${o.delivery_pincode ? ' · ' + escH(o.delivery_pincode) : ''}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${escH(i.name)} ×${num(i.qty)}`).join(', ')}</td>
       <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(num(o.subtotal))}</s> ${money(num(netOf(o)))}<br><span style="color:var(--lime); font-size:11px;">${escH(o.coupon_code || 'coupon')} −${money(num(o.discount))}</span>` : money(num(o.subtotal))}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(num(o.advance))} · COD: ${money(num(o.cod))}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${escH(o.payment_ref)}</span>${utrCounts[o.payment_ref] > 1 ? `<br><span style="color:var(--pink); font-size:11px; font-weight:700;">Same UTR on ${utrCounts[o.payment_ref]} orders - check the bank app</span>` : ''}<br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${safeCode(o.order_code)}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
       <td>
@@ -904,7 +946,7 @@ function csvEscape(val){
 function downloadOrdersCsv(list){
   const headers = [
     'Order No.', 'Order Code', 'Date', 'Batch Date', 'Customer Name', 'Phone', 'Year',
-    'College', 'Department', 'Delivery Location', 'Items', 'Subtotal',
+    'College', 'Department', 'Delivery Location', 'Pincode', 'Items', 'Subtotal',
     'Coupon', 'Discount', 'Order Total', 'Advance Paid', 'COD Due', 'Status',
     'Return Requested', 'Return Type', 'Return Reason'
   ];
@@ -919,6 +961,7 @@ function downloadOrdersCsv(list){
     o.customer_college || '',
     o.customer_department || '',
     o.delivery_location || '',
+    o.delivery_pincode || '',
     (o.items || []).map(i => `${i.name} x${i.qty}`).join('; '),
     o.subtotal,
     o.coupon_code || '',
@@ -1511,6 +1554,7 @@ function openProjectModal(proj){
   } else {
     addPartRow();
   }
+  pfInit(proj);
   document.getElementById('projError').classList.add('hidden');
   document.getElementById('projectModal').classList.add('show');
 }
@@ -1522,8 +1566,10 @@ function editProject(id){
 
 async function deleteProject(id, name){
   if(!confirm(`Delete "${name}"?`)) return;
+  const gone = projectsCache.find(p => p.id === id) || {};
   const { error } = await db.from('projects').delete().eq('id', id);
   if(error){ alert('Delete failed: ' + error.message); return; }
+  pfRemoveObjects([gone.image_path, gone.manual_pdf_path]);
   loadProjects();
 }
 
@@ -1552,8 +1598,16 @@ document.getElementById('projSaveBtn').addEventListener('click', async () => {
   const saveBtn = document.getElementById('projSaveBtn');
   saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
 
+  const uploaded = [];
   try {
     const payload = { name, emoji, description, info, manual, active, parts };
+    const old = id ? (projectsCache.find(p => p.id === id) || {}) : {};
+    const toDelete = [];
+    for(const [kind, key, col] of [['img', 'img', 'image_path'], ['pdf', 'pdf', 'manual_pdf_path']]){
+      const slot = pfState[key];
+      if(slot.file){ const np = await pfUpload(kind, slot.file); uploaded.push(np); payload[col] = np; if(old[col]) toDelete.push(old[col]); }
+      else if(slot.remove){ payload[col] = null; if(old[col]) toDelete.push(old[col]); }
+    }
     if(id){
       const { error } = await db.from('projects').update(payload).eq('id', id);
       if(error) throw error;
@@ -1561,15 +1615,103 @@ document.getElementById('projSaveBtn').addEventListener('click', async () => {
       const { error } = await db.from('projects').insert(payload);
       if(error) throw error;
     }
+    pfRemoveObjects(toDelete);
     document.getElementById('projectModal').classList.remove('show');
     loadProjects();
   } catch(err) {
+    pfRemoveObjects(uploaded);   // the row was not saved, so do not leave the new files behind
+    if(/image_path|manual_pdf_path/.test(err.message || '')) err = new Error('The database needs the latest update (run security_phase4.sql once in Supabase). ' + err.message);
     errEl.textContent = 'Save failed: ' + (err.message || err);
     errEl.classList.remove('hidden');
   } finally {
     saveBtn.disabled = false; saveBtn.textContent = 'Save';
   }
 });
+
+
+// ================= project photo + manual PDF (private bucket "project-files") =================
+const PF = { bucket: 'project-files', imgMax: 5 * 1024 * 1024, pdfMax: 10 * 1024 * 1024 };
+const PF_IMG = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+let pfState = null;   // { img: {path, file, remove}, pdf: {path, file, remove} }
+const pfUuid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => { const r = Math.random() * 16 | 0; return (ch === 'x' ? r : (r & 3 | 8)).toString(16); });
+const pfMB = (n) => (n / 1048576).toFixed(1) + ' MB';
+// the real content must match the type, not only the file name (first bytes of the file)
+async function pfMagicOk(file, kind){
+  try {
+    const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const at = (i, s) => s.every((v, k) => b[i + k] === v);
+    if(kind === 'pdf') return at(0, [0x25, 0x50, 0x44, 0x46, 0x2D]);
+    if(file.type === 'image/png') return at(0, [0x89, 0x50, 0x4E, 0x47]);
+    if(file.type === 'image/jpeg') return at(0, [0xFF, 0xD8, 0xFF]);
+    if(file.type === 'image/webp') return at(0, [0x52, 0x49, 0x46, 0x46]) && at(8, [0x57, 0x45, 0x42, 0x50]);
+  } catch(e){}
+  return false;
+}
+async function pfCheck(file, kind){
+  if(kind === 'pdf'){
+    if(file.type !== 'application/pdf') return 'Only a PDF file is allowed for the manual.';
+    if(file.size > PF.pdfMax) return 'This PDF is too large (' + pfMB(file.size) + '). The maximum is 10 MB.';
+  } else {
+    if(!PF_IMG[file.type]) return 'Only JPG, PNG or WebP photos are allowed.';
+    if(file.size > PF.imgMax) return 'This photo is too large (' + pfMB(file.size) + '). The maximum is 5 MB.';
+  }
+  if(file.size < 1) return 'This file is empty.';
+  if(!(await pfMagicOk(file, kind))) return 'This file is not really a ' + (kind === 'pdf' ? 'PDF' : 'JPG, PNG or WebP photo') + '. Choose the original file.';
+  return '';
+}
+async function pfSigned(path){
+  try { const r = await db.storage.from(PF.bucket).createSignedUrl(path, 600); return (r && r.data && r.data.signedUrl) || ''; } catch(e){ return ''; }
+}
+let pfObjUrl = null;
+async function pfRender(){
+  const s = pfState; if(!s) return;
+  const iPrev = document.getElementById('projImgPrev'), iEl = document.getElementById('projImgPreview'), iInfo = document.getElementById('projImgInfo');
+  const iDel = document.getElementById('projImgRemove');
+  if(pfObjUrl){ URL.revokeObjectURL(pfObjUrl); pfObjUrl = null; }
+  if(s.img.file){ pfObjUrl = URL.createObjectURL(s.img.file); iEl.src = pfObjUrl; iPrev.classList.remove('hidden'); iInfo.textContent = 'New photo: ' + s.img.file.name + ' (' + pfMB(s.img.file.size) + '). It is saved when you press Save.'; iDel.classList.remove('hidden'); iDel.textContent = 'Discard new photo'; }
+  else if(s.img.path && !s.img.remove){ iPrev.classList.remove('hidden'); iEl.removeAttribute('src'); iInfo.textContent = 'Current photo. Choose another file to replace it.'; iDel.classList.remove('hidden'); iDel.textContent = 'Delete photo';
+    const u = await pfSigned(s.img.path); if(pfState === s && !s.img.file && !s.img.remove && u) iEl.src = u; }
+  else { iPrev.classList.add('hidden'); iEl.removeAttribute('src'); iDel.classList.add('hidden'); iInfo.textContent = s.img.remove ? 'The photo will be deleted when you press Save.' : 'No photo yet.'; }
+  const pPrev = document.getElementById('projPdfPrev'), pName = document.getElementById('projPdfName'), pInfo = document.getElementById('projPdfInfo');
+  const pDel = document.getElementById('projPdfRemove'), pOpen = document.getElementById('projPdfOpen');
+  pOpen.classList.add('hidden');
+  if(s.pdf.file){ pPrev.classList.remove('hidden'); pName.textContent = s.pdf.file.name; pInfo.textContent = 'New PDF (' + pfMB(s.pdf.file.size) + '). It is saved when you press Save.'; pDel.classList.remove('hidden'); pDel.textContent = 'Discard new PDF'; }
+  else if(s.pdf.path && !s.pdf.remove){ pPrev.classList.remove('hidden'); pName.textContent = 'Manual PDF'; pInfo.textContent = 'Current manual. Choose another file to replace it.'; pDel.classList.remove('hidden'); pDel.textContent = 'Delete PDF';
+    const u = await pfSigned(s.pdf.path); if(pfState === s && u){ pOpen.href = u; pOpen.classList.remove('hidden'); } }
+  else { pPrev.classList.add('hidden'); pDel.classList.add('hidden'); pInfo.textContent = s.pdf.remove ? 'The PDF will be deleted when you press Save.' : 'No PDF yet.'; }
+}
+function pfInit(proj){
+  pfState = { img: { path: proj && proj.image_path || null, file: null, remove: false }, pdf: { path: proj && proj.manual_pdf_path || null, file: null, remove: false } };
+  document.getElementById('projImage').value = ''; document.getElementById('projPdf').value = '';
+  ['projImgError', 'projPdfError'].forEach((i) => { const e = document.getElementById(i); e.textContent = ''; e.classList.add('hidden'); });
+  pfRender();
+}
+async function pfPick(kind, input){
+  const err = document.getElementById(kind === 'pdf' ? 'projPdfError' : 'projImgError'); err.classList.add('hidden'); err.textContent = '';
+  const f = input.files && input.files[0]; if(!f) return;
+  const bad = await pfCheck(f, kind);
+  if(bad){ input.value = ''; err.textContent = bad; err.classList.remove('hidden'); return; }
+  const slot = kind === 'pdf' ? pfState.pdf : pfState.img; slot.file = f; slot.remove = false; pfRender();
+}
+document.getElementById('projImage').addEventListener('change', (e) => pfPick('img', e.target));
+document.getElementById('projPdf').addEventListener('change', (e) => pfPick('pdf', e.target));
+function pfRemoveClick(kind){
+  const slot = pfState[kind]; const input = document.getElementById(kind === 'pdf' ? 'projPdf' : 'projImage');
+  if(slot.file){ slot.file = null; input.value = ''; } else { slot.remove = true; }
+  pfRender();
+}
+document.getElementById('projImgRemove').addEventListener('click', () => pfRemoveClick('img'));
+document.getElementById('projPdfRemove').addEventListener('click', () => pfRemoveClick('pdf'));
+async function pfUpload(kind, file){
+  const path = (kind === 'pdf' ? 'manuals/' : 'photos/') + pfUuid() + '.' + (kind === 'pdf' ? 'pdf' : PF_IMG[file.type]);
+  const { error } = await db.storage.from(PF.bucket).upload(path, file, { contentType: file.type, upsert: false });
+  if(error) throw new Error('Upload failed: ' + (error.message || error) + (/bucket/i.test(error.message || '') ? ' (run security_phase4.sql once in Supabase)' : ''));
+  return path;
+}
+async function pfRemoveObjects(paths){
+  paths = paths.filter(Boolean); if(!paths.length) return;
+  try { await db.storage.from(PF.bucket).remove(paths); } catch(e){ console.error('could not remove old files:', e.message || e); }
+}
 
 let blogCache = [];
 
@@ -2408,6 +2550,52 @@ $id('rpPdfBtn').addEventListener('click', () => {
   window.print();
 });
 rpDefaults();
+
+// ================= serviceable pincodes =================
+const PIN_RE = /^[1-9][0-9]{5}$/;
+let pincodesCache = [];
+async function loadPincodes(){
+  const { data, error } = await db.from('serviceable_pincodes').select('*').order('pincode');
+  pincodesCache = error ? [] : (data || []);
+  const e = $id('pinSetupMsg');
+  if(error){ e.textContent = /does not exist|relation|schema cache|could not find/i.test(error.message || '') ? 'Pincodes need the latest database update: run security_phase4.sql once in Supabase (SQL Editor).' : 'Could not load pincodes: ' + error.message; e.classList.remove('hidden'); }
+  else e.classList.add('hidden');
+  renderPincodes();
+}
+function renderPincodes(){
+  const body = $id('pinBody'); if(!body) return;
+  const on = pincodesCache.filter(x => x.active).length;
+  $id('pinCount').textContent = pincodesCache.length ? `${on} pincode(s) On, ${pincodesCache.length - on} Off.` : '';
+  body.innerHTML = pincodesCache.map(x => `<tr data-pin="${escH(x.pincode)}"><td class="mono">${escH(x.pincode)}</td><td>${escH(x.area || '')}</td>
+    <td>${x.active ? '<span class="tag tag-ok">On</span>' : '<span class="tag tag-bad">Off</span>'}</td>
+    <td><button class="btn-secondary btn-small" data-act="toggle">${x.active ? 'Switch off' : 'Switch on'}</button> <button class="btn-danger btn-small" data-act="remove">Remove</button></td></tr>`).join('');
+  $id('pinEmpty').classList.toggle('hidden', pincodesCache.length > 0);
+}
+$id('pinNew').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+$id('pinAddBtn').addEventListener('click', async () => {
+  const pin = $id('pinNew').value.trim(), area = $id('pinArea').value.trim();
+  if(!PIN_RE.test(pin)) return showErr('pinError', 'A pincode is exactly 6 digits and does not start with 0.');
+  if(area.length > 80) return showErr('pinError', `The area name can be at most 80 characters (now ${area.length}).`);
+  if(pincodesCache.some(x => x.pincode === pin)) return showErr('pinError', 'This pincode is already in the list.');
+  hideErr('pinError');
+  const { error } = await db.from('serviceable_pincodes').insert({ pincode: pin, area: area || null, active: true });
+  if(error) return showErr('pinError', /duplicate|unique/i.test(error.message) ? 'This pincode is already in the list.' : 'Could not add: ' + error.message);
+  $id('pinNew').value = ''; $id('pinArea').value = ''; loadPincodes();
+});
+$id('pinBody').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act]'); const tr = e.target.closest('tr[data-pin]'); if(!b || !tr) return;
+  const pin = tr.dataset.pin; const row = pincodesCache.find(x => x.pincode === pin); if(!row) return;
+  hideErr('pinError');
+  if(b.dataset.act === 'toggle'){
+    const { error } = await db.from('serviceable_pincodes').update({ active: !row.active }).eq('pincode', pin);
+    if(error) return showErr('pinError', 'Could not save: ' + error.message);
+  } else {
+    if(!confirm(`Remove pincode ${pin}${row.area ? ' (' + row.area + ')' : ''}? Customers there will not be able to order. (You can also just switch it off.)`)) return;
+    const { error } = await db.from('serviceable_pincodes').delete().eq('pincode', pin);
+    if(error) return showErr('pinError', 'Could not remove: ' + error.message);
+  }
+  loadPincodes();
+});
 </script>
 </body>
 </html>
