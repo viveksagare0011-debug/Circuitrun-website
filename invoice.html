@@ -5,8 +5,9 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Invoice — CircuitRun</title>
-<link rel="icon" type="image/png" sizes="64x64" href="brand/icon-64.png">
-<link rel="apple-touch-icon" href="brand/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/cr-icon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="brand/cr-icon-64.png">
+<link rel="apple-touch-icon" href="brand/cr-icon-180.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -30,6 +31,10 @@
   .inv-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 20px; }
   .inv-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 20px; }
   .inv-logo .bolt { color: var(--lime); }
+  /* the logo has light letters, so it always sits on a dark badge, on screen and on paper */
+  .inv-logo-badge { display: inline-flex; align-items: center; background: #12121A; border-radius: 12px; padding: 6px 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .inv-logo-badge img { height: 46px; width: auto; display: block; max-width: none; }
+  .inv-logo-text { color: #fff; font-weight: 800; font-size: 18px; }
   .inv-meta { text-align: right; font-size: 12px; color: var(--muted); }
   .inv-meta .code { color: var(--text); font-weight: 700; font-size: 14px; font-family: 'IBM Plex Mono', monospace; }
 
@@ -42,6 +47,9 @@
   .inv-table td { padding: 10px 6px; font-size: 13px; border-bottom: 1px solid var(--line); }
   .inv-table td.num, .inv-table th.num { text-align: right; }
 
+  .inv-sum { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 4px; }
+  .inv-stamp { width: 140px; height: 140px; flex: 0 0 auto; color: #4ADE80; opacity: .92; }
+  .inv-stamp svg { width: 100%; height: 100%; display: block; }
   .inv-totals { margin-left: auto; width: 240px; }
   .inv-totals .row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; }
   .inv-totals .row.grand { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px; font-weight: 800; font-size: 15px; }
@@ -57,6 +65,8 @@
     .invoice-card { border: none; background: #fff; color: #000; padding: 0; }
     .inv-logo, .inv-col-value, .inv-table td, .inv-totals .row { color: #000; }
     .inv-meta, .inv-col-label, .inv-footer-note, .inv-table th { color: #555; }
+    .inv-meta .code, .inv-thanks { color: #000 !important; }
+    .inv-stamp { color: #1B7F4B; mix-blend-mode: multiply; opacity: .92; }
     .inv-header, .inv-table th, .inv-table td, .inv-totals .row.grand { border-color: #ccc; }
   }
   .logo-img { height: 32px; width: auto; display: block; flex-shrink: 0; }
@@ -82,7 +92,7 @@
 
   <div class="invoice-card hidden" id="invoiceCard">
     <div class="inv-header">
-      <div class="inv-logo" style="display:flex; align-items:center; gap:10px;"><img src="brand/icon-180.png" alt="" style="height:38px; width:38px; border-radius:9px;"> CircuitRun</div>
+      <div class="inv-logo"><span class="inv-logo-badge"><img src="brand/circuitrun-logo-sm.png" alt="CircuitRun" width="58" height="47" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="inv-logo-text" style="display:none;">CircuitRun</span></span></div>
       <div class="inv-meta">
         <div class="code" id="invOrderCode"></div>
         <div id="invDate"></div>
@@ -106,7 +116,10 @@
       <tbody id="invItemsBody"></tbody>
     </table>
 
-    <div class="inv-totals" id="invTotals"></div>
+    <div class="inv-sum">
+      <div class="inv-stamp hidden" id="invStamp"></div>
+      <div class="inv-totals" id="invTotals"></div>
+    </div>
 
     <div class="inv-footer-note">
       <div id="invPayNote">Advance paid online at checkout. Remaining balance is due in cash on delivery.</div>
@@ -114,7 +127,7 @@
       or message us on WhatsApp with your order code.
       <div style="margin-top:10px;">This is a computer-generated invoice and needs no signature. It is produced live from the order record
       <span class="mono" id="invRef"></span>, so the status and amounts shown always match what our system holds.</div>
-      <div style="margin-top:10px; font-weight:700; color:var(--text);">Thank you for ordering from CircuitRun. Visit again for your next components and project kits!</div>
+      <div class="inv-thanks" style="margin-top:10px; font-weight:700; color:var(--text);">Thank you for ordering from CircuitRun. Visit again for your next components and project kits!</div>
     </div>
   </div>
 </div>
@@ -127,6 +140,25 @@ let db = null;
 try { db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.error('Supabase failed to load', e); }
 
 function money(n){ return "₹" + n; }
+
+// The "DELIVERED" stamp. It is drawn only for an order whose status is Delivered, with the date the order was marked delivered.
+function crStampSvg(deliveredAt){
+  var d = deliveredAt ? new Date(deliveredAt) : null;
+  var dateText = (d && !isNaN(d)) ? d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).toUpperCase() : '';
+  var F = "'Space Grotesk','Arial Black',Arial,sans-serif", M = "'IBM Plex Mono','Courier New',monospace";
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Delivered' + (dateText ? ' on ' + dateText : '') + ', CircuitRun campus delivery">' +
+    '<defs><filter id="crRough" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"/>' +
+    '<feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -7 4.7" result="h"/><feComposite in="SourceGraphic" in2="h" operator="in"/></filter>' +
+    '<path id="crArcTop" d="M 38,120 A 82,82 0 0 1 202,120"/><path id="crArcBot" d="M 28,120 A 92,92 0 0 0 212,120"/></defs>' +
+    '<g filter="url(#crRough)" fill="none" stroke="currentColor" transform="rotate(-14 120 120)">' +
+    '<circle cx="120" cy="120" r="112" stroke-width="5"/><circle cx="120" cy="120" r="104" stroke-width="1.6"/><circle cx="120" cy="120" r="66" stroke-width="1.6"/>' +
+    '<text font-family="' + F + '" font-weight="800" font-size="19" letter-spacing="3.5" fill="currentColor" stroke="none"><textPath href="#crArcTop" startOffset="50%" text-anchor="middle">CIRCUITRUN</textPath></text>' +
+    '<text font-family="' + F + '" font-weight="700" font-size="13" letter-spacing="2.2" fill="currentColor" stroke="none"><textPath href="#crArcBot" startOffset="50%" text-anchor="middle">CAMPUS DELIVERY</textPath></text>' +
+    '<text x="120" y="' + (dateText ? 118 : 126) + '" text-anchor="middle" font-family="' + F + '" font-weight="900" font-size="25" letter-spacing="1" fill="currentColor" stroke="none">DELIVERED</text>' +
+    (dateText ? '<line x1="70" y1="127" x2="170" y2="127" stroke-width="2"/><text x="120" y="147" text-anchor="middle" font-family="' + M + '" font-weight="700" font-size="15" fill="currentColor" stroke="none">' + dateText + '</text>' : '') +
+    '<text x="38" y="124" font-size="14" fill="currentColor" stroke="none" font-family="Arial,sans-serif">&#9733;</text><text x="190" y="124" font-size="14" fill="currentColor" stroke="none" font-family="Arial,sans-serif">&#9733;</text></g></svg>';
+}
+
 
 document.getElementById('printBtn').addEventListener('click', () => window.print());
 
@@ -183,6 +215,9 @@ async function loadInvoice(){
     `).join('');
 
     const paidInFull = data.status === 'Delivered';
+    const stampEl = document.getElementById('invStamp');
+    if(paidInFull){ stampEl.innerHTML = crStampSvg(data.delivered_at); stampEl.classList.remove('hidden'); }
+    else { stampEl.innerHTML = ''; stampEl.classList.add('hidden'); }
     document.getElementById('invTotals').innerHTML = `
       <div class="row"><span>Subtotal</span><span class="mono">${money(data.subtotal)}</span></div>
       ${data.discount > 0 ? `

@@ -453,7 +453,7 @@
 
   <section class="trust-cards">
     <div class="trust-card"><h3>Cash on delivery</h3><p>Pay a small amount online to lock the order, rest in cash when it lands in your hand.</p></div>
-    <div class="trust-card"><h3>Fixed batch runs</h3><p>Lamington Road runs happen every Tue & Fri — order before cutoff to make the trip.</p></div>
+    <div class="trust-card"><h3>Fixed batch runs</h3><p>Lamington Road runs happen every Tue & Fri. Order Tue–Thu for the next Tuesday, or Fri–Mon for the next Friday.</p></div>
     <div class="trust-card"><h3>Delivered on campus</h3><p>Hostel, department, canteen — wherever. No city trips for one IC ever again.</p></div>
   </section>
 
@@ -482,6 +482,7 @@
         <h3>Support</h3>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact Us</a>
+        <a href="report-bug.html">Report a bug</a>
         <a href="index.html#bulkRequest">Request a component</a>
         <a href="mailto:circuitrun0411@gmail.com">Email us</a>
       </nav>
@@ -869,26 +870,33 @@ function isValidIndianPhone(phone){
 }
 
 // ---- Batch-run auto assignment ----
-// Runs happen every Tuesday (2) and Friday (5). An order only makes it
-// into a run if it's placed at least MIN_LEAD_DAYS before that run date —
-// e.g. if the run is tomorrow, today's order is too late and rolls over
-// to the next run after that, since there isn't enough time to source
-// and pack it in a single day.
-const BATCH_WEEKDAYS = [2, 5]; // Tue, Fri
-const MIN_LEAD_DAYS = 2;
-
-function getAssignedBatch(fromDate = new Date()){
-  const base = new Date(fromDate);
+// Delivery rule: an order placed Tuesday to Thursday goes out on the NEXT Tuesday;
+// an order placed Friday to Monday goes out on the NEXT Friday. That keeps at least 4 days to source and pack.
+// The admin can move one run to another date (table delivery_overrides, kept in crDeliveryOverrides).
+let crDeliveryOverrides = {};
+function crRuleBatch(fromDate){
+  const base = new Date(fromDate || new Date());
   base.setHours(0,0,0,0);
-  for(let i = 1; i <= 14; i++){
-    const candidate = new Date(base);
-    candidate.setDate(base.getDate() + i);
-    if(BATCH_WEEKDAYS.includes(candidate.getDay()) && i >= MIN_LEAD_DAYS){
-      return candidate;
-    }
-  }
-  return null;
+  const dow = base.getDay();                                   // 0 Sun ... 6 Sat
+  const add = (dow >= 2 && dow <= 4) ? 9 - dow : ((5 - dow + 7) % 7 || 7);
+  const d = new Date(base); d.setDate(base.getDate() + add);
+  return d;
 }
+function getAssignedBatch(fromDate = new Date()){
+  const d = crRuleBatch(fromDate);
+  const o = crDeliveryOverrides[crLocalYmd(d)];
+  return o ? new Date(o + 'T00:00:00') : d;
+}
+async function crLoadDeliveryOverrides(){
+  try {
+    if(!db) return;
+    const { data, error } = await db.from('delivery_overrides').select('run_date,new_date').limit(100);
+    if(error || !Array.isArray(data)) return;
+    const m = {}; data.forEach(r => { if(r && r.run_date && r.new_date) m[r.run_date] = r.new_date; });
+    crDeliveryOverrides = m;
+  } catch(e) {}
+}
+crLoadDeliveryOverrides();
 
 function formatBatchDate(date){
   if(!date) return 'the next available run';
@@ -1009,6 +1017,7 @@ function crAskPincode(){
 }
 document.addEventListener('input', (e) => { if(e.target && (e.target.id === 'loginPincode' || e.target.id === 'pePincode')) e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
 function crKnownSaveError(em){
+  if(/bad_batch_date/.test(em)) return 'The delivery date has just changed. Please refresh the page and place the order again.';
   if(/blocked_customer/.test(em)) return 'We cannot take orders from this phone number right now. Please contact us on Instagram @circuitrun.in.';
   if(/pincode_not_serviceable/.test(em)) return crComingSoon(String((state.user && state.user.pincode) || ''));
   if(/bad_pincode/.test(em)) return 'Please add a valid 6-digit pincode in your profile, then order again.';
@@ -1647,6 +1656,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   const reusedCode = !!pendingOrderCode;
   let orderCode = pendingOrderCode || crNewOrderCode();
   pendingOrderCode = orderCode;
+  await crLoadDeliveryOverrides();
   const assignedBatch = getAssignedBatch();
   const batchLabel = formatBatchDate(assignedBatch);
   const order = {
@@ -2145,6 +2155,8 @@ renderChips();
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
 })();
 </script>
-<script src="analytics.js"></script>
+<script src="analytics.js">
+</script>
+<script src="site-notice.js" defer></script>
 </body>
 </html>
