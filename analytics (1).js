@@ -1,7 +1,7 @@
-// Google Analytics (optional). Paste your Measurement ID between the quotes, like "G-ABC123XYZ9".
-// While it is empty, nothing is loaded and no visit data is collected.
+// Google Analytics. The Measurement ID is set below. To switch analytics off, make the ID empty ("").
+// While the ID is empty, nothing is loaded and no visit data is collected.
 (function () {
-  var GA_ID = "";
+  var GA_ID = "G-RXDF1D49HP";
   if (!/^G-[A-Z0-9]{6,14}$/.test(GA_ID)) return;
   if (navigator.doNotTrack === "1") return;   // respect the browser's Do Not Track setting
   window.dataLayer = window.dataLayer || [];
