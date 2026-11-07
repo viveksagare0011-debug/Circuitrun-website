@@ -232,8 +232,8 @@
     },
     delivery: function (h, text) {
       var r = R(), when = batchFor(text), nb = when.label;
-      T(r, pick('We deliver in batch runs every **Tuesday and Friday**. An order must be placed at least 2 days before a run to make it; otherwise it rolls to the next run. Delivery goes to the campus location you enter at checkout.',
-        'Hum batch runs mein deliver karte hain — har **Tuesday aur Friday**. Order run se kam se kam 2 din pehle hona chahiye, warna agle run mein jaata hai. Delivery checkout mein diye gaye campus location pe hoti hai.', h));
+      T(r, pick('We deliver in batch runs every **Tuesday and Friday**. An order placed **Tuesday to Thursday** is delivered on the **next Tuesday**, and an order placed **Friday to Monday** on the **next Friday**. Delivery goes to the campus location you enter at checkout.',
+        'Hum batch runs mein deliver karte hain — har **Tuesday aur Friday**. **Mangal se Guruvar** ke order **agle Tuesday** ko aur **Shukra se Somvar** ke order **agle Friday** ko deliver hote hain. Delivery checkout mein diye gaye campus location pe hoti hai.', h));
       if (nb) T(r, pick('If you order ' + when.en + ', your batch would be: **' + nb + '**.', 'Agar ' + when.hi + ' order karo to tumhara batch: **' + nb + '**.', h));
       T(r, pick('Sometimes a run can slip by a day — we tell you on WhatsApp if that happens.', 'Kabhi kabhi run ek din late ho sakta hai — aisa hua to WhatsApp pe bata dete hain.', h));
       r.chips = [pick('Which areas do you serve?', 'Kaun se areas mein delivery hai?', h), pick('Payment kaise hota hai?', 'Payment kaise hota hai?', h)];
