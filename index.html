@@ -1009,7 +1009,7 @@ const CAT_ICON = {
 };
 
 const ADVANCE_PCT = 0.2;
-// charges on top of the parts: 2% handling on what the customer pays for the parts, and Rs.59 delivery unless the cart is Rs.499 or more
+// charges on top of the parts: 2% handling on the cart value, and Rs.59 delivery unless the cart is Rs.499 or more
 const HANDLING_PCT = 2, FREE_DELIVERY_MIN = 499, DELIVERY_FEE = 59;
 function crHandling(net){ return Math.floor((net * HANDLING_PCT + 50) / 100); }      // whole-rupee rounding, halves go up (same as the database)
 function crDelivery(cartValue){ return cartValue >= FREE_DELIVERY_MIN ? 0 : DELIVERY_FEE; }   // judged on the cart value before any coupon
@@ -1730,7 +1730,7 @@ function totalsWithCoupon(){
   if(!state.coupon) return { ...base, discount: 0 };
   const { discount } = couponDiscount(state.coupon, cartItems());
   const net = base.subtotal - discount;
-  const handling = crHandling(net);                     // 2% of what is paid for the parts after the coupon
+  const handling = base.handling;                       // 2% of the cart value before the coupon, so a coupon does not change it
   const total = net + handling + base.delivery;          // delivery stays as judged on the full cart value
   const advance = Math.max(1, Math.round(total * ADVANCE_PCT));
   return { ...base, discount, handling, total, advance, cod: total - advance };
