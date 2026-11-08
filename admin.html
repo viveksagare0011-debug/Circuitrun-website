@@ -217,6 +217,7 @@
     <button class="tab-btn" data-tab="content">Content</button>
     <button class="tab-btn" data-tab="reports">Reports</button>
     <button class="tab-btn" data-tab="pincodes">Pincodes</button>
+    <button class="tab-btn" data-tab="dates">Delivery dates</button>
   </div>
 
   <div class="tab-panel active" id="tab-orders">
@@ -518,6 +519,30 @@
 
 <div id="printSheet" aria-hidden="true"></div>
 
+  <div class="tab-panel" id="tab-dates">
+    <div class="topbar" style="margin-bottom:0;">
+      <div>
+        <h2>Delivery dates</h2>
+        <p class="sub" style="margin-top:4px;">Rule: an order placed <b>Tuesday to Thursday</b> is delivered on the <b>next Tuesday</b>; an order placed <b>Friday to Monday</b> on the <b>next Friday</b>. If a run has to move (holiday, trip changed), pick it below and choose another date. Customers who order after that see the new date, and the database accepts only the new date for that run. Orders already placed keep their date unless you change them in the Orders tab.</p>
+      </div>
+    </div>
+    <p class="err hidden" id="dtSetupMsg"></p>
+    <h3 style="margin:18px 0 8px; font-size:15px;">Upcoming runs</h3>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+      <thead><tr><th>Run</th><th>Takes orders placed</th><th>Delivery date now</th><th></th></tr></thead>
+      <tbody id="dtRuns"></tbody>
+    </table></div>
+    <h3 style="margin:22px 0 8px; font-size:15px;">Move a run</h3>
+    <div class="p3-bar">
+      <select id="dtRun" aria-label="Run to move" style="min-width:230px;"></select>
+      <input id="dtNew" type="date" aria-label="New delivery date">
+      <input id="dtNote" maxlength="120" placeholder="Reason (optional, only you see it)" aria-label="Reason" autocomplete="off" style="min-width:220px;">
+      <button class="add-btn" id="dtAddBtn">Move run</button>
+    </div>
+    <p class="err hidden" id="dtError" role="alert"></p>
+    <p class="p3-note">The new date can be at most 14 days before or after the normal run date. Remove the change to go back to the normal date.</p>
+  </div>
+
   <div class="tab-panel" id="tab-pincodes">
     <div class="topbar" style="margin-bottom:0;">
       <div>
@@ -792,6 +817,7 @@ function loadAll(){
   loadRefunds();
   loadAnnouncements();
   loadPincodes();
+  loadDeliveryDates();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -807,7 +833,7 @@ let lastOrderCount = null;
 
 function getLastSeen(){ try { return Number(localStorage.getItem('cr_admin_lastseen') || 0); } catch(e){ return 0; } }
 function setLastSeen(ts){ try { localStorage.setItem('cr_admin_lastseen', String(ts)); } catch(e){} }
-const netOf = (o) => (o.subtotal || 0) - (o.discount || 0);
+const netOf = (o) => (o.subtotal || 0) - (o.discount || 0) + (o.handling_fee || 0) + (o.delivery_fee || 0);   // everything the customer is charged
 
 function beep(){
   try {
@@ -907,10 +933,10 @@ function renderOrdersTable(data){
   body.innerHTML = data.map(o => `
     <tr style="${o.return_requested ? 'background:rgba(255,95,168,0.06);' : ''}">
       <td class="mono"><span style="color:var(--muted); font-size:11px;">#${o._sr}</span> ${escH(o.order_code)} ${new Date(o.created_at).getTime() > getLastSeen() ? '<span class="new-badge">NEW</span>' : ''}<br><span style="color:var(--muted); font-size:11px;">${new Date(o.created_at).toLocaleString()}</span><br><button class="btn-secondary btn-small" style="margin-top:6px;" onclick="openInvoice('${safeCode(o.order_code)}')">Invoice</button></td>
-      <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}</td>
+      <td class="mono" style="color:var(--lime);">${o.batch_date ? new Date(o.batch_date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'}) : '—'}<br><input type="date" value="${escH(o.batch_date || '')}" onchange="changeOrderDate('${safeCode(o.order_code)}', this.value)" aria-label="Change delivery date" title="Change delivery date" style="width:auto; padding:3px 5px; font-size:11px; margin-top:5px;"></td>
       <td>${escH(o.customer_name)}<br><a class="wa" href="https://wa.me/91${safePhone(o.customer_phone)}" target="_blank" rel="noopener">${escH(o.customer_phone)}</a><br><span style="color:var(--muted); font-size:11px;">${escH(o.customer_year)} · ${escH(o.customer_college)} · ${escH(o.customer_department)}</span><br><span style="color:var(--cyan); font-size:11px;">${escH(o.delivery_location || 'not specified')}${o.delivery_pincode ? ' · ' + escH(o.delivery_pincode) : ''}</span></td>
       <td class="items-cell">${(o.items||[]).map(i => `${escH(i.name)} ×${num(i.qty)}`).join(', ')}</td>
-      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(num(o.subtotal))}</s> ${money(num(netOf(o)))}<br><span style="color:var(--lime); font-size:11px;">${escH(o.coupon_code || 'coupon')} −${money(num(o.discount))}</span>` : money(num(o.subtotal))}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(num(o.advance))} · COD: ${money(num(o.cod))}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${escH(o.payment_ref)}</span>${utrCounts[o.payment_ref] > 1 ? `<br><span style="color:var(--pink); font-size:11px; font-weight:700;">Same UTR on ${utrCounts[o.payment_ref]} orders - check the bank app</span>` : ''}<br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${safeCode(o.order_code)}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
+      <td class="mono">${o.discount > 0 ? `<s style="color:var(--muted); font-size:11px;">${money(num(o.subtotal))}</s> ${money(num(netOf(o)))}<br><span style="color:var(--lime); font-size:11px;">${escH(o.coupon_code || 'coupon')} −${money(num(o.discount))}</span>` : money(num(netOf(o)))}${(o.handling_fee > 0 || o.delivery_fee > 0) ? `<br><span style="color:var(--muted); font-size:11px;">+ handling ${money(num(o.handling_fee))} · delivery ${o.delivery_fee > 0 ? money(num(o.delivery_fee)) : 'free'}</span>` : ''}<br><span style="color:var(--muted); font-size:11px;">Adv: ${money(num(o.advance))} · COD: ${money(num(o.cod))}</span>${o.payment_ref ? `<br><span class="mono" style="font-size:11px;">UTR ${escH(o.payment_ref)}</span>${utrCounts[o.payment_ref] > 1 ? `<br><span style="color:var(--pink); font-size:11px; font-weight:700;">Same UTR on ${utrCounts[o.payment_ref]} orders - check the bank app</span>` : ''}<br><label style="font-size:11px; cursor:pointer;"><input type="checkbox" ${o.payment_verified?'checked':''} onchange="setPaymentVerified('${safeCode(o.order_code)}', this.checked)"> ${o.payment_verified?'Verified in bank':'Verify in bank app'}</label>` : ''}</td>
       <td>
         ${o.acknowledged === false ? `<button class="add-btn" style="margin-bottom:6px; background:var(--lime); color:#000;" onclick="acceptOrder('${safeCode(o.order_code)}')">Accept order</button><br>` : ''}
         <select onchange="updateOrderStatus('${safeCode(o.order_code)}', this.value)" style="width:auto; padding:5px 8px; font-size:12px;">
@@ -947,7 +973,7 @@ function downloadOrdersCsv(list){
   const headers = [
     'Order No.', 'Order Code', 'Date', 'Batch Date', 'Customer Name', 'Phone', 'Year',
     'College', 'Department', 'Delivery Location', 'Pincode', 'Items', 'Subtotal',
-    'Coupon', 'Discount', 'Order Total', 'Advance Paid', 'COD Due', 'Status',
+    'Coupon', 'Discount', 'Handling Charge', 'Delivery Charge', 'Order Total', 'Advance Paid', 'COD Due', 'Status',
     'Return Requested', 'Return Type', 'Return Reason'
   ];
   const rows = list.map(o => [
@@ -966,6 +992,8 @@ function downloadOrdersCsv(list){
     o.subtotal,
     o.coupon_code || '',
     o.discount || 0,
+    o.handling_fee || 0,
+    o.delivery_fee || 0,
     netOf(o),
     o.advance,
     o.cod,
@@ -2596,6 +2624,72 @@ $id('pinBody').addEventListener('click', async (e) => {
   }
   loadPincodes();
 });
+// ================= delivery dates =================
+let overridesCache = [];
+const dtYmd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const dtFmt = (ymd) => new Date(ymd + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+function dtUpcomingRuns(){
+  const out = []; const base = new Date(); base.setHours(0,0,0,0);
+  for(let i = 0; i < 35 && out.length < 8; i++){
+    const d = new Date(base); d.setDate(base.getDate() + i);
+    if(d.getDay() === 2 || d.getDay() === 5) out.push(d);
+  }
+  return out;
+}
+const dtWindow = (d) => d.getDay() === 2 ? 'Tue, Wed, Thu (the week before)' : 'Fri, Sat, Sun, Mon';
+async function loadDeliveryDates(){
+  const { data, error } = await db.from('delivery_overrides').select('*').order('run_date');
+  overridesCache = error ? [] : (data || []);
+  const e = $id('dtSetupMsg');
+  if(error){ e.textContent = /does not exist|relation|schema cache|could not find/i.test(error.message || '') ? 'Changing delivery dates needs the latest database update: run security_phase5.sql once in Supabase (SQL Editor).' : 'Could not load delivery dates: ' + error.message; e.classList.remove('hidden'); }
+  else e.classList.add('hidden');
+  renderDeliveryDates();
+}
+function renderDeliveryDates(){
+  const body = $id('dtRuns'); if(!body) return;
+  const runs = dtUpcomingRuns();
+  body.innerHTML = runs.map(d => {
+    const y = dtYmd(d); const o = overridesCache.find(x => x.run_date === y);
+    return `<tr data-run="${escH(y)}"><td class="mono">${escH(dtFmt(y))}</td><td>${dtWindow(d)}</td>
+      <td>${o ? `<span class="tag tag-bad">Moved</span> <b class="mono">${escH(dtFmt(o.new_date))}</b>${o.note ? `<br><span style="color:var(--muted); font-size:11px;">${escH(o.note)}</span>` : ''}` : '<span class="mono">' + escH(dtFmt(y)) + '</span> <span style="color:var(--muted); font-size:11px;">(normal)</span>'}</td>
+      <td>${o ? '<button class="btn-secondary btn-small" data-act="undo">Remove change</button>' : ''}</td></tr>`;
+  }).join('');
+  const sel = $id('dtRun'); const keep = sel.value;
+  sel.innerHTML = runs.filter(d => !overridesCache.some(x => x.run_date === dtYmd(d))).map(d => `<option value="${escH(dtYmd(d))}">${escH(dtFmt(dtYmd(d)))}</option>`).join('');
+  if(keep) sel.value = keep;
+}
+$id('dtAddBtn').addEventListener('click', async () => {
+  const run = $id('dtRun').value, nd = $id('dtNew').value, note = $id('dtNote').value.trim();
+  if(!run) return showErr('dtError', 'Every upcoming run already has a change. Remove one first.');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(nd)) return showErr('dtError', 'Choose the new delivery date.');
+  if(nd === run) return showErr('dtError', 'The new date is the same as the normal date.');
+  const diff = Math.round((new Date(nd + 'T00:00:00') - new Date(run + 'T00:00:00')) / 864e5);
+  if(Math.abs(diff) > 14) return showErr('dtError', 'The new date can be at most 14 days before or after the normal date.');
+  if(nd < dtYmd(new Date())) return showErr('dtError', 'The new date is already in the past.');
+  if(note.length > 120) return showErr('dtError', 'The reason can be at most 120 characters.');
+  hideErr('dtError');
+  const { error } = await db.from('delivery_overrides').insert({ run_date: run, new_date: nd, note: note || null });
+  if(error) return showErr('dtError', /duplicate|unique/i.test(error.message) ? 'This run is already moved.' : 'Could not save: ' + error.message);
+  $id('dtNew').value = ''; $id('dtNote').value = ''; loadDeliveryDates();
+});
+$id('dtRuns').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act="undo"]'); const tr = e.target.closest('tr[data-run]'); if(!b || !tr) return;
+  if(!confirm('Remove the change for ' + dtFmt(tr.dataset.run) + '? New orders will get the normal date again.')) return;
+  const { error } = await db.from('delivery_overrides').delete().eq('run_date', tr.dataset.run);
+  if(error) return showErr('dtError', 'Could not remove: ' + error.message);
+  hideErr('dtError'); loadDeliveryDates();
+});
+// change the delivery date of one order (Orders tab)
+async function changeOrderDate(code, value){
+  const rerender = () => applyOrderFilters(document.getElementById('orderSearchInput').value.trim().toLowerCase());
+  const o = ordersCache.find(x => x.order_code === code); if(!o) return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value)){ rerender(); return; }
+  if(value === o.batch_date) return;
+  if(!confirm(`Change the delivery date of ${code} to ${dtFmt(value)}? The customer sees the new date in My Orders. Tell them on WhatsApp too.`)){ rerender(); return; }
+  const { error } = await db.from('orders').update({ batch_date: value }).eq('order_code', code);
+  if(error){ alert('Could not change the date: ' + error.message); rerender(); return; }
+  o.batch_date = value; rerender();
+}
 </script>
 </body>
 </html>

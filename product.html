@@ -519,6 +519,10 @@
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-foot hidden" id="drawerFoot">
     <div class="row-sb"><span>Subtotal</span><span class="mono" id="sumSubtotal"></span></div>
+    <div class="row-sb"><span>Handling charge (2%)</span><span class="mono" id="sumHandling"></span></div>
+    <div class="row-sb"><span>Delivery</span><span class="mono" id="sumDelivery"></span></div>
+    <p id="sumFreeHint" class="hidden" style="font-size:12px; color:var(--cyan); margin:2px 0 6px;"></p>
+    <div class="row-sb" style="font-weight:700;"><span>Total</span><span class="mono" id="sumTotal"></span></div>
     <div class="row-sb"><span>Pay online now (20%)</span><span class="mono" id="sumAdvance"></span></div>
     <div class="row-sb total"><span>Cash on delivery</span><span class="mono" id="sumCod"></span></div>
     <button class="btn-primary" style="width:100%; margin-top:10px;" id="checkoutBtn">Proceed to checkout →</button>
@@ -546,6 +550,9 @@
     <div class="box">
       <div class="row-sb"><span>Subtotal</span><span class="mono" id="coSubtotal"></span></div>
       <div class="row-sb hidden" id="coDiscountRow" style="color:var(--lime);"><span id="coDiscountLabel">Coupon</span><span class="mono" id="coDiscount"></span></div>
+      <div class="row-sb"><span>Handling charge (2%)</span><span class="mono" id="coHandling"></span></div>
+      <div class="row-sb"><span>Delivery</span><span class="mono" id="coDelivery"></span></div>
+      <div class="row-sb" style="font-weight:700;"><span>Total</span><span class="mono" id="coTotal"></span></div>
       <div class="row-sb" style="font-weight:700;"><span>Pay online now</span><span class="mono" id="coAdvance"></span></div>
       <div class="row-sb"><span>Due on delivery</span><span class="mono" id="coCod"></span></div>
     </div>
@@ -851,6 +858,11 @@ const CAT_ICON = {
 };
 
 const ADVANCE_PCT = 0.2;
+// charges on top of the parts: 2% handling on what the customer pays for the parts, and Rs.59 delivery unless the cart is Rs.499 or more
+const HANDLING_PCT = 2, FREE_DELIVERY_MIN = 499, DELIVERY_FEE = 59;
+function crHandling(net){ return Math.floor((net * HANDLING_PCT + 50) / 100); }      // whole-rupee rounding, halves go up (same as the database)
+function crDelivery(cartValue){ return cartValue >= FREE_DELIVERY_MIN ? 0 : DELIVERY_FEE; }   // judged on the cart value before any coupon
+function crFeeLine(n){ return n > 0 ? money(n) : 'FREE'; }
 const OWNER_WHATSAPP = "917318760011"; // +91 7318760011
 let state = { category: "All", query: "", cart: {}, user: null, orders: [], sort: "default" };
 
@@ -1078,7 +1090,7 @@ async function loadUserOrders(phone){
     const { data, error } = await db.rpc('my_orders', { p_phone: phone });
     if(!error && data){
       state.orders = data.map(o => ({
-        id: crCode(o.order_code), items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: crEsc(i && i.name), qty: crNum(i && i.qty), price: crNum(i && i.price) })), subtotal: crNum(o.subtotal),
+        id: crCode(o.order_code), items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: crEsc(i && i.name), qty: crNum(i && i.qty), price: crNum(i && i.price) })), subtotal: crNum(o.subtotal), handling: crNum(o.handling_fee), delivery: crNum(o.delivery_fee),
         discount: crNum(o.discount), couponCode: o.coupon_code ? crEsc(o.coupon_code) : null,
         advance: crNum(o.advance), cod: crNum(o.cod), status: crEsc(o.status),
         createdAt: o.created_at, deliveredAt: o.delivered_at,
@@ -1365,8 +1377,10 @@ function updateCartCount(){
 function totals(){
   const items = cartItems();
   const subtotal = items.reduce((s,i) => s + i.price*i.qty, 0);
-  const advance = Math.max(1, Math.round(subtotal * ADVANCE_PCT));
-  return {subtotal, advance, cod: subtotal - advance, count: items.reduce((s,i)=>s+i.qty,0)};
+  const handling = crHandling(subtotal), delivery = crDelivery(subtotal);
+  const total = subtotal + handling + delivery;
+  const advance = Math.max(1, Math.round(total * ADVANCE_PCT));
+  return {subtotal, handling, delivery, total, advance, cod: total - advance, count: items.reduce((s,i)=>s+i.qty,0)};
 }
 
 function renderCartDrawer(){
@@ -1395,6 +1409,12 @@ function renderCartDrawer(){
 
   const t = totals();
   document.getElementById('sumSubtotal').textContent = money(t.subtotal);
+  document.getElementById('sumHandling').textContent = money(t.handling);
+  document.getElementById('sumDelivery').textContent = crFeeLine(t.delivery);
+  document.getElementById('sumTotal').textContent = money(t.total);
+  const hint = document.getElementById('sumFreeHint');
+  if(t.delivery > 0){ hint.textContent = 'Add ' + money(FREE_DELIVERY_MIN - t.subtotal) + ' more for free delivery'; hint.classList.remove('hidden'); }
+  else hint.classList.add('hidden');
   document.getElementById('sumAdvance').textContent = money(t.advance);
   document.getElementById('sumCod').textContent = money(t.cod);
   foot.classList.remove('hidden');
@@ -1519,11 +1539,13 @@ function couponDiscount(c, items){
 // totals() plus the applied coupon (if any)
 function totalsWithCoupon(){
   const base = totals();
-  if(!state.coupon) return { ...base, discount: 0, total: base.subtotal };
+  if(!state.coupon) return { ...base, discount: 0 };
   const { discount } = couponDiscount(state.coupon, cartItems());
-  const total = base.subtotal - discount;
+  const net = base.subtotal - discount;
+  const handling = crHandling(net);                     // 2% of what is paid for the parts after the coupon
+  const total = net + handling + base.delivery;          // delivery stays as judged on the full cart value
   const advance = Math.max(1, Math.round(total * ADVANCE_PCT));
-  return { ...base, discount, total, advance, cod: total - advance };
+  return { ...base, discount, handling, total, advance, cod: total - advance };
 }
 
 async function validateCoupon(code){
@@ -1585,6 +1607,9 @@ function refreshCheckout(){
     document.getElementById('coDiscountLabel').textContent = 'Coupon ' + state.coupon.code;
     document.getElementById('coDiscount').textContent = '− ' + money(t.discount);
   } else { dRow.classList.add('hidden'); }
+  document.getElementById('coHandling').textContent = money(t.handling);
+  document.getElementById('coDelivery').textContent = crFeeLine(t.delivery);
+  document.getElementById('coTotal').textContent = money(t.total);
   document.getElementById('coAdvance').textContent = money(t.advance);
   document.getElementById('coCod').textContent = money(t.cod);
 
@@ -1678,7 +1703,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   const batchLabel = formatBatchDate(assignedBatch);
   const order = {
     id: orderCode,
-    items, subtotal: t.subtotal, advance: t.advance, cod: t.cod,
+    items, subtotal: t.subtotal, handling: t.handling, delivery: t.delivery, advance: t.advance, cod: t.cod,
     discount: t.discount, couponCode: usedCoupon ? usedCoupon.code : null,
     status: "Confirmed", time: new Date().toLocaleString(), deliveryLocation, batchLabel
   };
@@ -1698,6 +1723,8 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
       batch_date: assignedBatch ? crLocalYmd(assignedBatch) : null,
       items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
       subtotal: t.subtotal,
+      handling_fee: t.handling,
+      delivery_fee: t.delivery,
       advance: t.advance,
       cod: t.cod,
       status: "Confirmed"
@@ -1741,7 +1768,7 @@ document.getElementById('confirmPayBtn').addEventListener('click', async () => {
   checkoutOverlay.classList.remove('show');
   document.getElementById('successMsg').textContent = `Order #${order.id} is confirmed for the ${order.batchLabel} run. Pay ${money(t.cod)} in cash at delivery.`;
   document.getElementById('viewInvoiceBtn').href = `invoice.html?order=${order.id}`;
-  document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + (t.discount > 0 ? `<div class="row-sb" style="margin-top:6px; color:var(--lime);"><span>Coupon ${usedCoupon.code}</span><span class="mono">− ${money(t.discount)}</span></div>` : '') + `<div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.total)}</span></div>`;
+  document.getElementById('successItems').innerHTML = items.map(i => `<div class="row-sb"><span>${i.name} × ${i.qty}</span><span class="mono">${money(i.price*i.qty)}</span></div>`).join('') + (t.discount > 0 ? `<div class="row-sb" style="margin-top:6px; color:var(--lime);"><span>Coupon ${usedCoupon.code}</span><span class="mono">− ${money(t.discount)}</span></div>` : '') + `<div class="row-sb" style="margin-top:6px;"><span>Handling charge (2%)</span><span class="mono">${money(t.handling)}</span></div><div class="row-sb"><span>Delivery</span><span class="mono">${crFeeLine(t.delivery)}</span></div><div class="row-sb total" style="margin-top:6px;"><span>Total</span><span class="mono">${money(t.total)}</span></div>`;
   successOverlay.classList.add('show');
   setTimeout(() => burstSparks(window.innerWidth / 2, window.innerHeight * 0.35), 150);
   btn.disabled = false;
@@ -1807,7 +1834,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async () => 
     const { data, error } = await db.rpc('my_orders', { p_phone: phone });
     if(!error && data){
       state.orders = data.map(o => ({
-        id: crCode(o.order_code), items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: crEsc(i && i.name), qty: crNum(i && i.qty), price: crNum(i && i.price) })), subtotal: crNum(o.subtotal),
+        id: crCode(o.order_code), items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: crEsc(i && i.name), qty: crNum(i && i.qty), price: crNum(i && i.price) })), subtotal: crNum(o.subtotal), handling: crNum(o.handling_fee), delivery: crNum(o.delivery_fee),
         discount: crNum(o.discount), couponCode: o.coupon_code ? crEsc(o.coupon_code) : null,
         advance: crNum(o.advance), cod: crNum(o.cod), status: crEsc(o.status),
         createdAt: o.created_at, deliveredAt: o.delivered_at,
@@ -1869,7 +1896,8 @@ function renderOrdersDrawer(){
       ${o.items.map(i => `<div class="meta" style="margin-bottom:2px;">${i.name} × ${i.qty} — ${money(i.price*i.qty)}</div>`).join('')}
       ${o.batchLabel ? `<div class="meta" style="color:var(--cyan);">${o.batchLabel} run</div>` : ''}
       ${o.discount > 0 ? `<div class="row-sb" style="margin-top:8px; color:var(--lime); font-size:12px;"><span>Coupon ${o.couponCode || ''}</span><span class="mono">− ${money(o.discount)}</span></div>` : ''}
-      <div class="row-sb total" style="margin-top:${o.discount > 0 ? 4 : 8}px;"><span>Total</span><span class="mono">${money(o.subtotal - (o.discount || 0))}</span></div>
+      ${(o.handling || o.delivery) ? `<div class="row-sb" style="margin-top:4px; font-size:12px;"><span>Handling (2%)</span><span class="mono">${money(o.handling || 0)}</span></div><div class="row-sb" style="font-size:12px;"><span>Delivery</span><span class="mono">${crFeeLine(o.delivery || 0)}</span></div>` : ''}
+      <div class="row-sb total" style="margin-top:${o.discount > 0 ? 4 : 8}px;"><span>Total</span><span class="mono">${money(o.subtotal - (o.discount || 0) + (o.handling || 0) + (o.delivery || 0))}</span></div>
       <div class="meta">Paid online: ${money(o.advance)} · COD due: ${money(o.cod)}</div>
       <a href="invoice.html?order=${o.id}" target="_blank" style="display:block; text-align:center; font-size:12px; color:var(--cyan); text-decoration:none; margin-top:10px;">View invoice</a>
       ${o.returnRequested
@@ -1938,6 +1966,8 @@ function buildWhatsAppMessage(order){
     ...order.items.map(i => `• ${i.name} x${i.qty} — ${money(i.price*i.qty)}`),
     ``,
     `Subtotal: ${money(order.subtotal)}`,
+    `Handling (2%): ${money(order.handling)}`,
+    `Delivery: ${order.delivery > 0 ? money(order.delivery) : 'FREE'}`,
     `Advance (online): ${money(order.advance)}`,
     `COD due: ${money(order.cod)}`
   ];

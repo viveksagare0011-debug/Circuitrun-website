@@ -221,11 +221,17 @@ async function loadInvoice(){
     const stampEl = document.getElementById('invStamp');
     if(paidInFull){ stampEl.innerHTML = crStampSvg(data.delivered_at); stampEl.classList.remove('hidden'); }
     else { stampEl.innerHTML = ''; stampEl.classList.add('hidden'); }
+    const hFee = crN(data.handling_fee), dFee = crN(data.delivery_fee);
+    const orderTotal = crN(data.subtotal) - crN(data.discount) + hFee + dFee;
     document.getElementById('invTotals').innerHTML = `
       <div class="row"><span>Subtotal</span><span class="mono">${money(data.subtotal)}</span></div>
       ${data.discount > 0 ? `
-      <div class="row" style="color:var(--lime);"><span>Discount${data.coupon_code ? ' (' + crEsc(data.coupon_code) + ')' : ''}</span><span class="mono">− ${money(data.discount)}</span></div>
-      <div class="row" style="font-weight:700;"><span>Order total</span><span class="mono">${money(data.subtotal - data.discount)}</span></div>` : ''}
+      <div class="row" style="color:var(--lime);"><span>Discount${data.coupon_code ? ' (' + crEsc(data.coupon_code) + ')' : ''}</span><span class="mono">− ${money(data.discount)}</span></div>` : ''}
+      ${(hFee > 0 || dFee > 0) ? `
+      <div class="row"><span>Handling charge (2%)</span><span class="mono">${money(hFee)}</span></div>
+      <div class="row"><span>Delivery</span><span class="mono">${dFee > 0 ? money(dFee) : 'FREE'}</span></div>` : ''}
+      ${(data.discount > 0 || hFee > 0 || dFee > 0) ? `
+      <div class="row" style="font-weight:700;"><span>Order total</span><span class="mono">${money(orderTotal)}</span></div>` : ''}
       <div class="row"><span>Advance paid (online)</span><span class="mono">${money(data.advance)}</span></div>
       ${paidInFull
         ? `<div class="row"><span>Paid on delivery (COD)</span><span class="mono">${money(data.cod)}</span></div>

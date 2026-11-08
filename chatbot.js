@@ -162,7 +162,7 @@
     ['refund', /\b(refund|money back|paise wapas|paisa wapas|cancel(l)?(ation)?|order cancel)\b/],
     ['return', /\b(return|replace|replacement|exchange|defective|damaged|damage|kharab|toota|wapas|galat item|wrong item|warranty|guarantee)\b/],
     ['payment', /\b(pay|payment|upi|qr|advance|cod|cash on delivery|cash|gpay|phonepe|paytm|card|net banking|online payment|payment kaise)\b/],
-    ['delivery', /\b(deliver|delivery|batch|when will|kab (aayega|milega|tak|aayegi)|shipping|ship|dispatch|arrive|how long|kitne din|kitna time|time lagega|tuesday|friday|run)\b/],
+    ['delivery', /\b(deliver|delivery|charges?|handling|fees?|free delivery|batch|when will|kab (aayega|milega|tak|aayegi)|shipping|ship|dispatch|arrive|how long|kitne din|kitna time|time lagega|tuesday|friday|run)\b/],
     ['areas', /\b(nerul|vashi|belapur|cbd|navi mumbai|area|areas|location|locations|which college|kaun se college|campus|hostel|where do you deliver|kahan deliver|deliver (to|in|at))\b/],
     ['contact', /\b(contact|whatsapp|call|phone number|number|owner|founder|support|talk to|baat karni|reach|email|mail)\b/],
     ['track', /\b(track|tracking|my orders?|order status|status|where is my order|mera order|order kahan|invoice|bill|receipt)\b/],
@@ -234,6 +234,8 @@
       var r = R(), when = batchFor(text), nb = when.label;
       T(r, pick('We deliver in batch runs every **Tuesday and Friday**. An order placed **Tuesday to Thursday** is delivered on the **next Tuesday**, and an order placed **Friday to Monday** on the **next Friday**. Delivery goes to the campus location you enter at checkout.',
         'Hum batch runs mein deliver karte hain — har **Tuesday aur Friday**. **Mangal se Guruvar** ke order **agle Tuesday** ko aur **Shukra se Somvar** ke order **agle Friday** ko deliver hote hain. Delivery checkout mein diye gaye campus location pe hoti hai.', h));
+      T(r, pick('**Charges:** a **2% handling charge** is added to the parts total. Delivery is **free for carts of ₹499 or more**, and **₹59** for smaller carts. You see the exact amounts at checkout.',
+        '**Charges:** parts ke total par **2% handling charge** lagta hai. Cart **₹499 ya usse zyada** ka ho to delivery **free**, usse kam par **₹59**. Exact amount checkout mein dikhta hai.', h));
       if (nb) T(r, pick('If you order ' + when.en + ', your batch would be: **' + nb + '**.', 'Agar ' + when.hi + ' order karo to tumhara batch: **' + nb + '**.', h));
       T(r, pick('Sometimes a run can slip by a day — we tell you on WhatsApp if that happens.', 'Kabhi kabhi run ek din late ho sakta hai — aisa hua to WhatsApp pe bata dete hain.', h));
       r.chips = [pick('Which areas do you serve?', 'Kaun se areas mein delivery hai?', h), pick('Payment kaise hota hai?', 'Payment kaise hota hai?', h)];
@@ -285,7 +287,7 @@
       var r = R(), o = G(function () { return state.orders[0]; }, null);
       if (o && o.id) {
         var tail = ' (advance ' + rupee(o.advance) + ', COD ' + rupee(o.cod) + ').' + (o.batchLabel ? ' Batch run: ' + o.batchLabel + '.' : '');
-        T(r, pick('Your latest order **#' + o.id + '**: status **' + o.status + '**, total ' + rupee(o.subtotal) + tail, 'Tumhara latest order **#' + o.id + '**: status **' + o.status + '**, total ' + rupee(o.subtotal) + tail, h));
+        T(r, pick('Your latest order **#' + o.id + '**: status **' + o.status + '**, total ' + rupee(o.subtotal - (o.discount || 0) + (o.handling || 0) + (o.delivery || 0)) + tail, 'Tumhara latest order **#' + o.id + '**: status **' + o.status + '**, total ' + rupee(o.subtotal - (o.discount || 0) + (o.handling || 0) + (o.delivery || 0)) + tail, h));
         T(r, pick('All your orders are under **My Orders**.', 'Saare orders **My Orders** mein hain.', h));
         return r;
       }
